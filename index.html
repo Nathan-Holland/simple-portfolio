@@ -13,6 +13,33 @@
         }
 
         body {
+            cursor: none;
+        }
+
+        #cursor {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s ease, height 0.2s ease;
+            z-index: 99999;
+        }
+
+        #cursor.holding {
+            width: 32px;
+            height: 32px;
+        }
+
+        #cursor.over-links {
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
             background: #fff;
             color: #000;
             font-family: Helvetica, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -62,6 +89,7 @@
     </style>
 </head>
 <body>
+    <div id="cursor"></div>
     <div class="bottom">
         <div>
             <p class="bio">Nate Holland — Brand Designer @ Revolut</p>
@@ -79,6 +107,24 @@
             `Assets/portfolio_img_${String(i + 1).padStart(2, '0')}.jpg`
         ).sort(() => Math.random() - 0.5);
 
+        const cursor = document.getElementById('cursor');
+        let isOverLinks = false;
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top  = e.clientY + 'px';
+        });
+
+        const social = document.querySelector('.social');
+        social.addEventListener('mouseenter', () => {
+            isOverLinks = true;
+            cursor.classList.add('over-links');
+        });
+        social.addEventListener('mouseleave', () => {
+            isOverLinks = false;
+            cursor.classList.remove('over-links');
+        });
+
         const threshold = 160;
         const halfX = 100;
         const halfY = 75;
@@ -87,7 +133,7 @@
 
         // — Trail —
         document.addEventListener('mousemove', (e) => {
-            if (isHolding) return;
+            if (isHolding || isOverLinks) return;
 
             const x = e.clientX;
             const y = e.clientY;
@@ -129,6 +175,7 @@
 
         document.addEventListener('mousedown', (e) => {
             isHolding = true;
+            cursor.classList.add('holding');
             const cx = e.clientX;
             const cy = e.clientY;
             holdOrigin = { x: cx, y: cy };
@@ -148,6 +195,7 @@
         document.addEventListener('mouseup', () => {
             if (!isHolding) return;
             isHolding = false;
+            cursor.classList.remove('holding');
             clearInterval(holdInterval);
 
             heldImages.forEach(el => {
