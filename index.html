@@ -78,6 +78,29 @@
             text-decoration: underline;
         }
 
+        @media (max-width: 600px) {
+            body {
+                cursor: auto;
+            }
+
+            #cursor {
+                display: none;
+            }
+
+            .bio {
+                white-space: normal;
+            }
+
+            .bottom {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .social a {
+                text-align: left;
+            }
+        }
+
         .trail-img {
             position: fixed;
             pointer-events: none;
