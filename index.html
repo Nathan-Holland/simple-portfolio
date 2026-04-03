@@ -21,17 +21,17 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
 
         .bottom {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: flex-start;
         }
 
         .bio {
-            max-width: 400px;
+            white-space: nowrap;
         }
 
         .social a {
@@ -44,17 +44,129 @@
         .social a:hover {
             text-decoration: underline;
         }
+
+        .trail-img {
+            position: fixed;
+            pointer-events: none;
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
     <div class="bottom">
-        <p class="bio">Nate Holland is a British brand designer based in Barcelona, currently working at Revolut.</p>
+        <p class="bio">Nate Holland is a British Brand Designer working for Revolut.</p>
         <div class="social">
-            <a href="#">LinkedIn</a>
-            <a href="#">Email</a>
-            <a href="#">X</a>
-            <a href="#">Cosmos</a>
+            <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank">LinkedIn</a>
+            <a href="mailto:hello@nate-holland.com">Email</a>
+            <a href="https://x.com/nateh0lland" target="_blank">X</a>
+            <a href="https://www.cosmos.so/nateh0lland" target="_blank">Cosmos</a>
         </div>
     </div>
+    <script>
+        // Placeholder grey squares — replace src values with your work images
+        const images = Array.from({ length: 24 }, (_, i) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 150;
+            const ctx = canvas.getContext('2d');
+            const shade = 180 + Math.floor(Math.random() * 40);
+            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+            ctx.fillRect(0, 0, 200, 150);
+            return canvas.toDataURL();
+        });
+
+        const threshold = 160;
+        const halfX = 100;
+        const halfY = 75;
+        let imageIndex = 0;
+        const lastMousePos = { x: 0, y: 0 };
+
+        // — Trail —
+        document.addEventListener('mousemove', (e) => {
+            if (isHolding) return;
+
+            const x = e.clientX;
+            const y = e.clientY;
+            const dist = Math.hypot(x - lastMousePos.x, y - lastMousePos.y);
+            if (dist < threshold) return;
+
+            const angle = Math.atan2(y - lastMousePos.y, x - lastMousePos.x);
+            const lag = 60;
+            const fromX = x - Math.cos(angle) * lag;
+            const fromY = y - Math.sin(angle) * lag;
+            const duration = 1500 + Math.random() * 1500;
+
+            spawnTrailImage(fromX, fromY, x, y, duration);
+
+            lastMousePos.x = x;
+            lastMousePos.y = y;
+        });
+
+        function spawnTrailImage(fromX, fromY, toX, toY, duration) {
+            const el = document.createElement('img');
+            el.src = images[imageIndex % images.length];
+            el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;z-index:${imageIndex};`;
+            document.body.appendChild(el);
+            imageIndex++;
+
+            el.animate([
+                { transform: `translate(${fromX - halfX}px, ${fromY - halfY}px)`, opacity: 0, offset: 0    },
+                { transform: `translate(${toX - halfX}px,   ${toY - halfY}px)`,   opacity: 1, offset: 0.15 },
+                { transform: `translate(${toX - halfX}px,   ${toY - halfY}px)`,   opacity: 1, offset: 0.85 },
+                { transform: `translate(${toX - halfX}px,   ${toY - halfY}px)`,   opacity: 0, offset: 1    }
+            ], { duration, easing: 'ease-out', fill: 'forwards' }).onfinish = () => el.remove();
+        }
+
+        // — Click & hold explosion —
+        let isHolding = false;
+        let holdInterval = null;
+        const heldImages = [];
+        let holdOrigin = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', (e) => {
+            isHolding = true;
+            const cx = e.clientX;
+            const cy = e.clientY;
+            holdOrigin = { x: cx, y: cy };
+
+            holdInterval = setInterval(() => {
+                const ox = (Math.random() - 0.5) * 30;
+                const oy = (Math.random() - 0.5) * 30;
+                const el = document.createElement('img');
+                el.src = images[imageIndex % images.length];
+                el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;z-index:${1000 + heldImages.length};transform:translate(${cx - halfX + ox}px,${cy - halfY + oy}px);`;
+                document.body.appendChild(el);
+                heldImages.push(el);
+                imageIndex++;
+            }, 120);
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isHolding) return;
+            isHolding = false;
+            clearInterval(holdInterval);
+
+            heldImages.forEach(el => {
+                const angle  = Math.random() * Math.PI * 2;
+                const tx = Math.random() * (window.innerWidth  - 200);
+                const ty = Math.random() * (window.innerHeight - 150);
+                const from   = el.style.transform;
+                const dur    = 150 + Math.random() * 100;
+                const hold   = 2000 + Math.random() * 1500;
+
+                el.animate([
+                    { transform: from,                                      opacity: 1, offset: 0 },
+                    { transform: `translate(${tx}px, ${ty}px)`,            opacity: 1, offset: dur / (dur + hold) },
+                    { transform: `translate(${tx}px, ${ty}px)`,            opacity: 0, offset: 1 }
+                ], { duration: dur + hold, easing: 'cubic-bezier(0.1, 0, 0.3, 1)', fill: 'forwards' })
+                .onfinish = () => el.remove();
+            });
+
+            heldImages.length = 0;
+        });
+    </script>
 </body>
 </html>
