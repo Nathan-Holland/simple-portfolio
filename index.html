@@ -34,6 +34,12 @@
             white-space: nowrap;
         }
 
+        .prev {
+            opacity: 0.65;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
         .social a {
             color: #000;
             text-decoration: none;
@@ -57,7 +63,10 @@
 </head>
 <body>
     <div class="bottom">
-        <p class="bio">Nate Holland is a British Brand Designer working for Revolut.</p>
+        <div>
+            <p class="bio">Nate Holland — Brand Designer @ Revolut</p>
+            <p class="bio prev">Designed for Series Eight, Wedge, NoTwoWays, Tottenham Hotspurs, OpenFortune, Preply & Asda</p>
+        </div>
         <div class="social">
             <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank">LinkedIn</a>
             <a href="mailto:hello@nate-holland.com">Email</a>
@@ -66,17 +75,9 @@
         </div>
     </div>
     <script>
-        // Placeholder grey squares — replace src values with your work images
-        const images = Array.from({ length: 24 }, (_, i) => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 200;
-            canvas.height = 150;
-            const ctx = canvas.getContext('2d');
-            const shade = 180 + Math.floor(Math.random() * 40);
-            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
-            ctx.fillRect(0, 0, 200, 150);
-            return canvas.toDataURL();
-        });
+        const images = Array.from({ length: 24 }, (_, i) =>
+            `assets/portfolio_img_${String(i + 1).padStart(2, '0')}.jpg`
+        ).sort(() => Math.random() - 0.5);
 
         const threshold = 160;
         const halfX = 100;
@@ -155,7 +156,7 @@
                 const ty = Math.random() * (window.innerHeight - 150);
                 const from   = el.style.transform;
                 const dur    = 150 + Math.random() * 100;
-                const hold   = 2000 + Math.random() * 1500;
+                const hold   = 4000 + Math.random() * 3000;
 
                 el.animate([
                     { transform: from,                                      opacity: 1, offset: 0 },

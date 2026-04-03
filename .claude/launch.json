@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "cd /Users/nateholland/Documents/VibeCoding/simpleFolio && /usr/bin/python3 -m http.server 8000"],
+      "port": 8000,
+      "autoPort": false
+    }
+  ]
+}
