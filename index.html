@@ -107,8 +107,7 @@
             width: 200px;
             height: 150px;
             object-fit: cover;
-            z-index: 999;
-        }
+                    }
     </style>
 </head>
 <body>
@@ -148,11 +147,22 @@
             cursor.classList.remove('over-links');
         });
 
-        const threshold = 160;
+        const threshold = 60;
         const halfX = 100;
         const halfY = 75;
+        const baseZIndex = 0;
+        const zIndexDirection = 'new-on-top';
         let imageIndex = 0;
         const lastMousePos = { x: 0, y: 0 };
+        const activeTrailEls = [];
+
+        function assignZIndices() {
+            activeTrailEls.forEach((el, i) => {
+                el.style.zIndex = zIndexDirection === 'new-on-top'
+                    ? baseZIndex + i
+                    : baseZIndex + (activeTrailEls.length - 1 - i);
+            });
+        }
 
         // — Trail —
         document.addEventListener('mousemove', (e) => {
@@ -163,31 +173,34 @@
             const dist = Math.hypot(x - lastMousePos.x, y - lastMousePos.y);
             if (dist < threshold) return;
 
-            const angle = Math.atan2(y - lastMousePos.y, x - lastMousePos.x);
-            const lag = 60;
-            const fromX = x - Math.cos(angle) * lag;
-            const fromY = y - Math.sin(angle) * lag;
-            const duration = 1500 + Math.random() * 1500;
-
-            spawnTrailImage(fromX, fromY, x, y, duration);
+            spawnTrailImage(x, y);
 
             lastMousePos.x = x;
             lastMousePos.y = y;
         });
 
-        function spawnTrailImage(fromX, fromY, toX, toY, duration) {
+        function spawnTrailImage(x, y) {
             const el = document.createElement('img');
             el.src = images[imageIndex % images.length];
-            el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;z-index:${imageIndex};`;
+            el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;`;
             document.body.appendChild(el);
             imageIndex++;
 
+            activeTrailEls.push(el);
+            assignZIndices();
+
+            const tx = x - halfX;
+            const ty = y - halfY;
+
             el.animate([
-                { transform: `translate(${fromX - halfX}px, ${fromY - halfY}px)`, opacity: 0, offset: 0    },
-                { transform: `translate(${toX - halfX}px,   ${toY - halfY}px)`,   opacity: 1, offset: 0.15 },
-                { transform: `translate(${toX - halfX}px,   ${toY - halfY}px)`,   opacity: 1, offset: 0.85 },
-                { transform: `translate(${toX - halfX}px,   ${toY - halfY}px)`,   opacity: 0, offset: 1    }
-            ], { duration, easing: 'ease-out', fill: 'forwards' }).onfinish = () => el.remove();
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0, offset: 0    },
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 1, offset: 0.15 },
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 1, offset: 0.85 },
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0, offset: 1    }
+            ], { duration: 2000, easing: 'ease-out', fill: 'forwards' }).onfinish = () => {
+                activeTrailEls.splice(activeTrailEls.indexOf(el), 1);
+                el.remove();
+            };
         }
 
         // — Click & hold explosion —
