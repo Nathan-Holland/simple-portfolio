@@ -107,11 +107,69 @@
             width: 200px;
             height: 150px;
             object-fit: cover;
-                    }
+        }
+
+        #toggle-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: none;
+            z-index: 20000;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        #toggle-btn:hover {
+            opacity: 1;
+        }
+
+        #toggle-btn svg {
+            display: block;
+        }
+
+        .scatter-img {
+            position: fixed;
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            pointer-events: all;
+            z-index: 9000;
+            cursor: grab;
+            transform-origin: center center;
+            transition: left 0.7s cubic-bezier(0.2, 0, 0.3, 1),
+                        top  0.7s cubic-bezier(0.2, 0, 0.3, 1),
+                        transform 0.7s cubic-bezier(0.2, 0, 0.3, 1),
+                        opacity 0.4s ease;
+        }
+
+        .scatter-img.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        @media (max-width: 600px) {
+            #toggle-btn {
+                cursor: auto;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="cursor"></div>
+
+    <button id="toggle-btn" title="View Work">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="7" height="7" fill="#000"/>
+            <rect x="12" y="1" width="7" height="7" fill="#000"/>
+            <rect x="1" y="12" width="7" height="7" fill="#000"/>
+            <rect x="12" y="12" width="7" height="7" fill="#000"/>
+        </svg>
+    </button>
+
     <div class="bottom">
         <div>
             <p class="bio">Nate Holland — Brand Designer @ Series Eight</p>
@@ -134,6 +192,90 @@
 
         const cursor = document.getElementById('cursor');
         let isOverLinks = false;
+        let isGridMode = false;
+        let scatterEls = [];
+        let dragEl = null, dragOffsetX = 0, dragOffsetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            if (!dragEl) return;
+            dragEl.style.left = (e.clientX - dragOffsetX) + 'px';
+            dragEl.style.top  = (e.clientY - dragOffsetY) + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!dragEl) return;
+            dragEl.classList.remove('dragging');
+            dragEl = null;
+        });
+
+        const toggleBtn = document.getElementById('toggle-btn');
+
+        toggleBtn.addEventListener('click', () => {
+            isGridMode = !isGridMode;
+
+            if (isGridMode) {
+                const btnRect = toggleBtn.getBoundingClientRect();
+                const originX = btnRect.left + btnRect.width  / 2 - 100;
+                const originY = btnRect.top  + btnRect.height / 2 - 75;
+
+                [...images].sort(() => Math.random() - 0.5).forEach((src, i) => {
+                    const targetX = Math.random() * (window.innerWidth  - 200);
+                    const targetY = Math.random() * (window.innerHeight - 150);
+
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.classList.add('scatter-img');
+                    img.style.left      = originX + 'px';
+                    img.style.top       = originY + 'px';
+                    img.style.opacity   = '0';
+                    img.style.transform = 'scale(0.05)';
+                    img.style.zIndex    = 9000 + i;
+                    img.draggable = false;
+                    img.addEventListener('dragstart', (e) => e.preventDefault());
+                    img.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dragEl = img;
+                        dragOffsetX = e.clientX - img.getBoundingClientRect().left;
+                        dragOffsetY = e.clientY - img.getBoundingClientRect().top;
+                        img.classList.add('dragging');
+                        img.style.zIndex = 19000;
+                    });
+
+                    document.body.appendChild(img);
+                    scatterEls.push(img);
+
+                    setTimeout(() => {
+                        img.style.opacity   = '1';
+                        img.style.transform = 'scale(1)';
+                        img.style.left = targetX + 'px';
+                        img.style.top  = targetY + 'px';
+                    }, i * 30);
+                });
+            } else {
+                const btnRect = toggleBtn.getBoundingClientRect();
+                const originX = btnRect.left + btnRect.width  / 2 - 100;
+                const originY = btnRect.top  + btnRect.height / 2 - 75;
+
+                scatterEls.forEach((img, i) => {
+                    setTimeout(() => {
+                        img.style.left      = originX + 'px';
+                        img.style.top       = originY + 'px';
+                        img.style.transform = 'scale(0.05)';
+                        img.style.opacity   = '0';
+                    }, i * 15);
+                    setTimeout(() => img.remove(), i * 15 + 800);
+                });
+                scatterEls = [];
+            }
+        });
+
+        toggleBtn.addEventListener('mouseenter', () => {
+            cursor.classList.add('over-links');
+        });
+        toggleBtn.addEventListener('mouseleave', () => {
+            cursor.classList.remove('over-links');
+        });
 
         document.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px';
@@ -169,7 +311,7 @@
 
         // — Trail —
         document.addEventListener('mousemove', (e) => {
-            if (isHolding || isOverLinks) return;
+            if (isHolding || isOverLinks || isGridMode) return;
 
             const x = e.clientX;
             const y = e.clientY;
@@ -213,6 +355,7 @@
         let holdOrigin = { x: 0, y: 0 };
 
         document.addEventListener('mousedown', (e) => {
+            if (isGridMode || dragEl) return;
             isHolding = true;
             cursor.classList.add('holding');
             const cx = e.clientX;
