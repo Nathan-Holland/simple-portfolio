@@ -125,9 +125,12 @@
         </div>
     </div>
     <script>
-        const images = Array.from({ length: 24 }, (_, i) =>
-            `Assets/portfolio_img_${String(i + 1).padStart(2, '0')}.jpg`
-        ).sort(() => Math.random() - 0.5);
+        const images = [
+            ...Array.from({ length: 23 }, (_, i) =>
+                `Assets/portfolio_img_${String(i + 1).padStart(2, '0')}.jpg`
+            ),
+            'Assets/spurs.jpg'
+        ].sort(() => Math.random() - 0.5);
 
         const cursor = document.getElementById('cursor');
         let isOverLinks = false;
