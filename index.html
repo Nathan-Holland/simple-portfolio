@@ -184,10 +184,20 @@
     </div>
     <script>
         const images = [
-            ...Array.from({ length: 23 }, (_, i) =>
-                `Assets/portfolio_img_${String(i + 1).padStart(2, '0')}.jpg`
-            ),
-            'Assets/spurs.jpg'
+            'Assets/acupanel.jpg',
+            'Assets/bericote.jpg',
+            'Assets/crunch.jpg',
+            'Assets/echo.jpg',
+            'Assets/flowhub.jpg',
+            'Assets/ipn.jpg',
+            'Assets/maui.jpg',
+            'Assets/meter.jpg',
+            'Assets/NTW.jpg',
+            'Assets/OpenFortune.jpg',
+            'Assets/Preply.jpg',
+            'Assets/splitmetrics.jpg',
+            'Assets/spurs.jpg',
+            'Assets/viatu.jpg'
         ].sort(() => Math.random() - 0.5);
 
         const cursor = document.getElementById('cursor');
@@ -348,14 +358,94 @@
             };
         }
 
+        // — Audio —
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playPress() {
+            const osc  = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        let holdOsc = null, holdGain = null;
+
+        function startHoldSound() {
+            holdOsc  = audioCtx.createOscillator();
+            holdGain = audioCtx.createGain();
+            holdOsc.connect(holdGain); holdGain.connect(audioCtx.destination);
+            holdOsc.type = 'sawtooth';
+            holdOsc.frequency.setValueAtTime(30, audioCtx.currentTime);
+            holdOsc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 3);
+            holdGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            holdGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.2);
+            holdOsc.start();
+        }
+
+        function stopHoldSound() {
+            if (!holdOsc) return;
+            holdGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            holdOsc.stop(audioCtx.currentTime + 0.1);
+            holdOsc = null;
+        }
+
+        function playExplosion() {
+            const count = 16;
+            for (let i = 0; i < count; i++) {
+                const t = audioCtx.currentTime + i * 0.035;
+                const bufferSize = Math.floor(audioCtx.sampleRate * 0.08);
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let j = 0; j < bufferSize; j++) data[j] = (Math.random() * 2 - 1);
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                // Bandpass around the "paper crinkle" range
+                const bp = audioCtx.createBiquadFilter();
+                bp.type = 'bandpass';
+                bp.frequency.value = 2500 + Math.random() * 1500;
+                bp.Q.value = 0.5 + Math.random() * 1.5;
+
+                // Shelf to cut the harshest highs
+                const shelf = audioCtx.createBiquadFilter();
+                shelf.type = 'highshelf';
+                shelf.frequency.value = 6000;
+                shelf.gain.value = -10;
+
+                const gain = audioCtx.createGain();
+                const vol = 0.22 * (1 - (i / count) * 0.6);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(vol, t + 0.008);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+
+                noise.connect(bp); bp.connect(shelf); shelf.connect(gain); gain.connect(audioCtx.destination);
+                noise.start(t);
+            }
+        }
+
         // — Click & hold explosion —
         let isHolding = false;
         let holdInterval = null;
         const heldImages = [];
         let holdOrigin = { x: 0, y: 0 };
 
+        let holdSoundTimer = null;
+        let holdSoundStarted = false;
+
         document.addEventListener('mousedown', (e) => {
             if (isGridMode || dragEl) return;
+            audioCtx.resume();
+            holdSoundStarted = false;
+            holdSoundTimer = setTimeout(() => {
+                startHoldSound();
+                holdSoundStarted = true;
+            }, 300);
             isHolding = true;
             cursor.classList.add('holding');
             const cx = e.clientX;
@@ -378,6 +468,11 @@
             if (!isHolding) return;
             isHolding = false;
             cursor.classList.remove('holding');
+            clearTimeout(holdSoundTimer);
+            if (holdSoundStarted) {
+                stopHoldSound();
+                playExplosion();
+            }
             clearInterval(holdInterval);
 
             heldImages.forEach(el => {
