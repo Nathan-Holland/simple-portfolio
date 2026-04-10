@@ -18,25 +18,78 @@
 
         #cursor {
             position: fixed;
+            left: 0;
+            top: 0;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cursor .cursor-inner {
             width: 8px;
             height: 8px;
             background: #000;
             border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            transition: width 0.2s ease, height 0.2s ease;
-            z-index: 99999;
+            transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease,
+                padding 0.2s ease, background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        #cursor.holding {
+        #cursor .cursor-hint-text {
+            display: none;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #fff;
+            white-space: nowrap;
+            padding: 0 2px;
+        }
+
+        #cursor.case-study-hint .cursor-inner {
+            width: auto;
+            height: auto;
+            min-height: 36px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: #000;
+        }
+
+        #cursor.case-study-hint .cursor-hint-text {
+            display: block;
+        }
+
+        #cursor.holding .cursor-inner {
+            width: 32px;
+            height: 32px;
+            min-height: 32px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        #cursor.holding .cursor-hint-text {
+            display: none;
+        }
+
+        #cursor.holding.case-study-hint .cursor-inner {
             width: 32px;
             height: 32px;
         }
 
-        #cursor.over-links {
+        #cursor.over-links:not(.case-study-hint) .cursor-inner {
             width: 32px;
             height: 32px;
             background: rgba(0, 0, 0, 0.3);
+        }
+
+        #cursor.over-links:not(.case-study-hint) .cursor-hint-text {
+            display: none;
         }
 
         body {
@@ -151,15 +204,154 @@
             transition: none;
         }
 
+        .scatter-img.has-case-study {
+            cursor: none;
+        }
+
+        #case-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 25000;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        #case-backdrop.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #case-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            bottom: 20px;
+            width: min(480px, calc(100vw - 40px));
+            max-width: calc(100vw - 40px);
+            z-index: 25001;
+            background: #fff;
+            color: #000;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(calc(100% + 24px));
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.45s cubic-bezier(0.2, 0, 0.3, 1),
+                opacity 0.35s ease;
+        }
+
+        #case-panel.is-open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #case-panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 24px 24px 16px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        #case-panel-title {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        #case-panel-close {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        #case-panel-close:hover {
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        #case-panel-body {
+            padding: 20px 24px 28px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        #case-panel-body p + p {
+            margin-top: 1em;
+        }
+
+        #case-panel-body .case-meta {
+            font-size: 13px;
+            opacity: 0.65;
+            margin-bottom: 1.25em;
+        }
+
+        #case-panel-body h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 1.5em 0 0.5em;
+            opacity: 0.55;
+        }
+
+        body.case-panel-open {
+            overflow: hidden;
+        }
+
         @media (max-width: 600px) {
             #toggle-btn {
                 cursor: auto;
+            }
+
+            #case-panel {
+                left: 20px;
+                width: auto;
+                max-width: none;
+            }
+
+            .scatter-img.has-case-study {
+                cursor: pointer;
             }
         }
     </style>
 </head>
 <body>
-    <div id="cursor"></div>
+    <div id="cursor" aria-hidden="true">
+        <div class="cursor-inner">
+            <span class="cursor-hint-text">View case study</span>
+        </div>
+    </div>
+
+    <div id="case-backdrop" aria-hidden="true"></div>
+    <aside id="case-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="case-panel-title">
+        <div id="case-panel-header">
+            <h2 id="case-panel-title"></h2>
+            <button type="button" id="case-panel-close" aria-label="Close case study">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+        </div>
+        <div id="case-panel-body"></div>
+    </aside>
 
     <button id="toggle-btn" title="View Work">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -200,22 +392,99 @@
             'Assets/viatu.jpg'
         ].sort(() => Math.random() - 0.5);
 
+        const CASE_STUDIES = {
+            'crunch.jpg': {
+                title: 'Crunch',
+                bodyHtml: `
+                    <p class="case-meta">Brand identity · Art direction · Digital</p>
+                    <p>Crunch needed a louder, more confident presence in a crowded fitness category. The work focused on clarity and energy: a flexible wordmark, high-contrast typography, and a colour system that could flex from campaign to product without losing recognition.</p>
+                    <h3>Approach</h3>
+                    <p>We built a core identity around bold type and simple graphic devices, then stress-tested it across social, out-of-home, and in-gym touchpoints. Motion and layout rules kept executions feeling consistent even when the story changed week to week.</p>
+                    <h3>Outcome</h3>
+                    <p>A cohesive brand toolkit that internal teams could ship quickly, with guidelines tight enough to protect the idea and loose enough to invite creative iteration.</p>
+                `
+            }
+        };
+
+        function caseStudyKeyFromSrc(src) {
+            const path = (src || '').split('?')[0];
+            return path.split('/').pop().toLowerCase();
+        }
+
+        function getCaseStudyForImg(img) {
+            const key = caseStudyKeyFromSrc(img.getAttribute('src'));
+            return CASE_STUDIES[key] || null;
+        }
+
         const cursor = document.getElementById('cursor');
+        const caseBackdrop = document.getElementById('case-backdrop');
+        const casePanel = document.getElementById('case-panel');
+        const casePanelTitle = document.getElementById('case-panel-title');
+        const casePanelBody = document.getElementById('case-panel-body');
+        const casePanelClose = document.getElementById('case-panel-close');
+
         let isOverLinks = false;
         let isGridMode = false;
         let scatterEls = [];
         let dragEl = null, dragOffsetX = 0, dragOffsetY = 0;
+        let scatterGesture = null;
+        const dragThresholdPx = 6;
+
+        function openCaseStudy(study) {
+            cursor.classList.remove('case-study-hint');
+            casePanelTitle.textContent = study.title;
+            casePanelBody.innerHTML = study.bodyHtml;
+            caseBackdrop.classList.add('is-open');
+            casePanel.classList.add('is-open');
+            caseBackdrop.setAttribute('aria-hidden', 'false');
+            casePanel.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('case-panel-open');
+            casePanelClose.focus({ preventScroll: true });
+        }
+
+        function closeCaseStudy() {
+            caseBackdrop.classList.remove('is-open');
+            casePanel.classList.remove('is-open');
+            caseBackdrop.setAttribute('aria-hidden', 'true');
+            casePanel.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('case-panel-open');
+            casePanelBody.innerHTML = '';
+        }
+
+        casePanelClose.addEventListener('click', closeCaseStudy);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && casePanel.classList.contains('is-open')) {
+                closeCaseStudy();
+            }
+        });
 
         document.addEventListener('mousemove', (e) => {
+            if (scatterGesture && !dragEl) {
+                const dx = e.clientX - scatterGesture.startX;
+                const dy = e.clientY - scatterGesture.startY;
+                if (Math.hypot(dx, dy) > dragThresholdPx) {
+                    const img = scatterGesture.img;
+                    scatterGesture = null;
+                    dragEl = img;
+                    img.classList.add('dragging');
+                    img.style.zIndex = '19000';
+                }
+            }
             if (!dragEl) return;
             dragEl.style.left = (e.clientX - dragOffsetX) + 'px';
             dragEl.style.top  = (e.clientY - dragOffsetY) + 'px';
         });
 
         document.addEventListener('mouseup', () => {
-            if (!dragEl) return;
-            dragEl.classList.remove('dragging');
-            dragEl = null;
+            if (dragEl) {
+                dragEl.classList.remove('dragging');
+                dragEl = null;
+            } else if (scatterGesture) {
+                const study = getCaseStudyForImg(scatterGesture.img);
+                if (study) openCaseStudy(study);
+                scatterGesture = null;
+            }
         });
 
         const toggleBtn = document.getElementById('toggle-btn');
@@ -235,6 +504,9 @@
                     const img = document.createElement('img');
                     img.src = src;
                     img.classList.add('scatter-img');
+                    if (getCaseStudyForImg(img)) {
+                        img.classList.add('has-case-study');
+                    }
                     img.style.left      = originX + 'px';
                     img.style.top       = originY + 'px';
                     img.style.opacity   = '0';
@@ -242,14 +514,70 @@
                     img.style.zIndex    = 9000 + i;
                     img.draggable = false;
                     img.addEventListener('dragstart', (e) => e.preventDefault());
+
+                    img.addEventListener('mouseenter', () => {
+                        if (!isGridMode || !getCaseStudyForImg(img)) return;
+                        cursor.classList.add('case-study-hint');
+                    });
+                    img.addEventListener('mouseleave', () => {
+                        cursor.classList.remove('case-study-hint');
+                    });
+
                     img.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        dragEl = img;
-                        dragOffsetX = e.clientX - img.getBoundingClientRect().left;
-                        dragOffsetY = e.clientY - img.getBoundingClientRect().top;
-                        img.classList.add('dragging');
-                        img.style.zIndex = 19000;
+                        const r = img.getBoundingClientRect();
+                        dragOffsetX = e.clientX - r.left;
+                        dragOffsetY = e.clientY - r.top;
+                        scatterGesture = { img, startX: e.clientX, startY: e.clientY };
+                    });
+
+                    img.addEventListener('touchstart', (e) => {
+                        if (e.touches.length !== 1) return;
+                        e.stopPropagation();
+                        const t = e.touches[0];
+                        const r = img.getBoundingClientRect();
+                        dragOffsetX = t.clientX - r.left;
+                        dragOffsetY = t.clientY - r.top;
+                        scatterGesture = { img, startX: t.clientX, startY: t.clientY, touchId: t.identifier };
+                    }, { passive: true });
+
+                    img.addEventListener('touchmove', (e) => {
+                        if (dragEl === img) {
+                            const t = e.touches[0];
+                            if (!t) return;
+                            e.preventDefault();
+                            dragEl.style.left = (t.clientX - dragOffsetX) + 'px';
+                            dragEl.style.top  = (t.clientY - dragOffsetY) + 'px';
+                            return;
+                        }
+                        if (!scatterGesture || scatterGesture.img !== img) return;
+                        if (scatterGesture.touchId == null) return;
+                        const t = [...e.touches].find(x => x.identifier === scatterGesture.touchId);
+                        if (!t) return;
+                        const dx = t.clientX - scatterGesture.startX;
+                        const dy = t.clientY - scatterGesture.startY;
+                        if (Math.hypot(dx, dy) > dragThresholdPx) {
+                            scatterGesture = null;
+                            dragEl = img;
+                            img.classList.add('dragging');
+                            img.style.zIndex = '19000';
+                        }
+                    }, { passive: false });
+
+                    img.addEventListener('touchend', (e) => {
+                        if (dragEl === img) {
+                            dragEl.classList.remove('dragging');
+                            dragEl = null;
+                            return;
+                        }
+                        if (scatterGesture && scatterGesture.img === img && scatterGesture.touchId != null) {
+                            const lifted = [...e.changedTouches].some(t => t.identifier === scatterGesture.touchId);
+                            if (!lifted) return;
+                            const study = getCaseStudyForImg(img);
+                            if (study) openCaseStudy(study);
+                            scatterGesture = null;
+                        }
                     });
 
                     document.body.appendChild(img);
@@ -263,6 +591,8 @@
                     }, i * 30);
                 });
             } else {
+                closeCaseStudy();
+                cursor.classList.remove('case-study-hint');
                 const btnRect = toggleBtn.getBoundingClientRect();
                 const originX = btnRect.left + btnRect.width  / 2 - 100;
                 const originY = btnRect.top  + btnRect.height / 2 - 75;
