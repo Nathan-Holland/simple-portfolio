@@ -12,9 +12,6 @@
             box-sizing: border-box;
         }
 
-        body {
-            cursor: none;
-        }
 
         #cursor {
             position: fixed;
@@ -102,6 +99,8 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .bottom {
@@ -112,6 +111,7 @@
 
         .bio {
             white-space: nowrap;
+            text-wrap: pretty;
         }
 
         .prev {
@@ -160,29 +160,10 @@
             width: 200px;
             height: 150px;
             object-fit: cover;
+            outline: 1px solid rgba(0, 0, 0, 0.1);
+            outline-offset: -1px;
         }
 
-        #toggle-btn {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: none;
-            z-index: 20000;
-            opacity: 0.4;
-            transition: opacity 0.2s;
-        }
-
-        #toggle-btn:hover {
-            opacity: 1;
-        }
-
-        #toggle-btn svg {
-            display: block;
-        }
 
         .scatter-img {
             position: fixed;
@@ -193,6 +174,8 @@
             z-index: 9000;
             cursor: grab;
             transform-origin: center center;
+            outline: 1px solid rgba(0, 0, 0, 0.1);
+            outline-offset: -1px;
             transition: left 0.7s cubic-bezier(0.2, 0, 0.3, 1),
                         top  0.7s cubic-bezier(0.2, 0, 0.3, 1),
                         transform 0.7s cubic-bezier(0.2, 0, 0.3, 1),
@@ -229,67 +212,103 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            bottom: 20px;
-            width: min(480px, calc(100vw - 40px));
-            max-width: calc(100vw - 40px);
+            width: min(420px, calc(100vw - 40px));
+            height: calc(100vh - 40px);
+            max-height: 720px;
             z-index: 25001;
             background: #fff;
             color: #000;
-            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.12);
+            border-radius: 20px;
+            box-shadow:
+                0 0 0 1px rgba(0, 0, 0, 0.06),
+                0 4px 16px rgba(0, 0, 0, 0.08),
+                0 20px 60px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
-            transform: translateX(calc(100% + 24px));
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
-            transition: transform 0.45s cubic-bezier(0.2, 0, 0.3, 1),
-                opacity 0.35s ease;
         }
 
         #case-panel.is-open {
-            transform: translateX(0);
             opacity: 1;
+            visibility: visible;
             pointer-events: auto;
         }
 
-        #case-panel-header {
+        #case-panel-controls {
+            position: absolute;
+            top: 12px;
+            left: -48px;
             display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 24px 24px 16px;
-            flex-shrink: 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        #case-panel-title {
-            font-size: 22px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
+            align-items: center;
         }
 
         #case-panel-close {
-            flex-shrink: 0;
-            width: 36px;
-            height: 36px;
+            position: relative;
+            width: 28px;
+            height: 28px;
             border: none;
-            background: rgba(0, 0, 0, 0.06);
+            background: rgba(0, 0, 0, 0.07);
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        #case-panel-close::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
         }
 
         #case-panel-close:hover {
-            background: rgba(0, 0, 0, 0.12);
+            background: rgba(0, 0, 0, 0.14);
+        }
+
+        #case-panel-hero-cluster {
+            flex-shrink: 0;
+        }
+
+        #case-panel-visual-wrap {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            overflow: hidden;
+            background: #f0f0f0;
+            border-radius: 20px 20px 0 0;
+        }
+
+        #case-panel-hero {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            outline: 1px solid rgba(0, 0, 0, 0.1);
+            outline-offset: -1px;
+        }
+
+        .case-fly-img {
+            position: fixed;
+            object-fit: cover;
+            pointer-events: none;
+            z-index: 30000;
+            display: block;
+        }
+
+        #case-panel-content-slot {
+            flex: 1;
+            overflow-y: auto;
         }
 
         #case-panel-body {
             padding: 20px 24px 28px;
-            overflow-y: auto;
-            flex: 1;
             font-size: 15px;
             line-height: 1.55;
         }
@@ -312,8 +331,127 @@
             opacity: 0.55;
         }
 
+        .case-panel-image-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .case-panel-image-grid img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+            outline: 1px solid rgba(0, 0, 0, 0.1);
+            outline-offset: -1px;
+        }
+
         body.case-panel-open {
             overflow: hidden;
+        }
+
+        @keyframes enter {
+            from {
+                transform: translateY(8px);
+                filter: blur(5px);
+                opacity: 0;
+            }
+        }
+
+        .animate-enter {
+            animation: enter 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+            animation-delay: calc(80ms * var(--stagger, 1));
+            animation-play-state: paused;
+        }
+
+        /* ── Wave animation ──────────────────────────── */
+        .wave-section {
+            padding-top: calc(50vh - 30px);
+            padding-bottom: 50vh;
+        }
+
+        .dual-wave-wrapper {
+            display: flex;
+            width: 100%;
+            position: relative;
+            gap: 20vw;
+        }
+
+        .wave-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1;
+            position: relative;
+            z-index: 100;
+            letter-spacing: -0.02em;
+        }
+
+        .wave-column-left {
+            align-items: flex-start;
+        }
+
+        .wave-column-right {
+            align-items: flex-end;
+        }
+
+        .animated-text {
+            width: max-content;
+            color: rgba(0, 0, 0, 0.14);
+            text-transform: uppercase;
+            transition: color 300ms ease-out;
+            user-select: none;
+        }
+
+        .animated-text.focused {
+            color: #000;
+        }
+
+        .image-thumbnail-wrapper {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, 0);
+            width: 16vw;
+            height: auto;
+            z-index: 1;
+            pointer-events: none;
+            display: grid;
+            place-items: center;
+        }
+
+        .image-thumbnail {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 28vh;
+            outline: 1px solid rgba(0, 0, 0, 0.1);
+            outline-offset: -1px;
+            display: block;
+        }
+
+        .wave-column .animated-text:nth-child(3n) {
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1023px) {
+            .dual-wave-wrapper { gap: 8vw; }
+            .wave-column { gap: 0.75rem; font-size: clamp(1.25rem, 4.5vw, 2rem); }
+            .image-thumbnail-wrapper { width: 40vw; }
+        }
+
+        @media (max-width: 600px) {
+            .wave-section { padding-top: calc(50vh - 30px); padding-bottom: 50vh; }
+            .wave-column-right,
+            .image-thumbnail-wrapper { display: none; }
+            .dual-wave-wrapper { display: block; }
+            .wave-column-left { align-items: center; width: 100%; font-size: 16px; gap: 0.75rem; }
+            .wave-column .animated-text { text-align: center; }
+            .wave-column .animated-text:nth-child(3n) { margin-bottom: 1.5rem; }
         }
 
         @media (max-width: 600px) {
@@ -323,8 +461,21 @@
 
             #case-panel {
                 left: 20px;
+                right: 20px;
                 width: auto;
                 max-width: none;
+                border-radius: 16px;
+            }
+
+            #case-panel-controls {
+                position: static;
+                display: flex;
+                justify-content: flex-end;
+                padding: 12px 16px 0;
+            }
+
+            #case-panel-visual-wrap {
+                border-radius: 16px 16px 0 0;
             }
 
             .scatter-img.has-case-study {
@@ -334,47 +485,126 @@
     </style>
 </head>
 <body>
-    <div id="cursor" aria-hidden="true">
-        <div class="cursor-inner">
-            <span class="cursor-hint-text">View case study</span>
-        </div>
-    </div>
-
     <div id="case-backdrop" aria-hidden="true"></div>
     <aside id="case-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="case-panel-title">
-        <div id="case-panel-header">
-            <h2 id="case-panel-title"></h2>
+        <div id="case-panel-controls">
             <button type="button" id="case-panel-close" aria-label="Close case study">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
             </button>
         </div>
-        <div id="case-panel-body"></div>
+        <div id="case-panel-hero-cluster">
+            <div id="case-panel-visual-wrap">
+                <img id="case-panel-hero" src="" alt="">
+            </div>
+        </div>
+        <div id="case-panel-content-slot">
+            <div id="case-panel-body"></div>
+        </div>
     </aside>
 
-    <button id="toggle-btn" title="View Work">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="7" height="7" fill="#000"/>
-            <rect x="12" y="1" width="7" height="7" fill="#000"/>
-            <rect x="1" y="12" width="7" height="7" fill="#000"/>
-            <rect x="12" y="12" width="7" height="7" fill="#000"/>
-        </svg>
-    </button>
 
-    <div class="bottom">
-        <div>
-            <p class="bio">Nate Holland — Brand Designer @ Series Eight</p>
-            <p class="bio prev">Designed for Wedge, NoTwoWays, Tottenham Hotspur, OpenFortune, Preply & Asda</p>
-        </div>
-        <div class="social">
-            <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank">LinkedIn</a>
-            <a href="mailto:hello@nate-holland.com">Email</a>
-            <a href="https://x.com/nateh0lland" target="_blank">X</a>
-            <a href="https://www.cosmos.so/nateh0lland" target="_blank">Cosmos</a>
+    <div class="wave-section">
+        <div class="dual-wave-wrapper" data-wave-number="12" data-wave-speed="1">
+            <div class="wave-column wave-column-left">
+                <div class="animated-text" data-image="Assets/crunch.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/crunch.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/crunch.jpg">Based in BCN</div>                <div class="animated-text" data-image="Assets/Preply.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/Preply.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/Preply.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/spurs.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/spurs.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/spurs.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/OpenFortune.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/OpenFortune.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/OpenFortune.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/NTW.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/NTW.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/NTW.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/splitmetrics.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/splitmetrics.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/splitmetrics.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/flowhub.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/flowhub.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/flowhub.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/maui.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/maui.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/maui.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/viatu.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/viatu.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/viatu.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/ipn.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/ipn.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/ipn.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/echo.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/echo.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/echo.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/meter.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/meter.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/meter.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/acupanel.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/acupanel.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/acupanel.jpg">Based in BCN</div>
+                <div class="animated-text" data-image="Assets/bericote.jpg">Nate Holland</div>
+                <div class="animated-text" data-image="Assets/bericote.jpg">Design @ Revolut</div>
+                <div class="animated-text" data-image="Assets/bericote.jpg">Based in BCN</div>
+            </div>
+            <div class="image-thumbnail-wrapper">
+                <img src="Assets/crunch.jpg" alt="" class="image-thumbnail" />
+            </div>
+            <div class="wave-column wave-column-right">
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+                <div class="animated-text">Nate Holland</div>
+                <div class="animated-text">Design @ Revolut</div>
+                <div class="animated-text">Based in BCN</div>
+            </div>
         </div>
     </div>
-    <script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+    <script type="module">
+        import { defineSound, ensureReady } from 'https://esm.sh/@web-kits/audio';
+
         const images = [
             'Assets/acupanel.jpg',
             'Assets/bericote.jpg',
@@ -396,13 +626,18 @@
             'crunch.jpg': {
                 title: 'Crunch',
                 bodyHtml: `
-                    <p class="case-meta">Brand identity · Art direction · Digital</p>
-                    <p>Crunch needed a louder, more confident presence in a crowded fitness category. The work focused on clarity and energy: a flexible wordmark, high-contrast typography, and a colour system that could flex from campaign to product without losing recognition.</p>
-                    <h3>Approach</h3>
-                    <p>We built a core identity around bold type and simple graphic devices, then stress-tested it across social, out-of-home, and in-gym touchpoints. Motion and layout rules kept executions feeling consistent even when the story changed week to week.</p>
-                    <h3>Outcome</h3>
-                    <p>A cohesive brand toolkit that internal teams could ship quickly, with guidelines tight enough to protect the idea and loose enough to invite creative iteration.</p>
-                `
+                    <p class="case-meta animate-enter" style="--stagger:1">UX/UI Design · Front-end Development · Shopify Plus · Copywriting</p>
+                    <p class="animate-enter" style="--stagger:2">Crunch is the all-in-one POS built for small to medium restaurants — giving them the tools and tech to actually run a successful business.</p>
+                    <h3 class="animate-enter" style="--stagger:3">The Challenge</h3>
+                    <p class="animate-enter" style="--stagger:4">The POS market is loud and largely the same. We needed to cut through — and show that Crunch was built differently. Made by people who've worked in restaurants, with features that matter rather than bloat.</p>
+                    <h3 class="animate-enter" style="--stagger:5">The Approach</h3>
+                    <p class="animate-enter" style="--stagger:6">Restaurants run on heart. Our goal was a brand that put people before product — punchy, playful, and energetic from the voice right through to the visuals. An identity designed to resonate across every touchpoint, not just the homepage.</p>
+                    <h3 class="animate-enter" style="--stagger:7">The Result</h3>
+                    <p class="animate-enter" style="--stagger:8">The identity was featured in the 2026 edition of OFFCUTS. More importantly, the Crunch team walked away with a fully optimised site — built on solid foundations, ready to grow with the business.</p>
+                `,
+                scatterImages: Array.from({ length: 10 }, (_, i) =>
+                    `Assets/crunch/crunch_${String(i + 1).padStart(2, '0')}.jpg`
+                )
             }
         };
 
@@ -416,42 +651,263 @@
             return CASE_STUDIES[key] || null;
         }
 
-        const cursor = document.getElementById('cursor');
+        const cursor = { classList: { add() {}, remove() {}, contains() { return false; } }, style: {}, querySelector: () => ({ textContent: '' }) };
         const caseBackdrop = document.getElementById('case-backdrop');
         const casePanel = document.getElementById('case-panel');
-        const casePanelTitle = document.getElementById('case-panel-title');
         const casePanelBody = document.getElementById('case-panel-body');
+        const casePanelHero = document.getElementById('case-panel-hero');
         const casePanelClose = document.getElementById('case-panel-close');
 
         let isOverLinks = false;
-        let isGridMode = false;
-        let scatterEls = [];
         let dragEl = null, dragOffsetX = 0, dragOffsetY = 0;
         let scatterGesture = null;
         const dragThresholdPx = 6;
 
-        function openCaseStudy(study) {
+        let caseScatterEls = [];
+
+        function spawnCaseScatter(study, originX, originY) {
+            if (!study.scatterImages) return;
+            study.scatterImages.forEach((src, i) => {
+                const targetX = Math.random() * (window.innerWidth  - 240);
+                const targetY = Math.random() * (window.innerHeight - 135);
+                const el = document.createElement('img');
+                el.src = src;
+                el.classList.add('scatter-img');
+                el.style.width     = '240px';
+                el.style.height    = '135px';
+                el.style.left      = (originX - 120) + 'px';
+                el.style.top       = (originY - 67)  + 'px';
+                el.style.opacity   = '0';
+                el.style.transform = 'scale(0.05)';
+                el.style.zIndex    = 26100 + i;
+                el.draggable = false;
+                el.addEventListener('dragstart', e => e.preventDefault());
+                el.addEventListener('mousedown', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dragEl = el;
+                    dragOffsetX = e.clientX - el.getBoundingClientRect().left;
+                    dragOffsetY = e.clientY - el.getBoundingClientRect().top;
+                    el.classList.add('dragging');
+                    el.style.zIndex = 27000;
+                });
+                document.body.appendChild(el);
+                caseScatterEls.push(el);
+                setTimeout(() => {
+                    el.style.opacity   = '1';
+                    el.style.transform = 'scale(1)';
+                    el.style.left = targetX + 'px';
+                    el.style.top  = targetY + 'px';
+                }, i * 30);
+            });
+        }
+
+        function clearCaseScatter(originX, originY) {
+            caseScatterEls.forEach((el, i) => {
+                setTimeout(() => {
+                    el.style.left      = (originX - 100) + 'px';
+                    el.style.top       = (originY - 75)  + 'px';
+                    el.style.transform = 'scale(0.05)';
+                    el.style.opacity   = '0';
+                }, i * 15);
+                setTimeout(() => el.remove(), i * 15 + 800);
+            });
+            caseScatterEls = [];
+        }
+
+        function resumeEnter() {
+            casePanelBody.querySelectorAll('.animate-enter').forEach(el => {
+                el.style.animationPlayState = 'running';
+            });
+        }
+
+        let caseStudySourceImg = null;
+        let caseFlyEl = null;
+        let caseStudyTl = null;
+        let caseStudyCloseInProgress = false;
+
+        function killCaseStudyMotion() {
+            if (caseStudyTl) { caseStudyTl.kill(); caseStudyTl = null; }
+            caseStudyCloseInProgress = false;
+            const targets = [caseBackdrop, casePanel, casePanelHero];
+            if (caseFlyEl) targets.push(caseFlyEl);
+            gsap.killTweensOf(targets);
+        }
+
+        function removeCaseFly() {
+            if (caseFlyEl) { gsap.killTweensOf(caseFlyEl); caseFlyEl.remove(); caseFlyEl = null; }
+        }
+
+        function restoreCaseStudySource() {
+            if (caseStudySourceImg) { caseStudySourceImg.style.visibility = ''; caseStudySourceImg = null; }
+        }
+
+        function getHeroTargetRect() {
+            const vw = window.innerWidth;
+            const narrow = vw <= 600;
+            const top = 20;
+            if (narrow) {
+                const w = vw - 40;
+                return { left: 20, top, width: w, height: w * (10 / 16) };
+            }
+            const w = Math.min(480, vw - 40);
+            return { left: vw - 20 - w, top, width: w, height: w * (10 / 16) };
+        }
+
+        function resetCaseStudyTransforms() {
+            gsap.set(caseBackdrop, { clearProps: 'opacity' });
+            gsap.set(casePanel, { clearProps: 'opacity,visibility,pointerEvents,y' });
+            gsap.set(casePanelHero, { clearProps: 'opacity' });
+        }
+
+        function openCaseStudy(study, sourceImg) {
             cursor.classList.remove('case-study-hint');
-            casePanelTitle.textContent = study.title;
+            caseStudyCloseInProgress = false;
+            killCaseStudyMotion();
+            removeCaseFly();
+            restoreCaseStudySource();
+
             casePanelBody.innerHTML = study.bodyHtml;
-            caseBackdrop.classList.add('is-open');
-            casePanel.classList.add('is-open');
+            if (study.scatterImages && study.scatterImages.length) {
+                const grid = document.createElement('div');
+                grid.className = 'case-panel-image-grid animate-enter';
+                grid.style.setProperty('--stagger', '9');
+                study.scatterImages.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = '';
+                    grid.appendChild(img);
+                });
+                casePanelBody.appendChild(grid);
+            }
+            casePanelHero.alt = study.title;
+
             caseBackdrop.setAttribute('aria-hidden', 'false');
             casePanel.setAttribute('aria-hidden', 'false');
             document.body.classList.add('case-panel-open');
-            casePanelClose.focus({ preventScroll: true });
+            caseBackdrop.classList.add('is-open');
+            casePanel.classList.add('is-open');
+
+            gsap.set(caseBackdrop, { opacity: 0 });
+            gsap.set(casePanel, { autoAlpha: 0, pointerEvents: 'none', y: 8 });
+            gsap.set(casePanelHero, { opacity: 0 });
+
+            const runIntro = () => {
+                if (sourceImg) {
+                    const heroSrc = sourceImg.currentSrc || sourceImg.src;
+                    casePanelHero.src = heroSrc;
+                    caseStudySourceImg = sourceImg;
+                    sourceImg.style.visibility = 'hidden';
+
+                    const start  = sourceImg.getBoundingClientRect();
+                    const heroEl = document.getElementById('case-panel-visual-wrap');
+                    gsap.set(casePanel, { autoAlpha: 1, pointerEvents: 'auto' });
+                    const end = heroEl.getBoundingClientRect();
+                    gsap.set(casePanel, { autoAlpha: 0, pointerEvents: 'none' });
+
+                    const fly = document.createElement('img');
+                    fly.src = heroSrc;
+                    fly.className = 'case-fly-img';
+                    fly.alt = '';
+                    gsap.set(fly, { left: start.left, top: start.top, width: start.width, height: start.height, borderRadius: 4, force3D: true });
+                    document.body.appendChild(fly);
+                    caseFlyEl = fly;
+
+                    const flyDur = 0.72;
+                    caseStudyTl = gsap.timeline();
+                    caseStudyTl.to(caseBackdrop, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
+                    caseStudyTl.to(casePanel, { autoAlpha: 1, y: 0, pointerEvents: 'auto', duration: 0.35, ease: 'power2.out' }, 0.1);
+                    caseStudyTl.call(() => resumeEnter(), [], 0.4);
+                    caseStudyTl.to(fly, { left: end.left, top: end.top, width: end.width, height: end.height, borderRadius: 0, duration: flyDur, ease: 'power3.inOut', force3D: true }, 0);
+                    caseStudyTl.add(() => {
+                        if (fly.parentNode) fly.remove();
+                        caseFlyEl = null;
+                        gsap.set(casePanelHero, { opacity: 1 });
+                    }, flyDur);
+                    caseStudyTl.call(() => casePanelClose.focus({ preventScroll: true }));
+                } else {
+                    casePanelHero.src = '';
+                    caseStudyTl = gsap.timeline();
+                    caseStudyTl.to(caseBackdrop, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
+                    caseStudyTl.to(casePanel, { autoAlpha: 1, y: 0, pointerEvents: 'auto', duration: 0.35, ease: 'power2.out' }, 0.08);
+                    caseStudyTl.call(() => resumeEnter(), [], 0.3);
+                    caseStudyTl.call(() => casePanelClose.focus({ preventScroll: true }));
+                }
+            };
+
+            if (sourceImg) {
+                const kick = () => requestAnimationFrame(() => runIntro());
+                if (typeof sourceImg.decode === 'function') {
+                    sourceImg.decode().then(kick).catch(kick);
+                } else { kick(); }
+            } else {
+                runIntro();
+            }
         }
 
-        function closeCaseStudy() {
+        function finalizeCaseStudyClose(onDone) {
+            caseStudyCloseInProgress = false;
+            caseStudyTl = null;
+            removeCaseFly();
+            restoreCaseStudySource();
+            resetCaseStudyTransforms();
             caseBackdrop.classList.remove('is-open');
             casePanel.classList.remove('is-open');
             caseBackdrop.setAttribute('aria-hidden', 'true');
             casePanel.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('case-panel-open');
             casePanelBody.innerHTML = '';
+            casePanelHero.removeAttribute('src');
+            casePanelHero.alt = '';
+            if (typeof onDone === 'function') onDone();
         }
 
-        casePanelClose.addEventListener('click', closeCaseStudy);
+        function closeCaseStudy(onDone) {
+            if (!casePanel.classList.contains('is-open')) {
+                if (typeof onDone === 'function') onDone();
+                return;
+            }
+            if (caseStudyCloseInProgress) return;
+            killCaseStudyMotion();
+            removeCaseFly();
+            caseStudyCloseInProgress = true;
+
+            const sourceImg = caseStudySourceImg;
+            const doneClosing = () => finalizeCaseStudyClose(onDone);
+            const heroSrc = casePanelHero.currentSrc || casePanelHero.getAttribute('src');
+
+            if (sourceImg && sourceImg.isConnected && heroSrc) {
+                gsap.set(casePanelHero, { opacity: 0 });
+                gsap.set(casePanel, { autoAlpha: 0, pointerEvents: 'none' });
+
+                const wrap = document.getElementById('case-panel-visual-wrap');
+                const fromRect = wrap.getBoundingClientRect();
+                const dest = sourceImg.getBoundingClientRect();
+
+                const fly = document.createElement('img');
+                fly.src = heroSrc;
+                fly.className = 'case-fly-img';
+                fly.alt = '';
+                gsap.set(fly, { left: fromRect.left, top: fromRect.top, width: fromRect.width, height: fromRect.height, borderRadius: 0, force3D: true });
+                document.body.appendChild(fly);
+                caseFlyEl = fly;
+
+                caseStudyTl = gsap.timeline({ onComplete: doneClosing });
+                caseStudyTl.to(fly, {
+                    left: dest.left, top: dest.top, width: dest.width, height: dest.height,
+                    borderRadius: 4, duration: 0.72, ease: 'power3.inOut', force3D: true,
+                    onComplete: () => { removeCaseFly(); restoreCaseStudySource(); }
+                });
+                caseStudyTl.to(caseBackdrop, { opacity: 0, duration: 0.4, ease: 'power2.in' }, '<');
+            } else {
+                restoreCaseStudySource();
+                caseStudyTl = gsap.timeline({ onComplete: doneClosing });
+                caseStudyTl.to(casePanel, { autoAlpha: 0, y: -8, duration: 0.28, pointerEvents: 'none' }, 0);
+                caseStudyTl.to(caseBackdrop, { opacity: 0, duration: 0.38, ease: 'power2.in' }, '<0.05');
+            }
+        }
+
+        casePanelClose.addEventListener('click', () => closeCaseStudy());
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && casePanel.classList.contains('is-open')) {
@@ -482,281 +938,80 @@
                 dragEl = null;
             } else if (scatterGesture) {
                 const study = getCaseStudyForImg(scatterGesture.img);
-                if (study) openCaseStudy(study);
+                if (study) openCaseStudy(study, scatterGesture.img);
                 scatterGesture = null;
             }
         });
 
-        const toggleBtn = document.getElementById('toggle-btn');
 
-        toggleBtn.addEventListener('click', () => {
-            isGridMode = !isGridMode;
-
-            if (isGridMode) {
-                const btnRect = toggleBtn.getBoundingClientRect();
-                const originX = btnRect.left + btnRect.width  / 2 - 100;
-                const originY = btnRect.top  + btnRect.height / 2 - 75;
-
-                [...images].sort(() => Math.random() - 0.5).forEach((src, i) => {
-                    const targetX = Math.random() * (window.innerWidth  - 200);
-                    const targetY = Math.random() * (window.innerHeight - 150);
-
-                    const img = document.createElement('img');
-                    img.src = src;
-                    img.classList.add('scatter-img');
-                    if (getCaseStudyForImg(img)) {
-                        img.classList.add('has-case-study');
-                    }
-                    img.style.left      = originX + 'px';
-                    img.style.top       = originY + 'px';
-                    img.style.opacity   = '0';
-                    img.style.transform = 'scale(0.05)';
-                    img.style.zIndex    = 9000 + i;
-                    img.draggable = false;
-                    img.addEventListener('dragstart', (e) => e.preventDefault());
-
-                    img.addEventListener('mouseenter', () => {
-                        if (!isGridMode || !getCaseStudyForImg(img)) return;
-                        cursor.classList.add('case-study-hint');
-                    });
-                    img.addEventListener('mouseleave', () => {
-                        cursor.classList.remove('case-study-hint');
-                    });
-
-                    img.addEventListener('mousedown', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const r = img.getBoundingClientRect();
-                        dragOffsetX = e.clientX - r.left;
-                        dragOffsetY = e.clientY - r.top;
-                        scatterGesture = { img, startX: e.clientX, startY: e.clientY };
-                    });
-
-                    img.addEventListener('touchstart', (e) => {
-                        if (e.touches.length !== 1) return;
-                        e.stopPropagation();
-                        const t = e.touches[0];
-                        const r = img.getBoundingClientRect();
-                        dragOffsetX = t.clientX - r.left;
-                        dragOffsetY = t.clientY - r.top;
-                        scatterGesture = { img, startX: t.clientX, startY: t.clientY, touchId: t.identifier };
-                    }, { passive: true });
-
-                    img.addEventListener('touchmove', (e) => {
-                        if (dragEl === img) {
-                            const t = e.touches[0];
-                            if (!t) return;
-                            e.preventDefault();
-                            dragEl.style.left = (t.clientX - dragOffsetX) + 'px';
-                            dragEl.style.top  = (t.clientY - dragOffsetY) + 'px';
-                            return;
-                        }
-                        if (!scatterGesture || scatterGesture.img !== img) return;
-                        if (scatterGesture.touchId == null) return;
-                        const t = [...e.touches].find(x => x.identifier === scatterGesture.touchId);
-                        if (!t) return;
-                        const dx = t.clientX - scatterGesture.startX;
-                        const dy = t.clientY - scatterGesture.startY;
-                        if (Math.hypot(dx, dy) > dragThresholdPx) {
-                            scatterGesture = null;
-                            dragEl = img;
-                            img.classList.add('dragging');
-                            img.style.zIndex = '19000';
-                        }
-                    }, { passive: false });
-
-                    img.addEventListener('touchend', (e) => {
-                        if (dragEl === img) {
-                            dragEl.classList.remove('dragging');
-                            dragEl = null;
-                            return;
-                        }
-                        if (scatterGesture && scatterGesture.img === img && scatterGesture.touchId != null) {
-                            const lifted = [...e.changedTouches].some(t => t.identifier === scatterGesture.touchId);
-                            if (!lifted) return;
-                            const study = getCaseStudyForImg(img);
-                            if (study) openCaseStudy(study);
-                            scatterGesture = null;
-                        }
-                    });
-
-                    document.body.appendChild(img);
-                    scatterEls.push(img);
-
-                    setTimeout(() => {
-                        img.style.opacity   = '1';
-                        img.style.transform = 'scale(1)';
-                        img.style.left = targetX + 'px';
-                        img.style.top  = targetY + 'px';
-                    }, i * 30);
-                });
-            } else {
-                closeCaseStudy();
-                cursor.classList.remove('case-study-hint');
-                const btnRect = toggleBtn.getBoundingClientRect();
-                const originX = btnRect.left + btnRect.width  / 2 - 100;
-                const originY = btnRect.top  + btnRect.height / 2 - 75;
-
-                scatterEls.forEach((img, i) => {
-                    setTimeout(() => {
-                        img.style.left      = originX + 'px';
-                        img.style.top       = originY + 'px';
-                        img.style.transform = 'scale(0.05)';
-                        img.style.opacity   = '0';
-                    }, i * 15);
-                    setTimeout(() => img.remove(), i * 15 + 800);
-                });
-                scatterEls = [];
-            }
-        });
-
-        toggleBtn.addEventListener('mouseenter', () => {
-            cursor.classList.add('over-links');
-        });
-        toggleBtn.addEventListener('mouseleave', () => {
-            cursor.classList.remove('over-links');
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top  = e.clientY + 'px';
-        });
-
-        const social = document.querySelector('.social');
-        social.addEventListener('mouseenter', () => {
-            isOverLinks = true;
-            cursor.classList.add('over-links');
-        });
-        social.addEventListener('mouseleave', () => {
-            isOverLinks = false;
-            cursor.classList.remove('over-links');
-        });
-
-        const threshold = 60;
-        const halfX = 100;
-        const halfY = 75;
-        const baseZIndex = 0;
-        const zIndexDirection = 'new-on-top';
         let imageIndex = 0;
-        const lastMousePos = { x: 0, y: 0 };
-        const activeTrailEls = [];
-
-        function assignZIndices() {
-            activeTrailEls.forEach((el, i) => {
-                el.style.zIndex = zIndexDirection === 'new-on-top'
-                    ? baseZIndex + i
-                    : baseZIndex + (activeTrailEls.length - 1 - i);
-            });
-        }
-
-        // — Trail —
-        document.addEventListener('mousemove', (e) => {
-            if (isHolding || isOverLinks || isGridMode) return;
-
-            const x = e.clientX;
-            const y = e.clientY;
-            const dist = Math.hypot(x - lastMousePos.x, y - lastMousePos.y);
-            if (dist < threshold) return;
-
-            spawnTrailImage(x, y);
-
-            lastMousePos.x = x;
-            lastMousePos.y = y;
-        });
-
-        function spawnTrailImage(x, y) {
-            const el = document.createElement('img');
-            el.src = images[imageIndex % images.length];
-            el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;`;
-            document.body.appendChild(el);
-            imageIndex++;
-
-            activeTrailEls.push(el);
-            assignZIndices();
-
-            const tx = x - halfX;
-            const ty = y - halfY;
-
-            el.animate([
-                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0, offset: 0    },
-                { transform: `translate(${tx}px, ${ty}px)`, opacity: 1, offset: 0.15 },
-                { transform: `translate(${tx}px, ${ty}px)`, opacity: 1, offset: 0.85 },
-                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0, offset: 1    }
-            ], { duration: 2000, easing: 'ease-out', fill: 'forwards' }).onfinish = () => {
-                activeTrailEls.splice(activeTrailEls.indexOf(el), 1);
-                el.remove();
-            };
-        }
 
         // — Audio —
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const pressSound = defineSound({
+            source: { type: 'sine', frequency: { start: 80, end: 40 } },
+            envelope: { attack: 0.005, decay: 0.15 },
+            gain: 0.3,
+        });
 
-        function playPress() {
-            const osc  = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.15);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-        }
+        const holdSoundDef = defineSound({
+            source: { type: 'noise', color: 'brown' },
+            filter: {
+                type: 'bandpass',
+                frequency: 120,
+                envelope: { attack: 2.5, peak: 700, decay: 6 },
+            },
+            envelope: { attack: 0.6, decay: 10, sustain: 0.9, release: 0.6 },
+            gain: 0.22,
+        });
 
-        let holdOsc = null, holdGain = null;
+        // — Mechanical patch sounds (raphaelsalaja/audio) —
+        const expandSound = defineSound({
+            source: { type: 'noise', color: 'white' },
+            filter: { type: 'bandpass', frequency: 500, resonance: 2, envelope: { attack: 0.01, peak: 4000, decay: 0.08 } },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.03 },
+            gain: 0.08,
+        });
+
+        const collapseSound = defineSound({
+            source: { type: 'noise', color: 'pink' },
+            filter: { type: 'bandpass', frequency: 3500, resonance: 2, envelope: { decay: 0.08, peak: 500 } },
+            envelope: { attack: 0, decay: 0.1, sustain: 0, release: 0.03 },
+            gain: 0.08,
+        });
+
+        function playExpand() { expandSound(); }
+        function playCollapse() { collapseSound(); }
+
+
+        const releaseThump = defineSound({
+            source: { type: 'sine', frequency: { start: 180, end: 42 } },
+            envelope: { attack: 0.003, decay: 0.32 },
+            gain: 0.5,
+        });
+
+        const releaseAir = defineSound({
+            source: { type: 'noise', color: 'pink' },
+            filter: { type: 'bandpass', frequency: 900, resonance: 0.5 },
+            envelope: { attack: 0.018, decay: 0.55 },
+            gain: 0.18,
+            effects: [{ type: 'reverb', decay: 1.2, mix: 0.35 }],
+        });
+
+        let holdVoice = null;
 
         function startHoldSound() {
-            holdOsc  = audioCtx.createOscillator();
-            holdGain = audioCtx.createGain();
-            holdOsc.connect(holdGain); holdGain.connect(audioCtx.destination);
-            holdOsc.type = 'sawtooth';
-            holdOsc.frequency.setValueAtTime(30, audioCtx.currentTime);
-            holdOsc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 3);
-            holdGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            holdGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.2);
-            holdOsc.start();
+            holdVoice = holdSoundDef();
         }
 
         function stopHoldSound() {
-            if (!holdOsc) return;
-            holdGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-            holdOsc.stop(audioCtx.currentTime + 0.1);
-            holdOsc = null;
+            if (!holdVoice) return;
+            holdVoice.stop(0.1);
+            holdVoice = null;
         }
 
         function playExplosion() {
-            const count = 16;
-            for (let i = 0; i < count; i++) {
-                const t = audioCtx.currentTime + i * 0.035;
-                const bufferSize = Math.floor(audioCtx.sampleRate * 0.08);
-                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let j = 0; j < bufferSize; j++) data[j] = (Math.random() * 2 - 1);
-
-                const noise = audioCtx.createBufferSource();
-                noise.buffer = buffer;
-
-                // Bandpass around the "paper crinkle" range
-                const bp = audioCtx.createBiquadFilter();
-                bp.type = 'bandpass';
-                bp.frequency.value = 2500 + Math.random() * 1500;
-                bp.Q.value = 0.5 + Math.random() * 1.5;
-
-                // Shelf to cut the harshest highs
-                const shelf = audioCtx.createBiquadFilter();
-                shelf.type = 'highshelf';
-                shelf.frequency.value = 6000;
-                shelf.gain.value = -10;
-
-                const gain = audioCtx.createGain();
-                const vol = 0.22 * (1 - (i / count) * 0.6);
-                gain.gain.setValueAtTime(0, t);
-                gain.gain.linearRampToValueAtTime(vol, t + 0.008);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
-
-                noise.connect(bp); bp.connect(shelf); shelf.connect(gain); gain.connect(audioCtx.destination);
-                noise.start(t);
-            }
+            releaseThump();
+            setTimeout(() => releaseAir(), 25);
         }
 
         // — Click & hold explosion —
@@ -769,8 +1024,8 @@
         let holdSoundStarted = false;
 
         document.addEventListener('mousedown', (e) => {
-            if (isGridMode || dragEl) return;
-            audioCtx.resume();
+            if (dragEl) return;
+            ensureReady();
             holdSoundStarted = false;
             holdSoundTimer = setTimeout(() => {
                 startHoldSound();
@@ -787,7 +1042,7 @@
                 const oy = (Math.random() - 0.5) * 30;
                 const el = document.createElement('img');
                 el.src = images[imageIndex % images.length];
-                el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;z-index:${1000 + heldImages.length};transform:translate(${cx - halfX + ox}px,${cy - halfY + oy}px);`;
+                el.style.cssText = `position:fixed;left:0;top:0;width:200px;height:150px;object-fit:cover;pointer-events:none;z-index:${1000 + heldImages.length};transform:translate(${cx - halfX + ox}px,${cy - halfY + oy}px);outline:1px solid rgba(0,0,0,0.1);outline-offset:-1px;`;
                 document.body.appendChild(el);
                 heldImages.push(el);
                 imageIndex++;
@@ -823,6 +1078,139 @@
 
             heldImages.length = 0;
         });
+
+        // Page entrance
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Smooth scroll (Lenis → ScrollTrigger bridge)
+        const lenis = new Lenis({ duration: 1.4, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add(time => lenis.raf(time * 1000));
+        gsap.ticker.lagSmoothing(0);
+
+        class DualWaveAnimation {
+            constructor(wrapper, options = {}) {
+                this.wrapper = wrapper instanceof Element ? wrapper : document.querySelector(wrapper);
+                const waveNumber = this.wrapper?.dataset.waveNumber ? parseFloat(this.wrapper.dataset.waveNumber) : 2;
+                const waveSpeed  = this.wrapper?.dataset.waveSpeed  ? parseFloat(this.wrapper.dataset.waveSpeed)  : 1;
+                this.config = { waveNumber, waveSpeed, ...options };
+                this.currentImage = null;
+            }
+
+            init() {
+                if (!this.wrapper) return;
+                this.leftColumn  = this.wrapper.querySelector('.wave-column-left');
+                this.rightColumn = this.wrapper.querySelector('.wave-column-right');
+                if (!this.leftColumn || !this.rightColumn) return;
+                this.setupAnimation();
+            }
+
+            setupAnimation() {
+                this.leftTexts  = gsap.utils.toArray(this.leftColumn.querySelectorAll('.animated-text'));
+                this.rightTexts = gsap.utils.toArray(this.rightColumn.querySelectorAll('.animated-text'));
+                this.thumbnail  = this.wrapper.querySelector('.image-thumbnail');
+                if (!this.leftTexts.length || !this.rightTexts.length) return;
+
+                this.leftQuickSetters  = this.leftTexts.map(t => gsap.quickTo(t, 'x', { duration: 0.6, ease: 'power4.out' }));
+                this.rightQuickSetters = this.rightTexts.map(t => gsap.quickTo(t, 'x', { duration: 0.6, ease: 'power4.out' }));
+
+                this.calculateRanges();
+                this.setInitialPositions(this.leftTexts,  this.leftRange,   1);
+                this.setInitialPositions(this.rightTexts, this.rightRange, -1);
+                this.setupScrollTrigger();
+
+                this.resizeHandler = () => this.calculateRanges();
+                window.addEventListener('resize', this.resizeHandler);
+            }
+
+            calculateRanges() {
+                const maxL = Math.max(...this.leftTexts.map(t => t.offsetWidth));
+                const maxR = Math.max(...this.rightTexts.map(t => t.offsetWidth));
+                this.leftRange  = { minX: 0, maxX: this.leftColumn.offsetWidth  - maxL };
+                this.rightRange = { minX: 0, maxX: this.rightColumn.offsetWidth - maxR };
+            }
+
+            setInitialPositions(texts, range, multiplier) {
+                const size = range.maxX - range.minX;
+                texts.forEach((text, i) => {
+                    const phase    = this.config.waveNumber * i - Math.PI / 2;
+                    const progress = (Math.sin(phase) + 1) / 2;
+                    gsap.set(text, { x: (range.minX + progress * size) * multiplier });
+                });
+            }
+
+            setupScrollTrigger() {
+                this.scrollTrigger = ScrollTrigger.create({
+                    trigger: this.wrapper,
+                    start: 'top bottom',
+                    end: 'bottom top',
+                    onUpdate: self => this.handleScroll(self),
+                });
+            }
+
+            handleScroll(self) {
+                const progress     = self.progress;
+                const closestIndex = this.findClosestToViewportCenter();
+                this.updateColumn(this.leftTexts,  this.leftQuickSetters,  this.leftRange,  progress, closestIndex,  1);
+                this.updateColumn(this.rightTexts, this.rightQuickSetters, this.rightRange, progress, closestIndex, -1);
+                this.updateThumbnail(this.thumbnail, this.leftTexts[closestIndex]);
+            }
+
+            updateColumn(texts, setters, range, progress, focusedIndex, multiplier) {
+                const size = range.maxX - range.minX;
+                texts.forEach((text, i) => {
+                    setters[i](this.calculateWavePosition(i, progress, range.minX, size) * multiplier);
+                    text.classList.toggle('focused', i === focusedIndex);
+                });
+            }
+
+            updateThumbnail(thumbnail, focusedText) {
+                if (!thumbnail || !focusedText) return;
+                const newImage = focusedText.dataset.image;
+                if (newImage && this.currentImage !== newImage) {
+                    this.currentImage = newImage;
+                    thumbnail.src = newImage;
+                }
+                const wrapperRect      = this.wrapper.getBoundingClientRect();
+                const viewportCenter   = window.innerHeight / 2;
+                const thumbnailHeight  = thumbnail.offsetHeight;
+                const wrapperHeight    = this.wrapper.offsetHeight;
+                const idealY   = viewportCenter - wrapperRect.top - thumbnailHeight / 2;
+                const clampedY = Math.max(-thumbnailHeight / 2, Math.min(wrapperHeight - thumbnailHeight / 2, idealY));
+                gsap.set(thumbnail, { y: clampedY });
+            }
+
+            calculateWavePosition(index, globalProgress, minX, range) {
+                const phase = this.config.waveNumber * index + this.config.waveSpeed * globalProgress * Math.PI * 2 - Math.PI / 2;
+                return minX + ((Math.sin(phase) + 1) / 2) * range;
+            }
+
+            findClosestToViewportCenter() {
+                const center = window.innerHeight / 2;
+                let closestIndex = 0, minDist = Infinity;
+                this.leftTexts.forEach((text, i) => {
+                    const rect = text.getBoundingClientRect();
+                    const dist = Math.abs(rect.top + rect.height / 2 - center);
+                    if (dist < minDist) { minDist = dist; closestIndex = i; }
+                });
+                return closestIndex;
+            }
+        }
+
+        const waveWrapper = document.querySelector('.dual-wave-wrapper');
+        if (waveWrapper) {
+            const waveAnim = new DualWaveAnimation(waveWrapper);
+            waveAnim.init();
+            requestAnimationFrame(() => {
+                ScrollTrigger.refresh();
+                waveAnim.handleScroll({ progress: 0 });
+            });
+        }
+
+        const introTl = gsap.timeline();
+        introTl.from('.bio:not(.prev)', { opacity: 0, y: 12, filter: 'blur(4px)', duration: 0.45, ease: 'power2.out' }, 0.05);
+        introTl.from('.prev',           { opacity: 0, y: 12, filter: 'blur(4px)', duration: 0.45, ease: 'power2.out' }, 0.15);
+        introTl.from('.social a',       { opacity: 0, y: 8,  filter: 'blur(4px)', duration: 0.35, ease: 'power2.out', stagger: 0.06 }, 0.25);
     </script>
 </body>
 </html>
