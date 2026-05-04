@@ -1238,5 +1238,25 @@
         introTl.from('.prev',           { opacity: 0, y: 12, filter: 'blur(4px)', duration: 0.45, ease: 'power2.out' }, 0.15);
         introTl.from('.social a',       { opacity: 0, y: 8,  filter: 'blur(4px)', duration: 0.35, ease: 'power2.out', stagger: 0.06 }, 0.25);
     </script>
+
+    <a href="/archive" id="collected-link">Collected</a>
+    <style>
+        #collected-link {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: Helvetica, -apple-system, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(0,0,0,0.25);
+            text-decoration: none;
+            z-index: 100;
+            transition: color 0.2s ease;
+        }
+        #collected-link:hover { color: rgba(0,0,0,0.7); }
+    </style>
 </body>
 </html>
