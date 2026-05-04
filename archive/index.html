@@ -533,6 +533,7 @@
             }
             .filter-btn { font-size: 14px; transform: none !important; }
             #grid-wrap  { margin-left: 0; padding: 0 16px 60px; }
+            #fab-root   { right: 16px; bottom: 24px; }
         }
     </style>
 </head>
@@ -873,7 +874,15 @@
         if (expandedPill && expandedPill !== pill) collapsePill(expandedPill);
         expandedPill = pill;
         pill.classList.add('expanded');
-        gsap.to(pill, { width: 380, duration: 0.45, ease: 'expo.out',
+
+        // Right edge of FAB root (button side) sits `right` px from viewport edge
+        const fabRight  = window.innerWidth <= 600 ? 16 : 40;
+        // Available width stretching left, leaving a small margin on the left
+        const maxW = Math.min(380, window.innerWidth - fabRight - 40 - 10 - 12);
+        // Set track to match so content doesn't overflow after overflow:visible
+        gsap.set(pill.querySelector('.pill-track'), { width: maxW });
+
+        gsap.to(pill, { width: maxW, duration: 0.45, ease: 'expo.out',
             onComplete: () => { pill.style.overflow = 'visible'; }
         });
         gsap.to(pill.querySelector('.pill-form'), { opacity: 1, duration: 0.2, delay: 0.25 });
@@ -888,7 +897,9 @@
         menu.classList.remove('open');
         gsap.to(menu, { opacity: 0, y: 6, duration: 0.1 });
         gsap.to(pill.querySelector('.pill-form'), { opacity: 0, duration: 0.12 });
-        gsap.to(pill, { width: 40, duration: 0.3, ease: 'expo.in' });
+        gsap.to(pill, { width: 40, duration: 0.3, ease: 'expo.in',
+            onComplete: () => gsap.set(pill.querySelector('.pill-track'), { clearProps: 'width' })
+        });
         expandedPill = null;
     }
 
