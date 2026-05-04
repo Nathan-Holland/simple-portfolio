@@ -76,121 +76,72 @@
         .card {
             position: absolute;
             overflow: hidden;
-            background: #f0f0f0;
+            background: #fff;
             display: block;
             text-decoration: none;
-            transition: box-shadow 0.25s ease;
             cursor: pointer;
+            transition: filter 0.35s ease, opacity 0.35s ease;
         }
-
-        .card:hover {
-            z-index: 50 !important;
-        }
-
-        .card-delete {
-            position: absolute;
-            top: 8px; right: 8px;
-            width: 24px; height: 24px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.55);
-            color: #fff;
-            border: none;
-            font-size: 14px;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.15s;
-            z-index: 10;
-        }
-
-        .card:hover .card-delete { opacity: 1; }
 
         .card img {
             display: block;
             width: 100%;
             height: 100%;
             object-fit: contain;
-            background: #fff;
         }
 
-        /* ── Local-upload card ──────────────────────────── */
-        .card.local-upload .card-name-strip {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 20px 10px 9px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.45));
-            font-size: 11px;
-            color: #fff;
-            opacity: 0;
-            transition: opacity 0.2s ease;
+        .card.product { background: #fff; }
+        .card.product img { padding: 8px; }
+
+        /* ── Isolation mode ─────────────────────────────── */
+        body.isolating .card:not(.active-card) {
+            filter: blur(6px);
+            opacity: 0.25;
             pointer-events: none;
         }
 
-        .card.local-upload:hover .card-name-strip { opacity: 1; }
+        body.isolating .card.active-card {
+            z-index: 500 !important;
+        }
 
-        .card-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            opacity: 0;
-            transition: opacity 0.22s ease;
+        /* ── Isolation panel ────────────────────────────── */
+        #isolate-panel {
+            position: fixed;
+            right: 48px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            padding: 14px;
-            gap: 3px;
+            gap: 10px;
+            z-index: 600;
+            pointer-events: none;
+            opacity: 0;
         }
 
-        .card:hover .card-overlay { opacity: 1; }
+        body.isolating #isolate-panel { pointer-events: auto; }
 
-        .card-title  { color: #fff; font-size: 12px; line-height: 1.3; }
-        .card-domain { color: rgba(255,255,255,0.55); font-size: 11px; }
-
-        /* ── Product card (interior / fashion) ──────────── */
-        .card-product {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
+        .iso-btn {
+            width: 40px; height: 40px;
+            border-radius: 100px;
             background: #fff;
-            padding: 10px 12px;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0px 12px 16px -4px rgba(0,0,0,0.08), 0px 4px 6px -2px rgba(0,0,0,0.03), 0px 2px 2px -1px rgba(0,0,0,0.04);
             display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 8px;
-            border: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
-        .card-product-name {
-            font-size: 11px;
-            color: #000;
-            line-height: 1.3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .iso-btn svg {
+            width: 15px; height: 15px;
+            stroke: #000; fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
-        .card-product-price {
-            font-size: 11px;
-            color: rgba(0,0,0,0.45);
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .card.product {
-            background: #fff;
-        }
-
-        .card.product img {
-            height: calc(100% - 36px);
-            object-fit: contain;
-            padding: 8px;
-        }
-
-        .card-product {
-            border-top: none;
-        }
+        #iso-delete svg { stroke: rgba(0,0,0,0.5); }
+        #iso-delete:hover svg { stroke: #000; }
 
         /* ── List view ──────────────────────────────────── */
         .list-view {
@@ -589,6 +540,15 @@
 
 <div id="bottom-fade"></div>
 
+<div id="isolate-panel">
+    <button class="iso-btn" id="iso-delete" title="Remove">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
+    <button class="iso-btn" id="iso-link" title="Open link" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </button>
+</div>
+
 <div id="fab-root">
     <div class="fab-pill" id="pill-url">
         <div class="pill-track">
@@ -762,46 +722,20 @@
             el.style.cssText = `left:${x}px;top:${y}px;width:${cardW}px;height:${cardH}px;z-index:${i + 1};`;
 
             const isCustom = customItems.includes(item);
-            const deleteBtn = isCustom ? `<button class="card-delete" title="Remove">×</button>` : '';
-
-            if (item.image && item.price != null) {
-                el.classList.add('product');
-                el.innerHTML = `
-                    <img src="${item.image}" alt="${item.title}">
-                    <div class="card-product">
-                        <span class="card-product-name">${item.title}</span>
-                        <span class="card-product-price">${item.price}</span>
-                    </div>${deleteBtn}`;
-            } else if (item.image && item.url === '#') {
-                // locally-uploaded image — minimal hover: name + delete only
-                el.classList.add('local-upload');
-                el.href = 'javascript:void(0)';
-                el.innerHTML = `
-                    <img src="${item.image}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;display:block;">
-                    <div class="card-name-strip">${item.title}</div>
-                    ${deleteBtn}`;
-            } else if (item.image) {
-                el.innerHTML = `
-                    <img src="${item.image}" alt="${item.title}">
-                    <div class="card-overlay">
-                        <div class="card-title">${item.title}</div>
-                        <div class="card-domain">${domain(item.url)}</div>
-                    </div>${deleteBtn}`;
+            // Pure image — no labels, no overlays
+            if (item.image) {
+                if (item.price != null) el.classList.add('product');
+                if (item.url === '#')   el.href = 'javascript:void(0)';
+                el.innerHTML = `<img src="${item.image}" alt="${item.title}">`;
             } else {
-                el.innerHTML = `
-                    <div class="card-overlay" style="opacity:1;background:rgba(0,0,0,0.04);">
-                        <div class="card-title" style="color:#000">${item.title}</div>
-                        <div class="card-domain" style="color:rgba(0,0,0,0.4)">${domain(item.url)}</div>
-                    </div>${deleteBtn}`;
+                el.innerHTML = `<img src="" alt="" style="display:none">`;
             }
 
-            if (isCustom) {
-                el.querySelector('.card-delete').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    removeItem(item);
-                });
-            }
+            // Click → isolate
+            el.addEventListener('click', e => {
+                e.preventDefault();
+                isolate(el, item);
+            });
 
             container.appendChild(el);
             colY[colIdx] = y + cardH + minSpaceAfter + Math.random() * (maxSpaceAfter - minSpaceAfter);
@@ -861,6 +795,53 @@
         render(activeCategory);
     }
 
+    // ── Isolation ────────────────────────────────────────
+    const isolatePanel  = document.getElementById('isolate-panel');
+    const isoDeleteBtn  = document.getElementById('iso-delete');
+    const isoLinkBtn    = document.getElementById('iso-link');
+    let   activeCard    = null;
+    let   activeItem    = null;
+
+    function isolate(el, item) {
+        if (activeCard) deisolate(false);
+        activeCard = el;
+        activeItem = item;
+        el.classList.add('active-card');
+        document.body.classList.add('isolating');
+
+        isoDeleteBtn.onclick = async () => {
+            deisolate();
+            await removeItem(item);
+        };
+
+        if (item.url && item.url !== '#') {
+            isoLinkBtn.style.display = 'flex';
+            isoLinkBtn.onclick = () => window.open(item.url, '_blank');
+        } else {
+            isoLinkBtn.style.display = 'none';
+        }
+
+        gsap.fromTo(isolatePanel,
+            { opacity: 0, x: 16 },
+            { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out' }
+        );
+    }
+
+    function deisolate(animate = true) {
+        if (activeCard) activeCard.classList.remove('active-card');
+        activeCard = null;
+        activeItem = null;
+        document.body.classList.remove('isolating');
+        if (animate) gsap.to(isolatePanel, { opacity: 0, x: 16, duration: 0.25, ease: 'power2.in' });
+    }
+
+    document.addEventListener('click', e => {
+        if (!document.body.classList.contains('isolating')) return;
+        if (!e.target.closest('.active-card') && !e.target.closest('#isolate-panel')) {
+            deisolate();
+        }
+    });
+
     function updateListWave() {
         if (!listItems.length) return;
         const scrollY   = window.scrollY;
@@ -881,6 +862,7 @@
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             activeCategory = btn.dataset.cat;
+            if (typeof deisolate === 'function') deisolate();
             render(activeCategory);
         });
     });
