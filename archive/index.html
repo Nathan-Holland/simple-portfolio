@@ -844,6 +844,20 @@
         if (animate) gsap.to(isolatePanel, { opacity: 0, x: 16, duration: 0.25, ease: 'power2.in' });
     }
 
+    function updatePanelPos() {
+        if (!activeCard) return;
+        const hasLink = activeItem && activeItem.url && activeItem.url !== '#';
+        const panelH  = hasLink ? 90 : 40;
+        const gap     = 12;
+        const rect    = activeCard.getBoundingClientRect();
+        const spaceRight = window.innerWidth - rect.right;
+        const left    = spaceRight > 64 ? rect.right + gap : rect.left - 40 - gap;
+        const top     = rect.top + rect.height / 2 - panelH / 2;
+        gsap.set(isolatePanel, { left, top });
+    }
+
+    window.addEventListener('scroll', updatePanelPos, { passive: true });
+
     document.addEventListener('click', e => {
         if (!document.body.classList.contains('isolating')) return;
         if (!e.target.closest('.active-card') && !e.target.closest('#isolate-panel')) {
