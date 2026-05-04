@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive</title>
+    <title>Collected — Nate Holland</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -282,16 +282,17 @@
         #fab-root {
             position: fixed;
             bottom: 40px;
-            left: 50%;
-            transform: translateX(-20px); /* -20px = half the 40px button, keeps button centered */
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-direction: row-reverse;
+            left: 0; right: 0;
+            height: 40px;
+            pointer-events: none;
             z-index: 300;
         }
 
         #fab-btn {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
             width: 40px; height: 40px;
             border-radius: 50%;
             background: #000;
@@ -302,12 +303,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
+            pointer-events: auto;
         }
 
         #fab-icon { display: block; line-height: 1; }
 
         .fab-pill {
+            position: absolute;
+            top: 0;
             height: 40px;
             width: 40px;
             border-radius: 20px;
@@ -317,10 +320,17 @@
             display: flex;
             align-items: center;
             cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
             overflow: hidden;
+            pointer-events: auto;
         }
+
+        /* pill-url anchored on right → expands leftward; icon stays right */
+        #pill-url { right: calc(50% + 30px); }
+        #pill-url .pill-track { flex-direction: row-reverse; }
+        #pill-url .pill-form  { padding-right: 0; padding-left: 12px; }
+
+        /* pill-img anchored on left → expands rightward; icon stays left */
+        #pill-img { left: calc(50% + 30px); }
 
         .fab-pill.expanded { cursor: default; }
 
@@ -517,7 +527,7 @@
 
         #desk-tag span,
         #desk-tag a {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 400;
             letter-spacing: -0.02em;
             text-transform: uppercase;
@@ -526,6 +536,10 @@
             text-decoration: none;
             display: block;
             transition: color 0.2s ease;
+        }
+
+        #desk-tag a {
+            font-style: italic;
         }
 
         #desk-tag span { transform: translateX(0px); }
@@ -555,7 +569,7 @@
 <div id="curtain"></div>
 
 <div id="desk-tag">
-    <span>from the desk of</span>
+    <span>Collected by</span>
     <a href="/" id="desk-link">Nate Holland</a>
 </div>
 
@@ -867,19 +881,23 @@
     const pillImg = document.getElementById('pill-img');
     const pills   = [pillImg, pillUrl]; // img closer to button
 
-    gsap.set(pills, { x: 60, opacity: 0 });
+    // pill-url slides LEFT out from behind button; pill-img slides RIGHT
+    gsap.set(pillUrl, { x:  60, opacity: 0 });
+    gsap.set(pillImg, { x: -60, opacity: 0 });
 
     function openFab() {
         fabOpen = true;
         gsap.to(fabIcon, { rotation: 45, duration: 0.3, ease: 'back.out(2)' });
-        gsap.to(pills, { x: 0, opacity: 1, duration: 0.5, ease: 'back.out(2.2)', stagger: 0.07 });
+        gsap.to(pillUrl, { x: 0, opacity: 1, duration: 0.5, ease: 'back.out(2.2)' });
+        gsap.to(pillImg, { x: 0, opacity: 1, duration: 0.5, ease: 'back.out(2.2)', delay: 0.07 });
     }
 
     function closeFab() {
         fabOpen = false;
         if (expandedPill) collapsePill(expandedPill);
         gsap.to(fabIcon, { rotation: 0, duration: 0.25, ease: 'power2.out' });
-        gsap.to(pills, { x: 60, opacity: 0, duration: 0.35, ease: 'back.in(1.5)', stagger: 0.04 });
+        gsap.to(pillUrl, { x:  60, opacity: 0, duration: 0.35, ease: 'back.in(1.5)' });
+        gsap.to(pillImg, { x: -60, opacity: 0, duration: 0.35, ease: 'back.in(1.5)', delay: 0.04 });
     }
 
     fabBtn.addEventListener('click', () => fabOpen ? closeFab() : openFab());
@@ -890,8 +908,7 @@
         expandedPill = pill;
         pill.classList.add('expanded');
 
-        // Button is centered; pills extend LEFT into the left half of viewport
-        // Available space: half viewport minus half-button (20px) minus gap (10px) minus left margin (12px)
+        // Each pill has half the viewport minus button-half (20px) minus gap (10px) minus margin (12px)
         const maxW = Math.min(380, window.innerWidth / 2 - 42);
         // Set track to match so content doesn't overflow after overflow:visible
         gsap.set(pill.querySelector('.pill-track'), { width: maxW });
