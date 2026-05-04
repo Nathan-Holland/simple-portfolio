@@ -446,8 +446,25 @@
 
         @media (max-width: 600px) {
             .wave-section { padding-top: calc(50vh - 30px); padding-bottom: 50vh; }
-            .wave-column-right,
-            .image-thumbnail-wrapper { display: none; }
+            .wave-column-right { display: none; }
+            .image-thumbnail-wrapper {
+                position: fixed;
+                top: 24px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 72vw;
+                height: auto;
+                z-index: 10;
+                display: grid;
+                pointer-events: none;
+            }
+            .image-thumbnail {
+                max-height: 36vh;
+                width: auto;
+                max-width: 100%;
+                outline: 1px solid rgba(0,0,0,0.1);
+                outline-offset: -1px;
+            }
             .dual-wave-wrapper { display: block; }
             .wave-column-left { align-items: center; width: 100%; font-size: 16px; gap: 0.75rem; }
             .wave-column .animated-text { text-align: center; }
@@ -1175,9 +1192,11 @@
                 const viewportCenter   = window.innerHeight / 2;
                 const thumbnailHeight  = thumbnail.offsetHeight;
                 const wrapperHeight    = this.wrapper.offsetHeight;
-                const idealY   = viewportCenter - wrapperRect.top - thumbnailHeight / 2;
-                const clampedY = Math.max(-thumbnailHeight / 2, Math.min(wrapperHeight - thumbnailHeight / 2, idealY));
-                gsap.set(thumbnail, { y: clampedY });
+                if (window.innerWidth > 600) {
+                    const idealY   = viewportCenter - wrapperRect.top - thumbnailHeight / 2;
+                    const clampedY = Math.max(-thumbnailHeight / 2, Math.min(wrapperHeight - thumbnailHeight / 2, idealY));
+                    gsap.set(thumbnail, { y: clampedY });
+                }
             }
 
             calculateWavePosition(index, globalProgress, minX, range) {
