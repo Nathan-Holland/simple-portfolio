@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collected — Nate Holland</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -662,19 +663,40 @@
         { title: 'Sociotype',        url: 'https://socio-type.com/',                     category: 'typography' },
     ];
 
-    // ── Persistence ──────────────────────────────────────
+    // ── Supabase ──────────────────────────────────────────
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── Persistence (localStorage fallback) ──────────────
     const STORAGE_KEY = 'archive_custom_items';
 
-    function loadCustomItems() {
+    function loadLocalItems() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
         catch { return []; }
     }
 
-    function saveCustomItems(custom) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+    async function fetchRemoteItems() {
+        try {
+            const { data, error } = await db.from('items').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        } catch { return []; }
     }
 
-    let customItems = loadCustomItems();
+    async function saveRemoteItem(item) {
+        const { error } = await db.from('items').insert([item]);
+        if (error) throw error;
+    }
+
+    async function deleteRemoteItem(item) {
+        if (item.id) {
+            await db.from('items').delete().eq('id', item.id);
+        }
+    }
+
+    let customItems = loadLocalItems(); // start with local, replace when remote loads
     let items = [...DEFAULT_ITEMS, ...customItems];
 
     // ── Helpers ──────────────────────────────────────────
@@ -830,9 +852,10 @@
         updateListWave();
     }
 
-    function removeItem(item) {
+    async function removeItem(item) {
         customItems = customItems.filter(c => c !== item);
-        saveCustomItems(customItems);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(customItems));
+        await deleteRemoteItem(item);
         items = [...DEFAULT_ITEMS, ...customItems];
         render(activeCategory);
     }
@@ -865,6 +888,17 @@
 
     // ── Init ─────────────────────────────────────────────
     render(activeCategory);
+
+    // Load remote items from Supabase and re-render
+    (async () => {
+        const remote = await fetchRemoteItems();
+        if (remote.length) {
+            customItems = remote;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(customItems));
+            items = [...DEFAULT_ITEMS, ...customItems];
+            render(activeCategory);
+        }
+    })();
 
     // ── FAB ──────────────────────────────────────────────
     const ALL_CATS   = ['inspiration','typography','mockups','interior','fashion'];
@@ -1011,7 +1045,7 @@
         });
 
         // Submit
-        addBtn.addEventListener('click', e => {
+        addBtn.addEventListener('click', async e => {
             e.stopPropagation();
             const url = input.value.trim();
             if (!url) { input.focus(); return; }
@@ -1024,10 +1058,15 @@
 
             const newItem = { title, url, category: selectedCat };
             if (type === 'image' && pill._image) newItem.image = pill._image;
-            if (type === 'image' && pill._price) newItem.price = pill._price;
+            if (type === 'image' && pill._price)  newItem.price = pill._price;
 
+            // Save to Supabase, get back id; also keep local copy
+            try {
+                const { data } = await db.from('items').insert([newItem]).select().single();
+                if (data) newItem.id = data.id;
+            } catch {}
             customItems.push(newItem);
-            saveCustomItems(customItems);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(customItems));
             items = [...DEFAULT_ITEMS, ...customItems];
 
             // reset
@@ -1115,7 +1154,7 @@
         });
 
         // Submit
-        addBtn.addEventListener('click', e => {
+        addBtn.addEventListener('click', async e => {
             e.stopPropagation();
             if (!imageData) { fileInput.click(); return; }
 
@@ -1123,8 +1162,12 @@
             if (!title) title = 'Untitled';
 
             const newItem = { title, url: '#', category: selectedCat, image: imageData };
+            try {
+                const { data } = await db.from('items').insert([newItem]).select().single();
+                if (data) newItem.id = data.id;
+            } catch {}
             customItems.push(newItem);
-            saveCustomItems(customItems);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(customItems));
             items = [...DEFAULT_ITEMS, ...customItems];
 
             // reset

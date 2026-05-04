@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collected</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <header>
+        <span class="logo">Collected</span>
+        <span class="status" id="status"></span>
+    </header>
+
+    <div id="preview-wrap">
+        <img id="preview-img" alt="" />
+        <div id="preview-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="fields">
+        <div class="field">
+            <label>Title</label>
+            <input type="text" id="title-input" placeholder="Auto-detected…" />
+        </div>
+        <div class="field">
+            <label>URL</label>
+            <input type="url" id="url-input" placeholder="https://…" />
+        </div>
+        <div class="field">
+            <label>Category</label>
+            <select id="cat-select">
+                <option value="inspiration">Inspiration</option>
+                <option value="typography">Typography</option>
+                <option value="mockups">Mockups</option>
+                <option value="interior">Interior</option>
+                <option value="fashion">Fashion</option>
+            </select>
+        </div>
+        <div class="field" id="price-field" style="display:none">
+            <label>Price <span class="optional">optional</span></label>
+            <input type="text" id="price-input" placeholder="€49" />
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="save-btn">Save</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
