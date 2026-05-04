@@ -562,7 +562,7 @@
     let listItems = []; // track for scroll animation
 
     function renderList(container, filtered, cat) {
-        const showFavicon = cat === 'typography';
+        const showFavicon = cat === 'typography' || cat === 'mockups';
         const wrap = document.createElement('div');
         wrap.className = 'list-view';
         listItems = [];
