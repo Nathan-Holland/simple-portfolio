@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Helvetica, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13px;
+            background: #fff;
+            color: #000;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Layout ────────────────────────────────────── */
+        #app { display: block; }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100vh;
+            padding: 0 0 0 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+            z-index: 100;
+            background: #fff;
+        }
+
+        .filter-btn {
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            color: rgba(0,0,0,0.18);
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 3px 0;
+            line-height: 1;
+            transition: color 0.2s ease;
+            width: max-content;
+        }
+
+        .filter-btn:hover  { color: rgba(0,0,0,0.55); }
+        .filter-btn.active { color: #000; }
+
+        .filter-btn:nth-child(1) { transform: translateX(0px);  }
+        .filter-btn:nth-child(2) { transform: translateX(32px); }
+        .filter-btn:nth-child(3) { transform: translateX(56px); }
+        .filter-btn:nth-child(4) { transform: translateX(44px); }
+        .filter-btn:nth-child(5) { transform: translateX(18px); }
+
+        /* ── Grid ──────────────────────────────────────── */
+        #grid-wrap {
+            margin-left: 40%;
+            padding: 0 48px 80px 0;
+        }
+
+        #grid {
+            position: relative;
+            width: 100%;
+        }
+
+        /* ── Cards (grid view) ──────────────────────────── */
+        .card {
+            position: absolute;
+            overflow: hidden;
+            background: #f0f0f0;
+            display: block;
+            text-decoration: none;
+            transition: box-shadow 0.25s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+            z-index: 50 !important;
+        }
+
+        .card img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.22s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 14px;
+            gap: 3px;
+        }
+
+        .card:hover .card-overlay { opacity: 1; }
+
+        .card-title  { color: #fff; font-size: 12px; line-height: 1.3; }
+        .card-domain { color: rgba(255,255,255,0.55); font-size: 11px; }
+
+        /* ── List view ──────────────────────────────────── */
+        .list-view {
+            padding-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 12px 0;
+            text-decoration: none;
+            color: inherit;
+            will-change: transform;
+        }
+
+        .list-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .list-item-title {
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: -0.03em;
+            color: rgba(0,0,0,0.15);
+            transition: color 0.2s ease;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+
+        .list-item-arrow {
+            font-size: 14px;
+            color: rgba(0,0,0,0.15);
+            transition: color 0.2s ease, transform 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .list-favicon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
+            opacity: 0.5;
+            transition: opacity 0.2s ease;
+        }
+
+        .list-item:hover .list-favicon { opacity: 1; }
+        .list-item:hover .list-item-title { color: #000; }
+        .list-item:hover .list-item-arrow { color: #000; transform: translate(3px, -3px); }
+
+        .empty {
+            padding: 80px 0;
+            color: rgba(0,0,0,0.28);
+            font-size: 13px;
+        }
+
+        /* ── FAB ─────────────────────────────────────────── */
+        #fab-wrap {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 40px;
+            height: 40px;
+            z-index: 300;
+        }
+
+        #fab-btn {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #000;
+            color: #fff;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        #fab-icon {
+            display: block;
+            line-height: 1;
+        }
+
+        .fab-opt {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.12);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transform-origin: right bottom;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .fab-opt svg {
+            width: 16px; height: 16px;
+            stroke: #000;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .fab-opt.visible { pointer-events: auto; }
+
+        /* ── Add panel ───────────────────────────────────── */
+        #add-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.18);
+            z-index: 400;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #add-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 40px;
+            width: 300px;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 24px;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        #panel-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(0,0,0,0.4);
+        }
+
+        #add-panel input {
+            border: 1px solid rgba(0,0,0,0.15);
+            padding: 9px 10px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+        }
+
+        #add-panel input:focus { border-color: #000; }
+
+        #panel-cats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .panel-cat {
+            padding: 5px 12px;
+            border: 1px solid rgba(0,0,0,0.15);
+            background: none;
+            font-family: inherit;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            color: rgba(0,0,0,0.5);
+            transition: all 0.15s;
+        }
+
+        .panel-cat.selected,
+        .panel-cat:hover { background: #000; color: #fff; border-color: #000; }
+
+        #panel-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        #panel-submit {
+            flex: 1;
+            padding: 10px;
+            background: #000;
+            color: #fff;
+            border: none;
+            font-family: inherit;
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        #panel-submit:hover { background: #333; }
+
+        #panel-cancel {
+            padding: 10px 16px;
+            background: none;
+            color: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,0,0,0.12);
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        #panel-cancel:hover { color: #000; border-color: #000; }
+
+        @media (max-width: 600px) {
+            nav {
+                position: static;
+                width: 100%;
+                height: auto;
+                padding: 28px 20px 16px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px 14px;
+            }
+            .filter-btn { font-size: 14px; transform: none !important; }
+            #grid-wrap  { margin-left: 0; padding: 0 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <nav>
+        <button class="filter-btn" data-cat="inspiration">Inspiration</button>
+        <button class="filter-btn active" data-cat="typography">Typography</button>
+        <button class="filter-btn" data-cat="mockups">Mockups</button>
+        <button class="filter-btn" data-cat="interior">Interior</button>
+        <button class="filter-btn" data-cat="fashion">Fashion</button>
+    </nav>
+    <div id="grid-wrap">
+        <div id="grid"></div>
+    </div>
+</div>
+
+<div id="add-backdrop"></div>
+
+<div id="add-panel">
+    <span id="panel-label">Add Link</span>
+    <input id="panel-url" type="url" placeholder="https://" />
+    <div id="panel-img-wrap"><input id="panel-img" type="url" placeholder="Image URL" /></div>
+    <div id="panel-cats"></div>
+    <div id="panel-actions">
+        <button id="panel-cancel">Cancel</button>
+        <button id="panel-submit">Add</button>
+    </div>
+</div>
+
+<div id="fab-wrap">
+    <!-- Link icon -->
+    <button class="fab-opt" id="fab-opt-url" title="Add link">
+        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </button>
+    <!-- Image icon -->
+    <button class="fab-opt" id="fab-opt-img" title="Add image">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    </button>
+    <button id="fab-btn"><span id="fab-icon">+</span></button>
+</div>
+
+<script>
+    // ── Data ─────────────────────────────────────────────
+    // { title, url, category, image? }
+    // categories: inspiration | typography | mockups | interior | fashion
+    const DEFAULT_ITEMS = [
+        { title: 'Mockup Lab',       url: 'https://mockuplab.shop/',                     category: 'mockups',    image: 'https://mockuplab.shop/og-image.jpg' },
+        { title: 'ABC Dinamo',       url: 'https://abcdinamo.com/',                       category: 'typography' },
+        { title: 'Type of Feeling',  url: 'https://typeoffeeling.com/',                  category: 'typography' },
+        { title: 'Playtype',         url: 'https://playtype.com/',                        category: 'typography' },
+        { title: 'Sharp Type',       url: 'https://www.sharptype.co/',                   category: 'typography' },
+        { title: 'Pangram Pangram',  url: 'https://pangrampangram.com/',                 category: 'typography' },
+        { title: 'Grilli Type',      url: 'https://www.grillitype.com/',                 category: 'typography' },
+        { title: 'Nan',              url: 'https://www.nan.xyz/fonts/',                  category: 'typography' },
+        { title: 'Lineto',           url: 'https://lineto.com/features/tratex',          category: 'typography' },
+        { title: 'TYPO72TYPO',       url: 'https://www.t72t.com/',                       category: 'typography' },
+        { title: 'Taylor Penton',    url: 'https://taylorpenton.com/collections/all-fonts', category: 'typography' },
+        { title: '205TF',            url: 'https://www.205.tf/typefaces',                category: 'typography' },
+        { title: 'Fonts In Use',     url: 'https://fontsinuse.com/',                     category: 'typography' },
+        { title: 'Optimo',           url: 'https://optimo.ch/',                          category: 'typography' },
+        { title: 'Commercial Type',  url: 'https://commercialtype.com/',                 category: 'typography' },
+        { title: 'Klim Type',        url: 'https://klim.co.nz/',                         category: 'typography' },
+        { title: 'Gradient',         url: 'https://www.wearegradient.net/',              category: 'typography' },
+        { title: 'Future Fonts',     url: 'https://www.futurefonts.com/',                category: 'typography' },
+        { title: 'Displaay',         url: 'https://displaay.net/',                       category: 'typography' },
+        { title: 'Lift Type',        url: 'https://www.lift-type.fr/',                   category: 'typography' },
+        { title: 'ALT.tf',           url: 'https://alt-tf.com/',                         category: 'typography' },
+        { title: 'Sociotype',        url: 'https://socio-type.com/',                     category: 'typography' },
+    ];
+
+    // ── Persistence ──────────────────────────────────────
+    const STORAGE_KEY = 'archive_custom_items';
+
+    function loadCustomItems() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+        catch { return []; }
+    }
+
+    function saveCustomItems(custom) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+    }
+
+    let customItems = loadCustomItems();
+    let items = [...DEFAULT_ITEMS, ...customItems];
+
+    // ── Helpers ──────────────────────────────────────────
+    function domain(url) {
+        try { return new URL(url).hostname.replace('www.', ''); }
+        catch { return url; }
+    }
+
+    // ── Render ───────────────────────────────────────────
+    let activeCategory = 'typography';
+
+    const GRID_CATS = new Set(['inspiration', 'interior']);
+
+    function render(cat) {
+        const container = document.getElementById('grid');
+        const filtered  = cat === 'all' ? items : items.filter(i => i.category === cat);
+        container.innerHTML = '';
+        container.style.height = 'auto';
+
+        if (!filtered.length) {
+            container.innerHTML = '<p class="empty">Nothing here yet.</p>';
+            return;
+        }
+
+        const useGrid = GRID_CATS.has(cat);
+
+        if (useGrid) {
+            renderGrid(container, filtered);
+        } else {
+            renderList(container, filtered, cat);
+        }
+    }
+
+    function renderGrid(container, filtered) {
+        const totalW         = container.offsetWidth;
+        const cols           = 3;
+        const gutter         = 20;
+        const colW           = (totalW - gutter * (cols - 1)) / cols;
+        const minFrac        = 0.60;
+        const maxFrac        = 0.92;
+        const minSpaceBefore = 10;
+        const maxSpaceBefore = 90;
+        const minSpaceAfter  = 0;
+        const maxSpaceAfter  = 40;
+        const colY = [40, 70, 20];
+
+        filtered.forEach((item, i) => {
+            const colIdx  = i % cols;
+            const frac    = minFrac + Math.random() * (maxFrac - minFrac);
+            const cardW   = colW * frac;
+            const aspect  = item.aspect || (0.65 + Math.random() * 0.95);
+            const cardH   = cardW * aspect;
+            const colStart = colIdx * (colW + gutter);
+            const x       = colStart + (colW - cardW) * (0.1 + Math.random() * 0.8);
+            const y       = colY[colIdx] + minSpaceBefore + Math.random() * (maxSpaceBefore - minSpaceBefore);
+
+            const el = document.createElement('a');
+            el.className = 'card';
+            el.href = item.url;
+            el.target = '_blank';
+            el.rel = 'noopener';
+            el.style.cssText = `left:${x}px;top:${y}px;width:${cardW}px;height:${cardH}px;z-index:${i + 1};`;
+
+            if (item.image) {
+                el.innerHTML = `
+                    <img src="${item.image}" alt="${item.title}">
+                    <div class="card-overlay">
+                        <div class="card-title">${item.title}</div>
+                        <div class="card-domain">${domain(item.url)}</div>
+                    </div>`;
+            } else {
+                el.innerHTML = `
+                    <div class="card-overlay" style="opacity:1;background:rgba(0,0,0,0.04);">
+                        <div class="card-title" style="color:#000">${item.title}</div>
+                        <div class="card-domain" style="color:rgba(0,0,0,0.4)">${domain(item.url)}</div>
+                    </div>`;
+            }
+
+            container.appendChild(el);
+            colY[colIdx] = y + cardH + minSpaceAfter + Math.random() * (maxSpaceAfter - minSpaceAfter);
+        });
+
+        container.style.height = (Math.max(...colY) + 60) + 'px';
+    }
+
+    let listItems = []; // track for scroll animation
+
+    function renderList(container, filtered, cat) {
+        const showFavicon = cat === 'typography';
+        const wrap = document.createElement('div');
+        wrap.className = 'list-view';
+        listItems = [];
+
+        filtered.forEach((item, i) => {
+            const el = document.createElement('a');
+            el.className = 'list-item';
+            el.href = item.url;
+            el.target = '_blank';
+            el.rel = 'noopener';
+            el.dataset.index = i;
+
+            const faviconHtml = showFavicon
+                ? `<img class="list-favicon" src="https://www.google.com/s2/favicons?sz=64&domain=${domain(item.url)}" alt="" width="32" height="32">`
+                : '';
+
+            el.innerHTML = `
+                <span class="list-item-left">
+                    ${faviconHtml}
+                    <span class="list-item-title">${item.title}</span>
+                </span>`;
+            wrap.appendChild(el);
+            listItems.push(el);
+        });
+
+        container.appendChild(wrap);
+        updateListWave();
+    }
+
+    function updateListWave() {
+        if (!listItems.length) return;
+        const scrollY   = window.scrollY;
+        const maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight);
+        const progress  = scrollY / maxScroll;
+
+        listItems.forEach((el, i) => {
+            const x = (Math.sin(i * 1.1 + progress * Math.PI * 6) * 0.5 + 0.5) * 60;
+            el.style.transform = `translateX(${x}px)`;
+        });
+    }
+
+    window.addEventListener('scroll', updateListWave, { passive: true });
+
+    // ── Filters ──────────────────────────────────────────
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeCategory = btn.dataset.cat;
+            render(activeCategory);
+        });
+    });
+
+    window.addEventListener('resize', () => { render(activeCategory); updateListWave(); });
+
+    // ── Init ─────────────────────────────────────────────
+    render(activeCategory);
+
+    // ── FAB ──────────────────────────────────────────────
+    const ALL_CATS   = ['inspiration','typography','mockups','interior','fashion'];
+    const IMAGE_CATS = ['inspiration','interior','mockups'];
+
+    let fabOpen = false;
+
+    const fabWrap   = document.getElementById('fab-wrap');
+    const fabBtn    = document.getElementById('fab-btn');
+    const fabIcon   = document.getElementById('fab-icon');
+    const fabOptUrl = document.getElementById('fab-opt-url');
+    const fabOptImg = document.getElementById('fab-opt-img');
+    const backdrop  = document.getElementById('add-backdrop');
+    const panel     = document.getElementById('add-panel');
+    const panelLabel = document.getElementById('panel-label');
+    const panelUrlInput = document.getElementById('panel-url');
+    const panelImgInput = document.getElementById('panel-img');
+    const panelCats = document.getElementById('panel-cats');
+    const panelSubmit = document.getElementById('panel-submit');
+    const panelCancel = document.getElementById('panel-cancel');
+
+    // Set initial states
+    gsap.set([fabOptUrl, fabOptImg], { x: 0, y: 0, scale: 0, opacity: 0 });
+
+    function toggleFab() {
+        fabOpen = !fabOpen;
+
+        if (fabOpen) {
+            fabOptUrl.classList.add('visible');
+            fabOptImg.classList.add('visible');
+            gsap.to(fabIcon, { rotation: 45, duration: 0.3, ease: 'back.out(2)' });
+            // Arc: URL goes up-left, Image goes further up-left
+            gsap.to(fabOptUrl, { x: -52, y: -58,  scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.5)' });
+            gsap.to(fabOptImg, { x: -16, y: -108, scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.5)', delay: 0.06 });
+        } else {
+            gsap.to(fabIcon, { rotation: 0, duration: 0.25, ease: 'power2.out' });
+            gsap.to(fabOptUrl, { x: 0, y: 0, scale: 0, opacity: 0, duration: 0.3, ease: 'back.in(2)', onComplete: () => fabOptUrl.classList.remove('visible') });
+            gsap.to(fabOptImg, { x: 0, y: 0, scale: 0, opacity: 0, duration: 0.3, ease: 'back.in(2)', delay: 0.04, onComplete: () => fabOptImg.classList.remove('visible') });
+        }
+    }
+
+    fabBtn.addEventListener('click', toggleFab);
+
+    function openPanel(type) {
+        toggleFab(); // close fab menu
+
+        const isImage = type === 'image';
+        panelLabel.textContent = isImage ? 'Add Image' : 'Add Link';
+        document.getElementById('panel-img-wrap').style.display = isImage ? 'block' : 'none';
+
+        // Populate categories
+        const cats = isImage ? IMAGE_CATS : ALL_CATS;
+        panelCats.innerHTML = '';
+        let selectedCat = cats[0];
+        cats.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'panel-cat' + (cat === selectedCat ? ' selected' : '');
+            btn.textContent = cat;
+            btn.addEventListener('click', () => {
+                panelCats.querySelectorAll('.panel-cat').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedCat = cat;
+            });
+            panelCats.appendChild(btn);
+        });
+
+        // Store type for submit
+        panel.dataset.type = type;
+        panel.dataset.getCat = '';
+        Object.defineProperty(panel, '_getCat', { get: () => selectedCat, configurable: true });
+
+        // Show panel + backdrop
+        backdrop.style.pointerEvents = 'auto';
+        panel.style.pointerEvents = 'auto';
+        gsap.to(backdrop, { opacity: 1, duration: 0.25 });
+        gsap.fromTo(panel,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.4, ease: 'back.out(1.8)' }
+        );
+
+        panelUrlInput.value = '';
+        panelImgInput.value = '';
+        setTimeout(() => panelUrlInput.focus(), 100);
+    }
+
+    function closePanel() {
+        backdrop.style.pointerEvents = 'none';
+        panel.style.pointerEvents = 'none';
+        gsap.to(backdrop, { opacity: 0, duration: 0.2 });
+        gsap.to(panel, { opacity: 0, y: 12, duration: 0.25, ease: 'power2.in' });
+    }
+
+    fabOptUrl.addEventListener('click', () => openPanel('url'));
+    fabOptImg.addEventListener('click', () => openPanel('image'));
+    backdrop.addEventListener('click', closePanel);
+    panelCancel.addEventListener('click', closePanel);
+
+    panelSubmit.addEventListener('click', () => {
+        const url   = panelUrlInput.value.trim();
+        const imgUrl = panelImgInput.value.trim();
+        const cat   = panel._getCat;
+        const type  = panel.dataset.type;
+
+        if (!url) { panelUrlInput.focus(); return; }
+
+        // Build title from URL hostname
+        let title = url;
+        try { title = new URL(url).hostname.replace('www.', '').split('.')[0]; } catch {}
+        title = title.charAt(0).toUpperCase() + title.slice(1);
+
+        const newItem = { title, url, category: cat };
+        if (type === 'image' && imgUrl) newItem.image = imgUrl;
+        else if (type === 'image' && url) newItem.image = url;
+
+        customItems.push(newItem);
+        saveCustomItems(customItems);
+        items = [...DEFAULT_ITEMS, ...customItems];
+        closePanel();
+        if (activeCategory === cat) render(activeCategory);
+    });
+</script>
+</body>
+</html>
