@@ -266,11 +266,24 @@
             font-size: 13px;
         }
 
+        /* ── Bottom fade ─────────────────────────────────── */
+        #bottom-fade {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 160px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.85) 50%, #fff);
+            pointer-events: none;
+            z-index: 250;
+        }
+
         /* ── FAB ─────────────────────────────────────────── */
         #fab-root {
             position: fixed;
             bottom: 40px;
-            right: 40px;
+            left: 50%;
+            transform: translateX(-20px); /* -20px = half the 40px button, keeps button centered */
             display: flex;
             align-items: center;
             gap: 10px;
@@ -533,7 +546,7 @@
             }
             .filter-btn { font-size: 14px; transform: none !important; }
             #grid-wrap  { margin-left: 0; padding: 0 16px 60px; }
-            #fab-root   { right: 16px; bottom: 24px; }
+            #fab-root   { bottom: 24px; }
         }
     </style>
 </head>
@@ -558,6 +571,8 @@
         <div id="grid"></div>
     </div>
 </div>
+
+<div id="bottom-fade"></div>
 
 <div id="fab-root">
     <div class="fab-pill" id="pill-url">
@@ -875,10 +890,9 @@
         expandedPill = pill;
         pill.classList.add('expanded');
 
-        // Right edge of FAB root (button side) sits `right` px from viewport edge
-        const fabRight  = window.innerWidth <= 600 ? 16 : 40;
-        // Available width stretching left, leaving a small margin on the left
-        const maxW = Math.min(380, window.innerWidth - fabRight - 40 - 10 - 12);
+        // Button is centered; pills extend LEFT into the left half of viewport
+        // Available space: half viewport minus half-button (20px) minus gap (10px) minus left margin (12px)
+        const maxW = Math.min(380, window.innerWidth / 2 - 42);
         // Set track to match so content doesn't overflow after overflow:visible
         gsap.set(pill.querySelector('.pill-track'), { width: maxW });
 
