@@ -83,9 +83,29 @@
         }
 
         .card:hover {
-            box-shadow: 0 6px 24px rgba(0,0,0,0.1);
             z-index: 50 !important;
         }
+
+        .card-delete {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 10;
+        }
+
+        .card:hover .card-delete { opacity: 1; }
 
         .card img {
             display: block;
@@ -93,6 +113,21 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* ── Local-upload card ──────────────────────────── */
+        .card.local-upload .card-name-strip {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 20px 10px 9px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.45));
+            font-size: 11px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .card.local-upload:hover .card-name-strip { opacity: 1; }
 
         .card-overlay {
             position: absolute;
@@ -111,6 +146,49 @@
 
         .card-title  { color: #fff; font-size: 12px; line-height: 1.3; }
         .card-domain { color: rgba(255,255,255,0.55); font-size: 11px; }
+
+        /* ── Product card (interior / fashion) ──────────── */
+        .card-product {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            padding: 10px 12px;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            border: none;
+        }
+
+        .card-product-name {
+            font-size: 11px;
+            color: #000;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-product-price {
+            font-size: 11px;
+            color: rgba(0,0,0,0.45);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .card.product {
+            background: #fff;
+        }
+
+        .card.product img {
+            height: calc(100% - 36px);
+            object-fit: contain;
+            padding: 8px;
+        }
+
+        .card-product {
+            border-top: none;
+        }
 
         /* ── List view ──────────────────────────────────── */
         .list-view {
@@ -163,6 +241,21 @@
             transition: opacity 0.2s ease;
         }
 
+        .list-delete {
+            background: none;
+            border: none;
+            color: rgba(0,0,0,0.2);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.15s, color 0.15s;
+        }
+
+        .list-item:hover .list-delete { opacity: 1; }
+        .list-delete:hover { color: #000; }
+
         .list-item:hover .list-favicon { opacity: 1; }
         .list-item:hover .list-item-title { color: #000; }
         .list-item:hover .list-item-arrow { color: #000; transform: translate(3px, -3px); }
@@ -174,18 +267,18 @@
         }
 
         /* ── FAB ─────────────────────────────────────────── */
-        #fab-wrap {
+        #fab-root {
             position: fixed;
             bottom: 40px;
             right: 40px;
-            width: 40px;
-            height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-direction: row-reverse;
             z-index: 300;
         }
 
         #fab-btn {
-            position: absolute;
-            bottom: 0; right: 0;
             width: 40px; height: 40px;
             border-radius: 50%;
             background: #000;
@@ -196,139 +289,197 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2;
+            flex-shrink: 0;
         }
 
-        #fab-icon {
-            display: block;
-            line-height: 1;
-        }
+        #fab-icon { display: block; line-height: 1; }
 
-        .fab-opt {
-            position: absolute;
-            bottom: 0; right: 0;
-            width: 40px; height: 40px;
-            border-radius: 50%;
+        .fab-pill {
+            height: 40px;
+            width: 40px;
+            border-radius: 20px;
             background: #fff;
-            border: 1px solid rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
             cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .fab-pill.expanded { cursor: default; }
+
+        .pill-track {
+            display: flex;
+            align-items: center;
+            width: 380px;
+            flex-shrink: 0;
+        }
+
+        .pill-icon {
+            width: 38px; height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transform-origin: right bottom;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            flex-shrink: 0;
         }
 
-        .fab-opt svg {
-            width: 16px; height: 16px;
-            stroke: #000;
-            fill: none;
+        .pill-icon svg {
+            width: 15px; height: 15px;
+            stroke: #000; fill: none;
             stroke-width: 1.8;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
 
-        .fab-opt.visible { pointer-events: auto; }
-
-        /* ── Add panel ───────────────────────────────────── */
-        #add-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.18);
-            z-index: 400;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #add-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 40px;
-            width: 300px;
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.1);
-            padding: 24px;
-            z-index: 500;
-            opacity: 0;
-            pointer-events: none;
+        .pill-form {
             display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        #panel-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: rgba(0,0,0,0.4);
-        }
-
-        #add-panel input {
-            border: 1px solid rgba(0,0,0,0.15);
-            padding: 9px 10px;
-            font-family: inherit;
-            font-size: 13px;
-            outline: none;
-            width: 100%;
-        }
-
-        #add-panel input:focus { border-color: #000; }
-
-        #panel-cats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .panel-cat {
-            padding: 5px 12px;
-            border: 1px solid rgba(0,0,0,0.15);
-            background: none;
-            font-family: inherit;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            color: rgba(0,0,0,0.5);
-            transition: all 0.15s;
-        }
-
-        .panel-cat.selected,
-        .panel-cat:hover { background: #000; color: #fff; border-color: #000; }
-
-        #panel-actions {
-            display: flex;
+            align-items: center;
             gap: 8px;
+            padding-right: 12px;
+            flex: 1;
+            opacity: 0;
+            pointer-events: none;
+            min-width: 0;
         }
 
-        #panel-submit {
+        .fab-pill.expanded .pill-form { pointer-events: auto; }
+
+        .pill-input {
             flex: 1;
-            padding: 10px;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 12px;
+            color: #000;
+            background: none;
+            min-width: 0;
+        }
+
+        .pill-input::placeholder { color: rgba(0,0,0,0.28); }
+
+        .pill-cat-trigger {
+            background: rgba(0,0,0,0.06);
+            border: none;
+            border-radius: 10px;
+            padding: 5px 9px;
+            font-family: inherit;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: rgba(0,0,0,0.55);
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .pill-cat-trigger:hover { background: rgba(0,0,0,0.1); }
+
+        .pill-add {
             background: #000;
             color: #fff;
             border: none;
+            border-radius: 12px;
+            padding: 6px 14px;
             font-family: inherit;
-            font-size: 12px;
-            letter-spacing: 0.04em;
+            font-size: 11px;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
-        #panel-submit:hover { background: #333; }
+        .pill-add:hover { background: #333; }
 
-        #panel-cancel {
-            padding: 10px 16px;
+        .pill-status {
+            font-size: 11px;
+            color: rgba(0,0,0,0.3);
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 12px;
+        }
+
+        /* ── Image pill file picker ─────────────────────── */
+        .pill-file-label {
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .pill-file-input { display: none; }
+
+        .pill-img-thumb {
+            width: 26px; height: 26px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.06);
+            border: 1px dashed rgba(0,0,0,0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: background 0.15s;
+        }
+
+        .pill-file-label:hover .pill-img-thumb { background: rgba(0,0,0,0.1); }
+
+        .pill-img-thumb svg {
+            width: 13px; height: 13px;
+            stroke: rgba(0,0,0,0.35); fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+
+        .pill-img-thumb img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .pill-img-thumb.has-image { border-style: solid; border-color: rgba(0,0,0,0.12); background: none; }
+        .pill-img-thumb.has-image svg { display: none; }
+        .pill-img-thumb.has-image img { display: block; }
+
+        .pill-cat-menu {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 0;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 14px;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-width: 200px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .pill-cat-menu.open { pointer-events: auto; }
+
+        .pill-cat-opt {
+            padding: 5px 12px;
+            border-radius: 10px;
+            border: none;
             background: none;
-            color: rgba(0,0,0,0.4);
-            border: 1px solid rgba(0,0,0,0.12);
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: rgba(0,0,0,0.5);
             cursor: pointer;
+            transition: background 0.12s, color 0.12s;
         }
 
-        #panel-cancel:hover { color: #000; border-color: #000; }
+        .pill-cat-opt.selected { background: #000; color: #fff; }
+        .pill-cat-opt:hover:not(.selected) { background: rgba(0,0,0,0.06); color: #000; }
 
         /* ── Curtain transition ─────────────────────────── */
         #curtain {
@@ -407,28 +558,41 @@
     </div>
 </div>
 
-<div id="add-backdrop"></div>
-
-<div id="add-panel">
-    <span id="panel-label">Add Link</span>
-    <input id="panel-url" type="url" placeholder="https://" />
-    <div id="panel-img-wrap"><input id="panel-img" type="url" placeholder="Image URL" /></div>
-    <div id="panel-cats"></div>
-    <div id="panel-actions">
-        <button id="panel-cancel">Cancel</button>
-        <button id="panel-submit">Add</button>
+<div id="fab-root">
+    <div class="fab-pill" id="pill-url">
+        <div class="pill-track">
+            <div class="pill-icon">
+                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div class="pill-form">
+                <input class="pill-input" type="url" placeholder="Paste URL…" autocomplete="off" />
+                <span class="pill-status"></span>
+                <button class="pill-cat-trigger">Category</button>
+                <button class="pill-add">Add</button>
+            </div>
+        </div>
+        <div class="pill-cat-menu"></div>
     </div>
-</div>
-
-<div id="fab-wrap">
-    <!-- Link icon -->
-    <button class="fab-opt" id="fab-opt-url" title="Add link">
-        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-    </button>
-    <!-- Image icon -->
-    <button class="fab-opt" id="fab-opt-img" title="Add image">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-    </button>
+    <div class="fab-pill" id="pill-img">
+        <div class="pill-track">
+            <div class="pill-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            </div>
+            <div class="pill-form">
+                <label class="pill-file-label" title="Choose image or take photo">
+                    <input class="pill-file-input" type="file" accept="image/*" />
+                    <div class="pill-img-thumb" id="img-thumb">
+                        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <img id="img-preview" alt="" />
+                    </div>
+                </label>
+                <input class="pill-input" id="img-title-input" type="text" placeholder="Title…" autocomplete="off" />
+                <button class="pill-cat-trigger">Category</button>
+                <button class="pill-add">Add</button>
+            </div>
+        </div>
+        <div class="pill-cat-menu"></div>
+    </div>
     <button id="fab-btn"><span id="fab-icon">+</span></button>
 </div>
 
@@ -438,6 +602,14 @@
     // categories: inspiration | typography | mockups | interior | fashion
     const DEFAULT_ITEMS = [
         { title: 'Mockup Lab',       url: 'https://mockuplab.shop/',                     category: 'mockups',    image: 'https://mockuplab.shop/og-image.jpg' },
+        { title: 'DYVLINGE Swivel Chair',  url: 'https://www.ikea.com/es/en/p/dyvlinge-swivel-easy-chair-kelinge-orange-00581918/',        category: 'interior', image: 'https://www.ikea.com/es/en/images/products/dyvlinge-swivel-easy-chair-kelinge-orange__1322501_pe942192_s5.jpg',           price: '€199' },
+        { title: 'FÄRGSÄTTARE Wall Shelf', url: 'https://www.ikea.com/es/en/p/fargsattare-wall-shelf-green-70595785/',                         category: 'interior', image: 'https://www.ikea.com/es/en/images/products/fargsattare-wall-shelf-green__1420626_pe977436_s5.jpg',                   price: '€17.99' },
+        { title: 'PUBLIKVÄRD Rug',         url: 'https://www.ikea.com/es/en/p/publikvard-rug-flatwoven-orange-circle-pattern-40629739/',       category: 'interior', image: 'https://www.ikea.com/es/en/images/products/publikvard-rug-flatwoven-orange-circle-pattern__1488906_pe1003596_s5.jpg', price: '€19.99' },
+        { title: 'LILLESÄTER Pouffe',      url: 'https://www.ikea.com/es/en/p/lillesater-pouffe-gunnared-dark-blue-40618482/',                 category: 'interior', image: 'https://www.ikea.com/es/en/images/products/lillesater-pouffe-gunnared-dark-blue__1480251_pe1000157_s5.jpg',         price: '€79' },
+        { title: 'VARMBLIXT Lamp',         url: 'https://www.ikea.com/es/en/p/varmblixt-led-table-wall-lamp-orange-glass-round-80499199/',    category: 'interior', image: 'https://www.ikea.com/es/en/images/products/varmblixt-led-table-wall-lamp-orange-glass-round__1116616_pe872535_s5.jpg',  price: '€49' },
+        { title: 'JÄRNVÄG Rug',            url: 'https://www.ikea.com/es/en/p/jarnvag-rug-low-pile-ornament-pattern-pink-beige-40623068/',     category: 'interior', image: 'https://www.ikea.com/es/en/images/products/jarnvag-rug-low-pile-ornament-pattern-pink-beige__1435112_pe983704_s5.jpg',   price: '€119' },
+        { title: 'FRIDHULT Sofa-bed',      url: 'https://www.ikea.com/es/en/p/fridhult-sofa-bed-skiftebo-yellow-00575446/',                   category: 'interior', image: 'https://www.ikea.com/es/en/images/products/fridhult-sofa-bed-skiftebo-yellow__1265821_pe927821_s5.jpg',                  price: '€249' },
+        { title: 'VÄGSKYLT Rug',           url: 'https://www.ikea.com/es/en/p/vagskylt-rug-flatwoven-pink-orange-80587006/',                  category: 'interior', image: 'https://www.ikea.com/es/en/images/products/vagskylt-rug-flatwoven-pink-orange__1337821_pe948140_s5.jpg',                  price: '€29.99' },
         { title: 'ABC Dinamo',       url: 'https://abcdinamo.com/',                       category: 'typography' },
         { title: 'Type of Feeling',  url: 'https://typeoffeeling.com/',                  category: 'typography' },
         { title: 'Playtype',         url: 'https://playtype.com/',                        category: 'typography' },
@@ -485,7 +657,7 @@
     // ── Render ───────────────────────────────────────────
     let activeCategory = 'typography';
 
-    const GRID_CATS = new Set(['inspiration', 'interior']);
+    const GRID_CATS = new Set(['inspiration', 'interior', 'fashion']);
 
     function render(cat) {
         const container = document.getElementById('grid');
@@ -537,19 +709,46 @@
             el.rel = 'noopener';
             el.style.cssText = `left:${x}px;top:${y}px;width:${cardW}px;height:${cardH}px;z-index:${i + 1};`;
 
-            if (item.image) {
+            const isCustom = customItems.includes(item);
+            const deleteBtn = isCustom ? `<button class="card-delete" title="Remove">×</button>` : '';
+
+            if (item.image && item.price != null) {
+                el.classList.add('product');
+                el.innerHTML = `
+                    <img src="${item.image}" alt="${item.title}">
+                    <div class="card-product">
+                        <span class="card-product-name">${item.title}</span>
+                        <span class="card-product-price">${item.price}</span>
+                    </div>${deleteBtn}`;
+            } else if (item.image && item.url === '#') {
+                // locally-uploaded image — minimal hover: name + delete only
+                el.classList.add('local-upload');
+                el.href = 'javascript:void(0)';
+                el.innerHTML = `
+                    <img src="${item.image}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                    <div class="card-name-strip">${item.title}</div>
+                    ${deleteBtn}`;
+            } else if (item.image) {
                 el.innerHTML = `
                     <img src="${item.image}" alt="${item.title}">
                     <div class="card-overlay">
                         <div class="card-title">${item.title}</div>
                         <div class="card-domain">${domain(item.url)}</div>
-                    </div>`;
+                    </div>${deleteBtn}`;
             } else {
                 el.innerHTML = `
                     <div class="card-overlay" style="opacity:1;background:rgba(0,0,0,0.04);">
                         <div class="card-title" style="color:#000">${item.title}</div>
                         <div class="card-domain" style="color:rgba(0,0,0,0.4)">${domain(item.url)}</div>
-                    </div>`;
+                    </div>${deleteBtn}`;
+            }
+
+            if (isCustom) {
+                el.querySelector('.card-delete').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeItem(item);
+                });
             }
 
             container.appendChild(el);
@@ -579,17 +778,34 @@
                 ? `<img class="list-favicon" src="https://www.google.com/s2/favicons?sz=64&domain=${domain(item.url)}" alt="" width="32" height="32">`
                 : '';
 
+            const isCustom = customItems.includes(item);
             el.innerHTML = `
                 <span class="list-item-left">
                     ${faviconHtml}
                     <span class="list-item-title">${item.title}</span>
-                </span>`;
+                </span>
+                ${isCustom ? '<button class="list-delete">×</button>' : ''}`;
+
+            if (isCustom) {
+                el.querySelector('.list-delete').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeItem(item);
+                });
+            }
             wrap.appendChild(el);
             listItems.push(el);
         });
 
         container.appendChild(wrap);
         updateListWave();
+    }
+
+    function removeItem(item) {
+        customItems = customItems.filter(c => c !== item);
+        saveCustomItems(customItems);
+        items = [...DEFAULT_ITEMS, ...customItems];
+        render(activeCategory);
     }
 
     function updateListWave() {
@@ -623,123 +839,266 @@
 
     // ── FAB ──────────────────────────────────────────────
     const ALL_CATS   = ['inspiration','typography','mockups','interior','fashion'];
-    const IMAGE_CATS = ['inspiration','interior','mockups'];
+    const IMAGE_CATS = ['inspiration','interior','fashion'];
+    const PRODUCT_CATS = new Set(['interior','fashion']);
 
-    let fabOpen = false;
+    let fabOpen      = false;
+    let expandedPill = null;
 
-    const fabWrap   = document.getElementById('fab-wrap');
-    const fabBtn    = document.getElementById('fab-btn');
-    const fabIcon   = document.getElementById('fab-icon');
-    const fabOptUrl = document.getElementById('fab-opt-url');
-    const fabOptImg = document.getElementById('fab-opt-img');
-    const backdrop  = document.getElementById('add-backdrop');
-    const panel     = document.getElementById('add-panel');
-    const panelLabel = document.getElementById('panel-label');
-    const panelUrlInput = document.getElementById('panel-url');
-    const panelImgInput = document.getElementById('panel-img');
-    const panelCats = document.getElementById('panel-cats');
-    const panelSubmit = document.getElementById('panel-submit');
-    const panelCancel = document.getElementById('panel-cancel');
+    const fabBtn  = document.getElementById('fab-btn');
+    const fabIcon = document.getElementById('fab-icon');
+    const pillUrl = document.getElementById('pill-url');
+    const pillImg = document.getElementById('pill-img');
+    const pills   = [pillImg, pillUrl]; // img closer to button
 
-    // Set initial states
-    gsap.set([fabOptUrl, fabOptImg], { x: 0, y: 0, scale: 0, opacity: 0 });
+    gsap.set(pills, { x: 60, opacity: 0 });
 
-    function toggleFab() {
-        fabOpen = !fabOpen;
-
-        if (fabOpen) {
-            fabOptUrl.classList.add('visible');
-            fabOptImg.classList.add('visible');
-            gsap.to(fabIcon, { rotation: 45, duration: 0.3, ease: 'back.out(2)' });
-            // Arc: URL goes up-left, Image goes further up-left
-            gsap.to(fabOptUrl, { x: -52, y: -58,  scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.5)' });
-            gsap.to(fabOptImg, { x: -16, y: -108, scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.5)', delay: 0.06 });
-        } else {
-            gsap.to(fabIcon, { rotation: 0, duration: 0.25, ease: 'power2.out' });
-            gsap.to(fabOptUrl, { x: 0, y: 0, scale: 0, opacity: 0, duration: 0.3, ease: 'back.in(2)', onComplete: () => fabOptUrl.classList.remove('visible') });
-            gsap.to(fabOptImg, { x: 0, y: 0, scale: 0, opacity: 0, duration: 0.3, ease: 'back.in(2)', delay: 0.04, onComplete: () => fabOptImg.classList.remove('visible') });
-        }
+    function openFab() {
+        fabOpen = true;
+        gsap.to(fabIcon, { rotation: 45, duration: 0.3, ease: 'back.out(2)' });
+        gsap.to(pills, { x: 0, opacity: 1, duration: 0.5, ease: 'back.out(2.2)', stagger: 0.07 });
     }
 
-    fabBtn.addEventListener('click', toggleFab);
+    function closeFab() {
+        fabOpen = false;
+        if (expandedPill) collapsePill(expandedPill);
+        gsap.to(fabIcon, { rotation: 0, duration: 0.25, ease: 'power2.out' });
+        gsap.to(pills, { x: 60, opacity: 0, duration: 0.35, ease: 'back.in(1.5)', stagger: 0.04 });
+    }
 
-    function openPanel(type) {
-        toggleFab(); // close fab menu
+    fabBtn.addEventListener('click', () => fabOpen ? closeFab() : openFab());
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && fabOpen) closeFab(); });
 
-        const isImage = type === 'image';
-        panelLabel.textContent = isImage ? 'Add Image' : 'Add Link';
-        document.getElementById('panel-img-wrap').style.display = isImage ? 'block' : 'none';
+    function expandPill(pill) {
+        if (expandedPill && expandedPill !== pill) collapsePill(expandedPill);
+        expandedPill = pill;
+        pill.classList.add('expanded');
+        gsap.to(pill, { width: 380, duration: 0.45, ease: 'expo.out',
+            onComplete: () => { pill.style.overflow = 'visible'; }
+        });
+        gsap.to(pill.querySelector('.pill-form'), { opacity: 1, duration: 0.2, delay: 0.25 });
+        setTimeout(() => pill.querySelector('.pill-input').focus(), 380);
+    }
 
-        // Populate categories
-        const cats = isImage ? IMAGE_CATS : ALL_CATS;
-        panelCats.innerHTML = '';
-        let selectedCat = cats[0];
+    function collapsePill(pill) {
+        if (!pill) return;
+        pill.classList.remove('expanded');
+        pill.style.overflow = 'hidden';
+        const menu = pill.querySelector('.pill-cat-menu');
+        menu.classList.remove('open');
+        gsap.to(menu, { opacity: 0, y: 6, duration: 0.1 });
+        gsap.to(pill.querySelector('.pill-form'), { opacity: 0, duration: 0.12 });
+        gsap.to(pill, { width: 40, duration: 0.3, ease: 'expo.in' });
+        expandedPill = null;
+    }
+
+    async function autoFetch(url, pill) {
+        const status = pill.querySelector('.pill-status');
+        status.textContent = '…';
+        try {
+            const res  = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+            const data = await res.json();
+            const html = data.contents || '';
+            const get  = a => { const m = html.match(new RegExp(a + '[^>]*content="([^"]+)"')); return m ? m[1] : null; };
+
+            pill._title = (get('og:title') || '').split(' - ')[0].trim();
+            pill._image = get('og:image');
+            const pm    = html.match(/"price":"([^"]+)"/);
+            const sym   = url.includes('/es/') ? '€' : url.includes('/gb/') ? '£' : '$';
+            pill._price = pm ? sym + pm[1] : null;
+            status.textContent = pill._title ? '✓' : '';
+        } catch { status.textContent = ''; }
+    }
+
+    function setupPill(pill, type) {
+        const cats       = type === 'image' ? IMAGE_CATS : ALL_CATS;
+        const input      = pill.querySelector('.pill-input');
+        const catTrigger = pill.querySelector('.pill-cat-trigger');
+        const catMenu    = pill.querySelector('.pill-cat-menu');
+        const addBtn     = pill.querySelector('.pill-add');
+        let selectedCat  = cats[0];
+        let catOpen      = false;
+
+        catTrigger.textContent = cats[0];
+
         cats.forEach(cat => {
             const btn = document.createElement('button');
-            btn.className = 'panel-cat' + (cat === selectedCat ? ' selected' : '');
+            btn.className = 'pill-cat-opt' + (cat === cats[0] ? ' selected' : '');
             btn.textContent = cat;
-            btn.addEventListener('click', () => {
-                panelCats.querySelectorAll('.panel-cat').forEach(b => b.classList.remove('selected'));
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                catMenu.querySelectorAll('.pill-cat-opt').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedCat = cat;
+                catTrigger.textContent = cat;
+                closeDropdown();
             });
-            panelCats.appendChild(btn);
+            catMenu.appendChild(btn);
         });
 
-        // Store type for submit
-        panel.dataset.type = type;
-        panel.dataset.getCat = '';
-        Object.defineProperty(panel, '_getCat', { get: () => selectedCat, configurable: true });
+        function openDropdown() {
+            catOpen = true;
+            catMenu.classList.add('open');
+            gsap.fromTo(catMenu, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, ease: 'power2.out' });
+        }
 
-        // Show panel + backdrop
-        backdrop.style.pointerEvents = 'auto';
-        panel.style.pointerEvents = 'auto';
-        gsap.to(backdrop, { opacity: 1, duration: 0.25 });
-        gsap.fromTo(panel,
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.4, ease: 'back.out(1.8)' }
-        );
+        function closeDropdown() {
+            catOpen = false;
+            catMenu.classList.remove('open');
+            gsap.to(catMenu, { y: 8, opacity: 0, duration: 0.15 });
+        }
 
-        panelUrlInput.value = '';
-        panelImgInput.value = '';
-        setTimeout(() => panelUrlInput.focus(), 100);
+        catTrigger.addEventListener('click', e => {
+            e.stopPropagation();
+            catOpen ? closeDropdown() : openDropdown();
+        });
+
+        document.addEventListener('click', e => {
+            if (catOpen && !catMenu.contains(e.target) && e.target !== catTrigger) closeDropdown();
+        });
+
+        // Expand pill on click (only when not already expanded)
+        pill.addEventListener('click', () => {
+            if (!fabOpen || expandedPill === pill) return;
+            expandPill(pill);
+        });
+
+        // Auto-fetch on blur
+        input.addEventListener('blur', () => {
+            const url = input.value.trim();
+            if (url.startsWith('http')) autoFetch(url, pill);
+        });
+
+        // Submit
+        addBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const url = input.value.trim();
+            if (!url) { input.focus(); return; }
+
+            let title = pill._title || '';
+            if (!title) {
+                try { title = new URL(url).hostname.replace('www.','').split('.')[0]; } catch {}
+                title = title.charAt(0).toUpperCase() + title.slice(1);
+            }
+
+            const newItem = { title, url, category: selectedCat };
+            if (type === 'image' && pill._image) newItem.image = pill._image;
+            if (type === 'image' && pill._price) newItem.price = pill._price;
+
+            customItems.push(newItem);
+            saveCustomItems(customItems);
+            items = [...DEFAULT_ITEMS, ...customItems];
+
+            // reset
+            input.value = '';
+            pill._title = pill._image = pill._price = null;
+            pill.querySelector('.pill-status').textContent = '';
+
+            closeFab();
+            if (activeCategory === selectedCat) render(activeCategory);
+        });
     }
 
-    function closePanel() {
-        backdrop.style.pointerEvents = 'none';
-        panel.style.pointerEvents = 'none';
-        gsap.to(backdrop, { opacity: 0, duration: 0.2 });
-        gsap.to(panel, { opacity: 0, y: 12, duration: 0.25, ease: 'power2.in' });
+    setupPill(pillUrl, 'url');
+
+    function setupImgPill(pill) {
+        const cats       = IMAGE_CATS;
+        const fileInput  = pill.querySelector('.pill-file-input');
+        const thumb      = pill.querySelector('.pill-img-thumb');
+        const preview    = pill.querySelector('#img-preview');
+        const titleInput = pill.querySelector('#img-title-input');
+        const catTrigger = pill.querySelector('.pill-cat-trigger');
+        const catMenu    = pill.querySelector('.pill-cat-menu');
+        const addBtn     = pill.querySelector('.pill-add');
+        let selectedCat  = cats[0];
+        let catOpen      = false;
+        let imageData    = null; // base64
+
+        catTrigger.textContent = cats[0];
+
+        cats.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'pill-cat-opt' + (cat === cats[0] ? ' selected' : '');
+            btn.textContent = cat;
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                catMenu.querySelectorAll('.pill-cat-opt').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedCat = cat;
+                catTrigger.textContent = cat;
+                closeDropdown();
+            });
+            catMenu.appendChild(btn);
+        });
+
+        function openDropdown() {
+            catOpen = true;
+            catMenu.classList.add('open');
+            gsap.fromTo(catMenu, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, ease: 'power2.out' });
+        }
+        function closeDropdown() {
+            catOpen = false;
+            catMenu.classList.remove('open');
+            gsap.to(catMenu, { y: 8, opacity: 0, duration: 0.15 });
+        }
+
+        catTrigger.addEventListener('click', e => {
+            e.stopPropagation();
+            catOpen ? closeDropdown() : openDropdown();
+        });
+        document.addEventListener('click', e => {
+            if (catOpen && !catMenu.contains(e.target) && e.target !== catTrigger) closeDropdown();
+        });
+
+        // Expand pill on click (when not expanded)
+        pill.addEventListener('click', () => {
+            if (!fabOpen || expandedPill === pill) return;
+            expandPill(pill);
+        });
+
+        // File selected → read as base64 + show thumbnail
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            // Auto-fill title from filename if blank
+            if (!titleInput.value) {
+                titleInput.value = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                imageData = e.target.result;
+                preview.src = imageData;
+                thumb.classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Submit
+        addBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            if (!imageData) { fileInput.click(); return; }
+
+            let title = titleInput.value.trim();
+            if (!title) title = 'Untitled';
+
+            const newItem = { title, url: '#', category: selectedCat, image: imageData };
+            customItems.push(newItem);
+            saveCustomItems(customItems);
+            items = [...DEFAULT_ITEMS, ...customItems];
+
+            // reset
+            fileInput.value = '';
+            titleInput.value = '';
+            imageData = null;
+            preview.src = '';
+            thumb.classList.remove('has-image');
+
+            closeFab();
+            if (activeCategory === selectedCat) render(activeCategory);
+        });
     }
 
-    fabOptUrl.addEventListener('click', () => openPanel('url'));
-    fabOptImg.addEventListener('click', () => openPanel('image'));
-    backdrop.addEventListener('click', closePanel);
-    panelCancel.addEventListener('click', closePanel);
-
-    panelSubmit.addEventListener('click', () => {
-        const url   = panelUrlInput.value.trim();
-        const imgUrl = panelImgInput.value.trim();
-        const cat   = panel._getCat;
-        const type  = panel.dataset.type;
-
-        if (!url) { panelUrlInput.focus(); return; }
-
-        // Build title from URL hostname
-        let title = url;
-        try { title = new URL(url).hostname.replace('www.', '').split('.')[0]; } catch {}
-        title = title.charAt(0).toUpperCase() + title.slice(1);
-
-        const newItem = { title, url, category: cat };
-        if (type === 'image' && imgUrl) newItem.image = imgUrl;
-        else if (type === 'image' && url) newItem.image = url;
-
-        customItems.push(newItem);
-        saveCustomItems(customItems);
-        items = [...DEFAULT_ITEMS, ...customItems];
-        closePanel();
-        if (activeCategory === cat) render(activeCategory);
-    });
+    setupImgPill(pillImg);
 
     // ── Page transition ───────────────────────────────────
     const curtain = document.getElementById('curtain');
