@@ -112,7 +112,8 @@
             display: block;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background: #fff;
         }
 
         /* ── Local-upload card ──────────────────────────── */
@@ -747,7 +748,7 @@
             const colIdx  = i % cols;
             const frac    = minFrac + Math.random() * (maxFrac - minFrac);
             const cardW   = colW * frac;
-            const aspect  = item.aspect || (0.65 + Math.random() * 0.95);
+            const aspect  = 1.25; // fixed aspect ratio — full image always visible
             const cardH   = cardW * aspect;
             const colStart = colIdx * (colW + gutter);
             const x       = colStart + (colW - cardW) * (0.1 + Math.random() * 0.8);
