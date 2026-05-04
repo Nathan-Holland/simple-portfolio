@@ -887,8 +887,8 @@
     function openFab() {
         fabOpen = true;
         gsap.to(fabIcon, { rotation: 45, duration: 0.3, ease: 'back.out(2)' });
-        gsap.to(pillUrl, { x: 0, opacity: 1, duration: 2.5, ease: 'power3.out' });
-        gsap.to(pillImg, { x: 0, opacity: 1, duration: 2.5, ease: 'power3.out', delay: 0.07 });
+        gsap.to(pillUrl, { x: 0, opacity: 1, duration: 0.7, ease: 'power3.out' });
+        gsap.to(pillImg, { x: 0, opacity: 1, duration: 0.7, ease: 'power3.out', delay: 0.07 });
     }
 
     function closeFab() {
@@ -912,10 +912,10 @@
         // Set track to match so content doesn't overflow after overflow:visible
         gsap.set(pill.querySelector('.pill-track'), { width: maxW });
 
-        gsap.to(pill, { width: maxW, duration: 0.45, ease: 'expo.out',
+        gsap.to(pill, { width: maxW, duration: 2.5, ease: 'power3.out',
             onComplete: () => { pill.style.overflow = 'visible'; }
         });
-        gsap.to(pill.querySelector('.pill-form'), { opacity: 1, duration: 0.2, delay: 0.25 });
+        gsap.to(pill.querySelector('.pill-form'), { opacity: 1, duration: 0.4, delay: 1.2 });
         setTimeout(() => pill.querySelector('.pill-input').focus(), 380);
     }
 
