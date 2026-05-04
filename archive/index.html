@@ -107,9 +107,6 @@
         /* ── Isolation panel ────────────────────────────── */
         #isolate-panel {
             position: fixed;
-            right: 48px;
-            top: 50%;
-            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -814,15 +811,27 @@
             await removeItem(item);
         };
 
-        if (item.url && item.url !== '#') {
+        const hasLink = item.url && item.url !== '#';
+        if (hasLink) {
             isoLinkBtn.style.display = 'flex';
             isoLinkBtn.onclick = () => window.open(item.url, '_blank');
         } else {
             isoLinkBtn.style.display = 'none';
         }
 
+        // Position panel right beside the card
+        const rect       = el.getBoundingClientRect();
+        const panelH     = hasLink ? 90 : 40; // approx: 40px btn + 10px gap + 40px btn
+        const gap        = 12;
+        const spaceRight = window.innerWidth - rect.right;
+        const left       = spaceRight > 64
+            ? rect.right + gap                   // place right of card
+            : rect.left - 40 - gap;              // fall back to left of card
+        const top        = rect.top + rect.height / 2 - panelH / 2;
+
+        gsap.set(isolatePanel, { left, top });
         gsap.fromTo(isolatePanel,
-            { opacity: 0, x: 16 },
+            { opacity: 0, x: spaceRight > 64 ? 10 : -10 },
             { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out' }
         );
     }
