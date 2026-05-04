@@ -330,26 +330,44 @@
 
         #panel-cancel:hover { color: #000; border-color: #000; }
 
+        /* ── Curtain transition ─────────────────────────── */
+        #curtain {
+            position: fixed;
+            inset: 0;
+            background: #fff;
+            z-index: 1000;
+            pointer-events: none;
+            transform-origin: top;
+        }
+
         /* ── Desk tag ───────────────────────────────────── */
         #desk-tag {
             position: fixed;
             top: 28px;
             left: 30px;
-            font-size: 11px;
-            color: rgba(0,0,0,0.35);
-            letter-spacing: 0.01em;
             z-index: 200;
-            line-height: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
+        #desk-tag span,
         #desk-tag a {
-            color: inherit;
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            line-height: 1;
+            color: rgba(0,0,0,0.18);
             text-decoration: none;
-            border-bottom: 1px solid rgba(0,0,0,0.2);
-            transition: color 0.15s, border-color 0.15s;
+            display: block;
+            transition: color 0.2s ease;
         }
 
-        #desk-tag a:hover { color: #000; border-color: #000; }
+        #desk-tag span { transform: translateX(0px); }
+        #desk-tag a    { transform: translateX(36px); }
+
+        #desk-tag a:hover { color: rgba(0,0,0,0.55); }
 
         @media (max-width: 600px) {
             #desk-tag { display: none; }
@@ -369,7 +387,12 @@
 </head>
 <body>
 
-<p id="desk-tag">from the desk of <a href="/">Nate Holland</a></p>
+<div id="curtain"></div>
+
+<div id="desk-tag">
+    <span>from the desk of</span>
+    <a href="/" id="desk-link">Nate Holland</a>
+</div>
 
 <div id="app">
     <nav>
@@ -716,6 +739,27 @@
         items = [...DEFAULT_ITEMS, ...customItems];
         closePanel();
         if (activeCategory === cat) render(activeCategory);
+    });
+
+    // ── Page transition ───────────────────────────────────
+    const curtain = document.getElementById('curtain');
+
+    // Fade in on load
+    gsap.fromTo(curtain,
+        { scaleY: 1 },
+        { scaleY: 0, duration: 0.7, ease: 'expo.inOut', transformOrigin: 'top' }
+    );
+
+    document.getElementById('desk-link').addEventListener('click', e => {
+        e.preventDefault();
+        const href = e.currentTarget.href;
+        gsap.to(curtain, {
+            scaleY: 1,
+            duration: 0.6,
+            ease: 'expo.inOut',
+            transformOrigin: 'bottom',
+            onComplete: () => window.location.href = href
+        });
     });
 </script>
 </body>

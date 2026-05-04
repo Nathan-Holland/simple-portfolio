@@ -502,6 +502,7 @@
     </style>
 </head>
 <body>
+    <div id="curtain" style="position:fixed;inset:0;background:#fff;z-index:9999;pointer-events:none;transform-origin:top;"></div>
     <div id="case-backdrop" aria-hidden="true"></div>
     <aside id="case-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="case-panel-title">
         <div id="case-panel-controls">
@@ -1225,6 +1226,12 @@
                 waveAnim.handleScroll({ progress: 0 });
             });
         }
+
+        // Page-in curtain
+        gsap.fromTo('#curtain',
+            { scaleY: 1 },
+            { scaleY: 0, duration: 0.7, ease: 'expo.inOut', transformOrigin: 'top' }
+        );
 
         const introTl = gsap.timeline();
         introTl.from('.bio:not(.prev)', { opacity: 0, y: 12, filter: 'blur(4px)', duration: 0.45, ease: 'power2.out' }, 0.05);
