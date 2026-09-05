@@ -4,6 +4,7 @@
 // login.html instead — so there is no real content to view-source, unlike
 // a client-side-only password check.
 export const config = {
+  runtime: "nodejs",
   matcher: ["/", "/index.html", "/profile.html", "/admin.html"],
 };
 

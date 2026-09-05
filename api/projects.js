@@ -1,16 +1,18 @@
 // Vercel Edge Function: the single source of truth for project data, read
 // by the homepage/modal (GET, public — it's just portfolio content) and
 // written by admin.html (POST, requires the same session cookie as the
-// rest of the site). Stored in Vercel KV under one key; falls back to a
-// seed matching the original hand-written homepage so the site still
-// renders correctly before the admin page has ever saved anything.
-import { kv } from "@vercel/kv";
+// rest of the site). Stored as a JSON file in Vercel Blob (not Vercel KV —
+// that product is deprecated, and its client pulled in Node-only modules
+// that broke the Edge Middleware build). Falls back to a seed matching the
+// original hand-written homepage so the site still renders correctly
+// before the admin page has ever saved anything.
+import { put, list } from "@vercel/blob";
 
 export const config = { runtime: "edge" };
 
 const COOKIE_NAME = "site_auth";
 const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
-const KV_KEY = "projects";
+const BLOB_PATH = "data/projects.json";
 
 const DEFAULT_PROJECTS = [
   {
@@ -58,10 +60,23 @@ function isAuthed(request) {
   return value === COOKIE_VALUE;
 }
 
+async function readProjects() {
+  const { blobs } = await list({ prefix: BLOB_PATH, limit: 1 });
+  if (blobs.length === 0) return null;
+  const res = await fetch(blobs[0].url, { cache: "no-store" });
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export default async function handler(request) {
   if (request.method === "GET") {
-    let projects = await kv.get(KV_KEY);
-    if (!projects) projects = DEFAULT_PROJECTS;
+    let projects = null;
+    try {
+      projects = await readProjects();
+    } catch {
+      projects = null;
+    }
+    if (!Array.isArray(projects)) projects = DEFAULT_PROJECTS;
     return new Response(JSON.stringify({ projects }), {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -93,7 +108,13 @@ export default async function handler(request) {
       });
     }
 
-    await kv.set(KV_KEY, body.projects);
+    await put(BLOB_PATH, JSON.stringify(body.projects), {
+      access: "public",
+      contentType: "application/json",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+    });
+
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { "content-type": "application/json" },
