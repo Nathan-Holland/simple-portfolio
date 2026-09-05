@@ -845,10 +845,16 @@ body.dark .footer-icon { filter: invert(1); }
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+}
+/* display was previously unconditional here, which beats the browser's
+   own [hidden] { display: none } rule (author CSS always wins over the
+   UA stylesheet) — so toggling the hidden attribute in admin.js had no
+   visual effect at all. Only apply flex when NOT hidden. */
+.admin-modal:not([hidden]) {
+  display: flex;
 }
 .admin-modal-backdrop {
   position: absolute;
