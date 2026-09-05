@@ -1,10 +1,12 @@
-// Vercel Edge Function: receives a raw image body (admin.js sends the File
+// Vercel Function: receives a raw image body (admin.js sends the File
 // directly as the request body, with its name/type in headers), stores it
 // in Vercel Blob under public access, and returns the URL admin.js then
-// saves onto the project via /api/projects.
+// saves onto the project via /api/projects. Runs on the Node.js runtime,
+// not Edge — Edge's restricted module set kept breaking the build
+// depending on what else was in the deployment.
 import { put } from "@vercel/blob";
 
-export const config = { runtime: "edge" };
+export const config = { runtime: "nodejs" };
 
 const COOKIE_NAME = "site_auth";
 const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";

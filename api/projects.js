@@ -1,14 +1,15 @@
-// Vercel Edge Function: the single source of truth for project data, read
-// by the homepage/modal (GET, public — it's just portfolio content) and
+// Vercel Function: the single source of truth for project data, read by
+// the homepage/modal (GET, public — it's just portfolio content) and
 // written by admin.html (POST, requires the same session cookie as the
 // rest of the site). Stored as a JSON file in Vercel Blob (not Vercel KV —
-// that product is deprecated, and its client pulled in Node-only modules
-// that broke the Edge Middleware build). Falls back to a seed matching the
-// original hand-written homepage so the site still renders correctly
-// before the admin page has ever saved anything.
+// that product is deprecated). Runs on the Node.js runtime, not Edge —
+// Edge's restricted module set kept breaking the build depending on what
+// else was in the deployment. Falls back to a seed matching the original
+// hand-written homepage so the site still renders correctly before the
+// admin page has ever saved anything.
 import { put, list } from "@vercel/blob";
 
-export const config = { runtime: "edge" };
+export const config = { runtime: "nodejs" };
 
 const COOKIE_NAME = "site_auth";
 const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";

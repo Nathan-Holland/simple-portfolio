@@ -1,9 +1,12 @@
-// Vercel Edge Function: the only place the real password is compared. It's
+// Vercel Function: the only place the real password is compared. It's
 // never shipped to the browser — login.html just POSTs whatever was typed
 // and reads back ok:true/false. On success it sets an HttpOnly cookie
 // (unreadable from page JS/dev tools) that middleware.js checks on every
-// request to index.html/profile.html.
-export const config = { runtime: "edge" };
+// request to index.html/profile.html. Runs on the Node.js runtime, not
+// Edge — Edge's restricted module set kept breaking the build depending on
+// what else was in the deployment, even for functions with no related
+// imports of their own.
+export const config = { runtime: "nodejs" };
 
 const PASSWORD = "NatePortfolio_2026";
 const COOKIE_NAME = "site_auth";
