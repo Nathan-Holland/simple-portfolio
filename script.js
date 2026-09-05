@@ -14,13 +14,18 @@ if (loader) {
     const loaderBarFill = document.getElementById("loaderBarFill");
     const duration = 2000 + Math.random() * 1000;
     const start = performance.now();
-    function tickLoader(now) {
-      const t = Math.min(1, (now - start) / duration);
+    // setTimeout, not requestAnimationFrame — rAF is fully paused by the
+    // browser whenever the tab loses focus, which would freeze this
+    // indefinitely since nothing would call tickLoader() again to notice
+    // time had passed. setTimeout keeps firing (just throttled) even in a
+    // backgrounded tab.
+    function tickLoader() {
+      const t = Math.min(1, (performance.now() - start) / duration);
       const eased = 1 - Math.pow(1 - t, 2);
       loaderPct.textContent = Math.round(eased * 100) + "%";
       loaderBarFill.style.width = (eased * 100) + "%";
       if (t < 1) {
-        requestAnimationFrame(tickLoader);
+        setTimeout(tickLoader, 16);
       } else {
         const nameEl = document.getElementById("loaderName");
         const navName = document.querySelector(".nav-name");
@@ -63,7 +68,7 @@ if (loader) {
         }
       }
     }
-    requestAnimationFrame(tickLoader);
+    tickLoader();
   });
 }
 
