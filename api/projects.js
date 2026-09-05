@@ -91,12 +91,20 @@ export default async function handler(req, res) {
       return;
     }
 
-    await put(BLOB_PATH, JSON.stringify(body.projects), {
-      access: "public",
-      contentType: "application/json",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-    });
+    try {
+      await put(BLOB_PATH, JSON.stringify(body.projects), {
+        access: "public",
+        contentType: "application/json",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      });
+    } catch (err) {
+      // Surfaced directly in the response so admin.js's error banner (and
+      // the Network tab) show the real cause instead of Vercel's generic
+      // FUNCTION_INVOCATION_FAILED page.
+      res.status(500).json({ ok: false, error: String(err && err.message || err) });
+      return;
+    }
 
     res.status(200).json({ ok: true });
     return;

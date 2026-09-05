@@ -255,7 +255,7 @@
       dirty = false;
       setStatus("Saved — live on the site.");
     } catch (err) {
-      setStatus("Save failed — try again.", true);
+      setStatus("Save failed: " + (err.message || "unknown error"), true);
     }
     saveBtn.disabled = false;
   });
