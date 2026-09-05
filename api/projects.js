@@ -1,15 +1,15 @@
-// Vercel Function: the single source of truth for project data, read by
-// the homepage/modal (GET, public — it's just portfolio content) and
-// written by admin.html (POST, requires the same session cookie as the
-// rest of the site). Stored as a JSON file in Vercel Blob (not Vercel KV —
-// that product is deprecated). Runs on the Node.js runtime, not Edge —
-// Edge's restricted module set kept breaking the build depending on what
-// else was in the deployment. Falls back to a seed matching the original
-// hand-written homepage so the site still renders correctly before the
-// admin page has ever saved anything.
+// Vercel Function (Node.js runtime): the single source of truth for
+// project data, read by the homepage/modal (GET, public — it's just
+// portfolio content) and written by admin.html (POST, requires the same
+// session cookie as the rest of the site). Stored as a JSON file in Vercel
+// Blob (not Vercel KV — that product is deprecated). Falls back to a seed
+// matching the original hand-written homepage so the site still renders
+// correctly before the admin page has ever saved anything.
+//
+// Uses the classic (req, res) handler signature, not Request/Response —
+// that Fetch-style signature is Edge-runtime-only and is silently ignored
+// by the Node.js runtime, leaving requests hanging until they time out.
 import { put, list } from "@vercel/blob";
-
-export const config = { runtime: "nodejs" };
 
 const COOKIE_NAME = "site_auth";
 const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
@@ -54,11 +54,8 @@ const DEFAULT_PROJECTS = [
   },
 ];
 
-function isAuthed(request) {
-  const header = request.headers.get("cookie") || "";
-  const match = header.match(new RegExp("(?:^|; )" + COOKIE_NAME + "=([^;]*)"));
-  const value = match ? decodeURIComponent(match[1]) : null;
-  return value === COOKIE_VALUE;
+function isAuthed(req) {
+  return !!(req.cookies && req.cookies[COOKIE_NAME] === COOKIE_VALUE);
 }
 
 async function readProjects() {
@@ -69,8 +66,8 @@ async function readProjects() {
   return res.json();
 }
 
-export default async function handler(request) {
-  if (request.method === "GET") {
+export default async function handler(req, res) {
+  if (req.method === "GET") {
     let projects = null;
     try {
       projects = await readProjects();
@@ -78,35 +75,20 @@ export default async function handler(request) {
       projects = null;
     }
     if (!Array.isArray(projects)) projects = DEFAULT_PROJECTS;
-    return new Response(JSON.stringify({ projects }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+    res.status(200).json({ projects });
+    return;
   }
 
-  if (request.method === "POST") {
-    if (!isAuthed(request)) {
-      return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
-        status: 401,
-        headers: { "content-type": "application/json" },
-      });
+  if (req.method === "POST") {
+    if (!isAuthed(req)) {
+      res.status(401).json({ ok: false, error: "unauthorized" });
+      return;
     }
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return new Response(JSON.stringify({ ok: false, error: "invalid json" }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      });
-    }
-
-    if (!Array.isArray(body.projects)) {
-      return new Response(JSON.stringify({ ok: false, error: "projects must be an array" }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      });
+    const body = req.body;
+    if (!body || !Array.isArray(body.projects)) {
+      res.status(400).json({ ok: false, error: "projects must be an array" });
+      return;
     }
 
     await put(BLOB_PATH, JSON.stringify(body.projects), {
@@ -116,11 +98,9 @@ export default async function handler(request) {
       allowOverwrite: true,
     });
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+    res.status(200).json({ ok: true });
+    return;
   }
 
-  return new Response("Method not allowed", { status: 405 });
+  res.status(405).send("Method not allowed");
 }
