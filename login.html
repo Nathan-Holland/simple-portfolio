@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noimageindex">
+<title>Nate Holland</title>
+<link rel="stylesheet" href="styles.css?v=58">
+<link rel="icon" href="favicon.svg">
+</head>
+<body>
+
+  <script>
+    var dq = window.matchMedia("(prefers-color-scheme: dark)");
+    var storedDark = localStorage.getItem("dark");
+    document.body.classList.toggle("dark", storedDark === null ? dq.matches : storedDark === "1");
+  </script>
+
+  <div class="loader" id="loader">
+    <div class="loader-bar-row" id="loaderBarRow">
+      <span class="loader-name" id="loaderName">Nate Holland</span>
+      <div class="loader-bar-track" id="loaderBarTrack"><div class="loader-bar-fill" id="loaderBarFill"></div></div>
+      <span class="loader-pct" id="loaderPct">0%</span>
+    </div>
+
+    <footer class="loader-footer">
+      <p class="loader-intro" id="loaderIntro"><span class="loader-intro-line">Nate is a British designer based in Barcelona,</span><span class="loader-intro-line">currently leading Retail and Trust design at <a href="#">Revolut</a>.</span></p>
+      <div class="loader-socials" id="loaderSocials">
+        <a href="https://x.com/nateh0lland" target="_blank" rel="noopener">Twitter (X)</a>
+        <a href="https://www.instagram.com/nateh0lland/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/gsap.min.js"></script>
+  <script src="login.js?v=58"></script>
+</body>
+</html>

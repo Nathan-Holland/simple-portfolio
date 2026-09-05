@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noimageindex">
+<title>Nate Holland — Profile</title>
+<link rel="stylesheet" href="styles.css?v=58">
+<link rel="stylesheet" href="sticker-peel/sticker-peel.css?v=2">
+<link rel="icon" href="favicon.svg">
+</head>
+<body class="profile">
+
+  <div class="loader" id="loader">
+    <div class="loader-bar-row">
+      <span class="loader-name" id="loaderName">Nate Holland</span>
+      <div class="loader-bar-track"><div class="loader-bar-fill" id="loaderBarFill"></div></div>
+      <span class="loader-pct" id="loaderPct">0%</span>
+    </div>
+  </div>
+  <script>
+    if (sessionStorage.getItem("skipLoader")) {
+      sessionStorage.removeItem("skipLoader");
+      document.getElementById("loader").remove();
+    }
+  </script>
+
+  <div id="smooth-wrapper">
+    <div id="smooth-content">
+
+      <header class="nav">
+        <a href="index.html" class="nav-name">Nate Holland</a>
+        <a href="index.html" class="nav-profile"><span class="nav-word-flip"><span class="nav-word nav-word-front">Work</span><span class="nav-word nav-word-back">Profile</span></span></a>
+        <span class="nav-logo" aria-hidden="true"><img src="logo.svg" alt=""></span>
+        <a href="mailto:nathanholland14@gmail.com" class="nav-email">Email me</a>
+        <span class="nav-clock clock-el">—</span>
+      </header>
+
+      <div class="page-content">
+
+      <main>
+
+        <section class="statement-block">
+          <p>I've always believed that the best design is quiet in its confidence.</p>
+          <p>My work draws inspiration from editorial design, typography, and modern visual systems, brought together through thoughtful interaction and motion.</p>
+          <p>The result is websites that feel polished, purposeful, and built to last.</p>
+          <p>Every project begins with the same question: what should people remember? From there, every decision is shaped to create clarity, tell a compelling story, and deliver an experience that reflects the quality behind the brand.</p>
+
+          <div class="sticker-peel-stage" id="stickerPeelStage" aria-hidden="true"></div>
+        </section>
+
+        <section class="resume-table grid14">
+
+          <div class="table-group">
+            <p class="col-label">Experience</p>
+            <div class="experience-rows">
+              <div class="experience-row">
+                <span class="experience-date">2026 - Present</span>
+                <p>Leading Retail and Trust design at <a href="#">Revolut</a>.</p>
+              </div>
+              <div class="experience-row">
+                <span class="experience-date">2025</span>
+                <p>Creating visual design across growth, marketing, and product at <a href="#">Preply</a>.</p>
+              </div>
+              <div class="experience-row">
+                <span class="experience-date">2024-2026</span>
+                <p>Working with startups to design brands, websites, and products as a Freelance Designer.</p>
+              </div>
+              <div class="experience-row">
+                <span class="experience-date">2021 - 2026</span>
+                <p>Designing websites and brand identities at <a href="#">Series Eight</a>.</p>
+              </div>
+              <div class="experience-row">
+                <span class="experience-date">2021</span>
+                <p>Designing product experiences at <a href="#">PokerStars</a>.</p>
+              </div>
+              <div class="experience-row">
+                <span class="experience-date">2018-2021</span>
+                <p>Designing and developing digital experiences at <a href="#">Asda</a>.</p>
+              </div>
+              <div class="experience-row">
+                <span class="experience-date">2017-2018</span>
+                <p>Designing products and branding at <a href="#">Despatch Cloud</a>.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group">
+            <p class="col-label">Recognition</p>
+            <div class="table-rows">
+              <div class="table-row"><span>Awwwards</span><span>SOTD</span><span>01</span></div>
+              <div class="table-row"><span>SiteInspire</span><span>Feature</span><span>06</span></div>
+              <div class="table-row"><span>OffCuts</span><span>Feature</span><span>01</span></div>
+            </div>
+          </div>
+
+          <div class="table-group">
+            <p class="col-label">Clients</p>
+            <div class="table-rows">
+              <div class="table-row"><span>BigWedge</span><span>Sidemen</span><span>NoTwoWays</span></div>
+              <div class="table-row"><span>RandCards</span><span>AceTrading</span><span>Roma F.C</span></div>
+              <div class="table-row"><span>Tottenham Hotspur</span><span>OpenFortune</span><span>TBC</span></div>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+
+      <footer>
+        <span class="footer-year"><img class="footer-icon" src="logo.svg" alt="">2026</span>
+        <a href="#">Instagram</a>
+        <a href="#">Twitter (X)</a>
+        <span class="clock-el">—</span>
+      </footer>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/ScrollSmoother.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/Draggable.min.js"></script>
+  <script src="script.js?v=58"></script>
+  <script type="module">
+    import { createStickerPeel } from "./sticker-peel/sticker-peel.js?v=2";
+    const stage = document.getElementById("stickerPeelStage");
+    if (stage) {
+      createStickerPeel(stage, {
+        imageSrc: "logo.svg",
+        width: 110,
+        rotate: -10,
+        peelBackHoverPct: 25,
+        peelBackActivePct: 35,
+        shadowIntensity: 0.5,
+        lightingIntensity: 0.18,
+        initialPosition: { x: 40, y: 40 },
+        peelDirection: 250,
+      });
+      createStickerPeel(stage, {
+        imageSrc: "Monster-Zero-Ultra.png",
+        width: 130,
+        rotate: 16,
+        peelBackHoverPct: 22,
+        peelBackActivePct: 32,
+        shadowIntensity: 0.55,
+        lightingIntensity: 0.2,
+        initialPosition: { x: 640, y: 30 },
+        peelDirection: 320,
+      });
+      createStickerPeel(stage, {
+        imageSrc: "controller.webp",
+        width: 230,
+        rotate: -7,
+        peelBackHoverPct: 25,
+        peelBackActivePct: 35,
+        shadowIntensity: 0.5,
+        lightingIntensity: 0.15,
+        initialPosition: { x: 260, y: 380 },
+        peelDirection: 60,
+      });
+    }
+  </script>
+</body>
+</html>

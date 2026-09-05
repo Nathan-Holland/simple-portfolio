@@ -1,0 +1,921 @@
+/* Cross-document view transitions: lets the browser natively cross-fade
+   the old page's rendered state into the new one on same-origin navigation
+   (e.g. index.html's dark background into profile.html's blue one), rather
+   than the instant cut a plain page load gives you. GSAP can only animate
+   *within* a page, not across the browser tearing one document down and
+   loading the next — this is the one thing that actually smooths that
+   boundary. No-op (falls back to a normal instant navigation) in browsers
+   that don't support it yet. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 0.5s;
+  animation-timing-function: ease;
+}
+
+/* ---- font ---- */
+@font-face {
+  font-family: "Lay Grotesk";
+  src: url("fonts/LayGrotesk-Trial-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lay Grotesk";
+  src: url("fonts/LayGrotesk-Trial-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lay Grotesk";
+  src: url("fonts/LayGrotesk-Trial-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lay Grotesk";
+  src: url("fonts/LayGrotesk-Trial-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---- tokens ---- */
+:root {
+  --page-margin: 1em;
+  --gutter: clamp(12px, 1.4vw, 20px);
+  --cols: 14;
+
+  --bg: #f5f5f5;
+  --text: rgba(0, 0, 0, 0.92);
+  --text-2: rgba(0, 0, 0, 0.45);
+  --border: rgba(0, 0, 0, 0.12);
+  --card: #ececec;
+}
+
+body.dark {
+  --bg: #0d0d0d;
+  --text: rgba(255, 255, 255, 0.92);
+  --text-2: rgba(255, 255, 255, 0.5);
+  --border: rgba(255, 255, 255, 0.16);
+  --card: #1a1a1a;
+}
+
+/* Profile page: a fixed brand-blue look, not a light/dark variant — every
+   text sample from the design comes back pure white, so hierarchy there is
+   carried by size/weight alone, not by dimming --text-2 the way the rest of
+   the site does. Placed after body.dark so it wins regardless of whether
+   the system-preference listener in script.js has also added .dark. */
+body.profile {
+  --bg: #002bff;
+  --text: #ffffff;
+  --text-2: #ffffff;
+  --border: rgba(255, 255, 255, 0.25);
+  --card: rgba(255, 255, 255, 0.08);
+}
+body.profile .nav-logo img,
+body.profile .footer-icon {
+  filter: invert(1);
+}
+body.profile .nav-logo {
+  cursor: default;
+}
+
+/* ---- reset ---- */
+* { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+ul { list-style: none; }
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Lay Grotesk", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  /* fluid scale: 14px at 768px viewport, 16px at 1440px, capped at 20px past ~2784px */
+  font-size: clamp(14px, 11.714px + 0.2976vw, 20px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .3s ease, color .3s ease;
+  overscroll-behavior: none;
+}
+
+/* ---- fake loading screen, shown once per session (see script.js) ---- */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease;
+}
+.loader.loader-done {
+  opacity: 0;
+  pointer-events: none;
+}
+.loader-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px var(--page-margin);
+}
+.loader-intro {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text);
+  perspective: 400px;
+}
+/* Each line rotates in on its own (see login.js, GSAP rotateX), rather than
+   the whole paragraph fading/sliding in as one block. */
+.loader-intro-line {
+  display: block;
+  transform-origin: 50% 100%;
+  opacity: 0;
+}
+.loader-intro a {
+  text-decoration: underline;
+}
+.loader-socials {
+  display: flex;
+  gap: 24px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.loader-socials.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.loader-socials a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  transition: color 0.2s ease;
+}
+.loader-socials a:hover {
+  color: var(--text);
+}
+@media (max-width: 700px) {
+  .loader-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+.loader-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 0 var(--page-margin);
+}
+.loader-name,
+.loader-pct {
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  flex: none;
+  white-space: nowrap;
+}
+.loader-name {
+  display: inline-block;
+}
+.loader-pct {
+  min-width: 4ch;
+  text-align: right;
+}
+.loader-bar-track {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  position: relative;
+}
+.loader-bar-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: var(--text);
+  transition: opacity 0.5s ease;
+}
+
+/* ---- password gate (login.html only, see login.js) ---- */
+.loader-password-form {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.loader-password-form.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.loader-password-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  outline: none;
+  padding: 2px 0;
+  transition: border-color 0.2s ease;
+}
+.loader-password-input::placeholder {
+  color: var(--text-2);
+}
+.loader-password-input.error {
+  border-bottom-color: #ff5c5c;
+}
+.loader-password-submit {
+  flex: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.loader-password-submit:hover {
+  color: var(--text);
+}
+@keyframes loader-password-shake {
+  10%, 90% { transform: translateX(-4px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+.loader-password-form.shake {
+  animation: loader-password-shake 0.4s;
+}
+.loader-bar-row.success .loader-password-form {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* ---- GSAP ScrollSmoother wrapper (see script.js) ---- */
+#smooth-wrapper {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+#smooth-content {
+  overflow: visible;
+  width: 100%;
+}
+/* Hidden from first paint in CSS, not just via the deferred gsap.set() —
+   otherwise there's a brief flash of fully-visible content before GSAP
+   loads and hides it. The entrance timeline fades this back in. */
+.page-content {
+  opacity: 0;
+}
+
+/* ---- 14-col grid ---- */
+.grid14 {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: var(--gutter);
+  padding: 0 var(--page-margin);
+}
+
+/* ---- grid overlay (press "g") ---- */
+.grid-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: var(--gutter);
+  padding: 0 var(--page-margin);
+}
+.grid-overlay.show { display: grid; }
+.grid-overlay-col { background: rgba(255, 0, 64, 0.08); height: 100%; }
+
+/* ---- nav ---- */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px var(--page-margin);
+}
+/* Smooths any color change on nav's text (dark-mode toggle, and reparenting
+   onto the case-study modal via .on-modal) — without this the swap is an
+   instant snap rather than an ease. */
+.nav-name,
+.nav-email,
+.nav-clock,
+.nav-profile {
+  transition: color 0.3s ease;
+}
+.nav-profile { color: var(--text-2); perspective: 200px; }
+.nav-profile:hover { color: var(--text); }
+/* Work/Profile flip: both words sit in the same slot, one rotated face-down
+   behind the other via backface-visibility, and a GSAP rotateX tween on
+   .nav-word-flip (see script.js) flips the front word away and brings the
+   back one upright — clicking either page's link always reveals the label
+   the destination page will already show natively, so the flip continues
+   right into the next page's own (static) nav rather than needing its own
+   entrance animation. */
+.nav-word-flip {
+  display: inline-grid;
+  transform-style: preserve-3d;
+}
+.nav-word {
+  grid-row: 1;
+  grid-column: 1;
+  display: block;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.nav-word-back {
+  transform: rotateX(180deg);
+}
+.nav-logo {
+  background: none;
+  border: 0;
+  padding: 0;
+  line-height: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.nav-logo img { height: 1.125em; width: auto; transition: filter .2s ease; }
+body.dark .nav-logo img { filter: invert(1); }
+.nav-email { color: var(--text-2); }
+.nav-email:hover { color: var(--text); }
+/* Reserves width for the full "00:00:00" string up front (both here and in
+   the footer's clock-el) so swapping from the "—" placeholder to the real
+   time — or between different times — never nudges neighbouring nav/footer
+   items. */
+.clock-el {
+  display: inline-block;
+  min-width: 8ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.nav-clock {
+  color: var(--text-2);
+}
+@media (max-width: 900px) {
+  .nav-logo, .nav-email { display: none; }
+}
+
+/* ---- work grid ---- */
+.work-grid {
+  row-gap: 48px;
+  padding-top: 8px;
+  padding-bottom: 80px;
+}
+.work-tile { display: block; grid-column: span 4; }
+.work-tile.size-lg { grid-column: span 6; }
+.work-media {
+  background: var(--card);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  transition: opacity .2s ease;
+}
+.work-media img { width: 100%; height: 100%; object-fit: cover; }
+.work-tile.tall .work-media { aspect-ratio: 3 / 4; }
+.work-tile:hover .work-media { opacity: 0.85; }
+.work-title { margin-top: 14px; }
+@media (max-width: 900px) {
+  .work-tile, .work-tile.size-lg { grid-column: span 7; }
+}
+@media (max-width: 600px) {
+  .work-tile, .work-tile.size-lg { grid-column: 1 / -1; }
+}
+
+/* ---- case study modal (index.html only, see script.js) ----
+   Lives outside #smooth-wrapper on purpose: ScrollSmoother applies a
+   transform to #smooth-content, and a transformed ancestor becomes the
+   containing block for its position:fixed descendants (same reason .loader
+   and .grid-overlay sit at the body level too) — nested here, "fixed"
+   would behave like "absolute" relative to the scrolling content instead
+   of pinning to the real viewport. This also means nav's own z-index could
+   never win against .case-modal just by raising it — #smooth-wrapper
+   (nav's normal ancestor) is its own stacking context, capped as a whole
+   below the modal's explicit z-index. Instead script.js temporarily
+   reparents the real nav element out to the body level (alongside .loader)
+   for as long as the modal is open, so it can genuinely paint above it —
+   see .nav.on-modal below. */
+.case-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  visibility: hidden;
+}
+.case-modal.open {
+  visibility: visible;
+}
+.case-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  opacity: 0;
+}
+.case-modal-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+}
+/* Only the meta/gallery content fades in — not .case-modal-scroll itself,
+   since the flying hero is its child and opacity applies to the whole
+   rendering subtree regardless of the hero's own position:fixed. While
+   invisible it also shouldn't be clickable: during the fly, this box's own
+   padding-top spacer (set in script.js) is much taller than the still-tiny
+   hero, and being a later DOM sibling it would otherwise swallow clicks
+   meant for the hero/close button underneath despite being unseen. */
+.case-modal-body {
+  opacity: 0;
+  pointer-events: none;
+}
+.case-modal-body.visible {
+  pointer-events: auto;
+}
+body.modal-open #smooth-wrapper {
+  overflow: hidden;
+}
+/* Applied by script.js only while nav has been reparented to the body
+   level for the modal — same white-on-photo treatment as the standalone
+   case-study pages' body.case-study .nav, just scoped to a class instead
+   since this nav needs to go back to its normal styling once restored. */
+.nav.on-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1500;
+}
+.nav.on-modal .nav-name,
+.nav.on-modal .nav-email,
+.nav.on-modal .nav-clock {
+  color: #fff;
+}
+.nav.on-modal .nav-profile {
+  color: rgba(255, 255, 255, 0.7);
+}
+.nav.on-modal .nav-profile:hover {
+  color: #fff;
+}
+.nav.on-modal .nav-logo img {
+  filter: invert(1);
+}
+
+/* The hero flies from the clicked tile's rect to the fullscreen hero rect
+   as an explicit position:fixed box (top/left/width/height tweened by
+   GSAP in script.js). Once docked it's switched to position:relative so it
+   sits in normal flow at the top of .case-modal-scroll and scrolls away
+   with the rest of the content, matching the standalone case-study pages. */
+.case-modal-hero {
+  overflow: hidden;
+  background: #1a1a1a;
+}
+.case-modal-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.case-modal-close {
+  position: absolute;
+  /* Below nav's height (set on .case-modal in script.js), not top:24px —
+     nav now lives outside .case-modal's own stacking context at a higher
+     z-index (see .nav.on-modal), so it always paints in front of anything
+     in here regardless of this button's own z-index. Sharing that corner
+     would leave the button visible but unclickable. */
+  top: var(--case-close-top, 88px);
+  right: var(--page-margin);
+  z-index: 1;
+  background: none;
+  border: none;
+  padding: 8px;
+  font: inherit;
+  font-size: 28px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.case-modal-close:hover {
+  color: #fff;
+}
+
+/* ---- case study page ---- */
+/* Nav overlays the hero image (fixed white, not theme-based, since it sits
+   on a photo) — position:absolute removes it from flow so the hero fills
+   the space it would have taken, and it scrolls away with the rest of the
+   page since #smooth-content becomes its containing block once GSAP applies
+   a transform to it for ScrollSmoother. */
+body.case-study .nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+body.case-study .nav-name,
+body.case-study .nav-email,
+body.case-study .nav-clock {
+  color: #fff;
+}
+body.case-study .nav-profile {
+  color: rgba(255, 255, 255, 0.7);
+}
+body.case-study .nav-profile:hover {
+  color: #fff;
+}
+body.case-study .nav-logo img {
+  filter: invert(1);
+}
+
+.case-hero {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  /* Fixed dark, not var(--card) — keeps the white nav overlay readable even
+     before a real (presumably photographic) hero image is dropped in. */
+  background: #1a1a1a;
+  overflow: hidden;
+}
+.case-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.case-meta {
+  padding: 64px var(--page-margin);
+}
+.case-meta-info {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.case-meta-year {
+  color: var(--text-2);
+}
+.case-meta-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.case-intro {
+  grid-column: 6 / span 9;
+  font-size: clamp(20px, 14px + 1vw, 32px);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.case-intro-lead {
+  color: var(--text-2);
+}
+@media (max-width: 900px) {
+  .case-meta-info,
+  .case-intro {
+    grid-column: 1 / -1;
+  }
+  .case-meta-info {
+    margin-bottom: 32px;
+  }
+}
+
+.case-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+  padding-bottom: var(--gutter);
+}
+.case-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gutter);
+}
+.case-row-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.case-row-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.case-block {
+  background: var(--card);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+.case-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 700px) {
+  .case-row-2,
+  .case-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- profile page: editorial statement ---- */
+.statement-block {
+  position: relative;
+  padding: 8px var(--page-margin) 64px;
+}
+.statement-block p {
+  /* same fluid scale as body (768px/1440px/~2784px breakpoints), scaled 5.0625x so it lands at 81px at 1440px */
+  font-size: clamp(70.875px, 59.301px + 1.507vw, 101.25px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 1em;
+}
+.statement-block p:last-child { margin-bottom: 0; }
+.statement-block p:first-child { text-indent: 2.6em; }
+
+/* overlays the statement text: absolutely positioned across the whole
+   block so stickers can sit on top of the copy, but pointer-events:none
+   here lets clicks/selection on the text itself pass straight through —
+   only the stickers (pointer-events:auto, see sticker-peel.css) catch
+   the pointer. */
+.sticker-peel-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ---- profile page: career / recognition / clients table ---- */
+.resume-table {
+  padding: 0 var(--page-margin) 100px;
+}
+.table-group {
+  grid-column: 7 / span 8;
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) repeat(3, 1fr);
+  column-gap: var(--gutter);
+  margin-bottom: 56px;
+}
+.col-label {
+  grid-column: 1;
+  align-self: start;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+}
+.table-rows {
+  grid-column: 2 / span 3;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--gutter);
+  row-gap: 10px;
+}
+.table-row { display: contents; }
+.table-row span { color: var(--text-2); }
+.table-row span:first-child { color: var(--text); }
+
+/* Experience: replaces the old three-column Career rows with a date label
+   over a full sentence, the company named inline rather than in its own
+   column. Shares .table-group's grid so "Experience" still lines up with
+   Recognition/Clients' labels beside it. */
+.experience-rows {
+  grid-column: 2 / span 3;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.experience-date {
+  display: block;
+  color: var(--text-2);
+  margin-bottom: 2px;
+}
+.experience-row p { color: var(--text); }
+.experience-row a { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .table-group { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .table-group { grid-template-columns: 1fr; row-gap: 8px; }
+  .col-label { margin-bottom: 4px; }
+  .table-rows { grid-column: 1; grid-template-columns: 1fr; row-gap: 4px; }
+  .table-row { margin-bottom: 12px; }
+  .experience-rows { grid-column: 1; }
+}
+
+/* ---- footer ---- */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px var(--page-margin);
+  color: var(--text-2);
+}
+footer a:hover { color: var(--text); }
+.footer-icon { height: 1em; width: auto; transition: filter .2s ease; }
+body.dark .footer-icon { filter: invert(1); }
+.footer-year { display: flex; align-items: center; gap: 8px; }
+
+/* ---- admin (admin.html only) ---- */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px var(--page-margin);
+  border-bottom: 1px solid var(--border);
+}
+.admin-header h1 { font-size: 20px; font-weight: 600; }
+.admin-header a { color: var(--text-2); }
+.admin-header a:hover { color: var(--text); }
+.admin-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px var(--page-margin) 120px;
+}
+.admin-hint {
+  color: var(--text-2);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.admin-row-thumb {
+  flex: none;
+  width: 64px;
+  height: 48px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--card);
+}
+.admin-row-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-row-info { flex: 1; min-width: 0; }
+.admin-row-title { font-weight: 600; }
+.admin-row-meta { color: var(--text-2); font-size: 13px; margin-top: 2px; }
+.admin-row-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.admin-icon-btn,
+.admin-text-btn {
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+.admin-icon-btn:hover:not(:disabled),
+.admin-text-btn:hover {
+  color: var(--text);
+  background: var(--card);
+}
+.admin-icon-btn:disabled { opacity: 0.3; cursor: default; }
+.admin-text-btn-danger:hover { color: #ff5c5c; }
+.admin-add-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.admin-add-btn:hover { color: var(--text); border-color: var(--text-2); }
+.admin-save-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+.admin-save-btn {
+  padding: 12px 24px;
+  border-radius: 6px;
+  border: none;
+  background: var(--text);
+  color: var(--bg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-save-btn:disabled { opacity: 0.6; cursor: default; }
+.admin-status { color: var(--text-2); font-size: 14px; }
+.admin-status.error { color: #ff5c5c; }
+
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.admin-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+.admin-form {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.admin-form h2 { font-size: 18px; font-weight: 600; }
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.admin-field input,
+.admin-field textarea,
+.admin-field select {
+  font: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+.admin-field-preview {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.admin-upload-status { font-size: 13px; color: var(--text-2); }
+.admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+.admin-form-actions button {
+  font: inherit;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#cancelFormBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+#submitFormBtn {
+  background: var(--text);
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}

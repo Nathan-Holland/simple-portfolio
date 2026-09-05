@@ -1,0 +1,8 @@
+{
+  "name": "nate-holland-portfolio",
+  "private": true,
+  "dependencies": {
+    "@vercel/blob": "latest",
+    "@vercel/kv": "latest"
+  }
+}

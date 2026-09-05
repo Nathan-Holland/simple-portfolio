@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noimageindex">
+<title>Nate Holland — Admin</title>
+<link rel="stylesheet" href="styles.css?v=58">
+<link rel="icon" href="favicon.svg">
+</head>
+<body class="admin-page">
+
+  <script>
+    var dq = window.matchMedia("(prefers-color-scheme: dark)");
+    var storedDark = localStorage.getItem("dark");
+    document.body.classList.toggle("dark", storedDark === null ? dq.matches : storedDark === "1");
+  </script>
+
+  <header class="admin-header">
+    <h1>Projects</h1>
+    <a href="index.html">← Back to site</a>
+  </header>
+
+  <main class="admin-main">
+    <p class="admin-hint">Changes here are local until you press Save changes — that's what updates the live site.</p>
+
+    <div class="admin-list" id="adminList"></div>
+
+    <button type="button" class="admin-add-btn" id="addProjectBtn">+ Add project</button>
+
+    <div class="admin-save-row">
+      <button type="button" class="admin-save-btn" id="saveChangesBtn">Save changes</button>
+      <span class="admin-status" id="adminStatus"></span>
+    </div>
+  </main>
+
+  <div class="admin-modal" id="projectForm" hidden>
+    <div class="admin-modal-backdrop" id="projectFormBackdrop"></div>
+    <form class="admin-form" id="projectFormEl">
+      <h2 id="formTitle">Add project</h2>
+
+      <label class="admin-field">
+        Title
+        <input type="text" id="fieldTitle" required>
+      </label>
+
+      <label class="admin-field">
+        Client
+        <input type="text" id="fieldClient" required>
+      </label>
+
+      <label class="admin-field">
+        Partner
+        <input type="text" id="fieldPartner" placeholder="Partner Name">
+      </label>
+
+      <label class="admin-field">
+        Intro text (shown after the client name in the case study)
+        <textarea id="fieldIntro" rows="3"></textarea>
+      </label>
+
+      <label class="admin-field">
+        Tile size
+        <select id="fieldSize">
+          <option value="normal">Normal</option>
+          <option value="large">Large</option>
+        </select>
+      </label>
+
+      <label class="admin-field">
+        Image
+        <input type="file" id="fieldImage" accept="image/*">
+      </label>
+      <img class="admin-field-preview" id="fieldImagePreview" hidden alt="">
+      <span class="admin-upload-status" id="uploadStatus"></span>
+
+      <div class="admin-form-actions">
+        <button type="button" id="cancelFormBtn">Cancel</button>
+        <button type="submit" id="submitFormBtn">Save project</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="admin.js?v=1"></script>
+</body>
+</html>
