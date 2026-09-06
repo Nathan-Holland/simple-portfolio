@@ -595,6 +595,7 @@ body.case-study .nav-logo img {
 .case-meta-label {
   font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
   font-weight: 500;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-2);
