@@ -284,7 +284,10 @@ if (window.gsap && window.ScrollSmoother) {
       galleryEl.classList.add("dynamic");
       media.slice(1).forEach((item) => {
         const block = document.createElement("div");
-        block.className = "case-block";
+        // Each gallery item picks its own width (full/half/third, set in
+        // the admin editor) — the 12-column .case-gallery.dynamic grid
+        // flows them into rows from that, so any mix is possible.
+        block.className = "case-block" + (item.width && item.width !== "full" ? " width-" + item.width : "");
         block.appendChild(buildMediaEl(item, project.title || project.client));
         galleryEl.appendChild(block);
       });

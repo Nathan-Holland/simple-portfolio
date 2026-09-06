@@ -216,14 +216,26 @@
 
     formMedia.slice(1).forEach((item, i) => {
       const index = i + 1; // absolute index into formMedia
+      const width = item.width && item.width !== "full" ? item.width : "full";
       const block = document.createElement("div");
-      block.className = "case-block admin-editor-block";
+      block.className = "case-block admin-editor-block" + (width !== "full" ? " width-" + width : "");
       block.appendChild(buildMediaEl(item));
       block.addEventListener("click", () => startUpload(index));
 
       const overlay = document.createElement("div");
       overlay.className = "admin-editor-block-overlay";
       overlay.addEventListener("click", (e) => e.stopPropagation());
+
+      const widthBtn = document.createElement("button");
+      widthBtn.type = "button";
+      widthBtn.className = "admin-icon-btn admin-editor-width-btn";
+      widthBtn.textContent = width === "full" ? "Full" : width === "half" ? "Half" : "Third";
+      widthBtn.title = "Click to change width (full / half / third)";
+      widthBtn.addEventListener("click", () => {
+        const next = width === "full" ? "half" : width === "half" ? "third" : "full";
+        item.width = next;
+        renderGallery();
+      });
 
       const upBtn = document.createElement("button");
       upBtn.type = "button";
@@ -257,7 +269,7 @@
         renderGallery();
       });
 
-      overlay.append(upBtn, downBtn, removeBtn);
+      overlay.append(widthBtn, upBtn, downBtn, removeBtn);
       block.appendChild(overlay);
       editorGallery.appendChild(block);
     });
