@@ -9,28 +9,38 @@
   const editor = document.getElementById("projectEditor");
   const editorBackBtn = document.getElementById("editorBackBtn");
   const editorDoneBtn = document.getElementById("editorDoneBtn");
+  const editorTopbarTitle = document.getElementById("editorTopbarTitle");
   const fieldTitle = document.getElementById("fieldTitle");
   const fieldSize = document.getElementById("fieldSize");
+  const fieldClient = document.getElementById("fieldClient");
+  const fieldPartner = document.getElementById("fieldPartner");
   const uploadStatus = document.getElementById("uploadStatus");
 
-  const editorHeroMedia = document.getElementById("editorHeroMedia");
-  const editorHeroBtn = document.getElementById("editorHeroBtn");
+  const heroBox = document.getElementById("heroBox");
   const editorHeroInput = document.getElementById("editorHeroInput");
+  const editorHeroMedia = document.getElementById("editorHeroMedia");
+
+  const clientLogoBox = document.getElementById("clientLogoBox");
+  const clientLogoInput = document.getElementById("clientLogoInput");
+  const partnerLogoBox = document.getElementById("partnerLogoBox");
+  const partnerLogoInput = document.getElementById("partnerLogoInput");
+
+  const editorIntro = document.getElementById("editorIntro");
+  const introGreyBtn = document.getElementById("introGreyBtn");
+  const introClearBtn = document.getElementById("introClearBtn");
+
+  const editorRowsForm = document.getElementById("editorRowsForm");
   const editorGalleryInput = document.getElementById("editorGalleryInput");
   const addRow1Btn = document.getElementById("addRow1Btn");
   const addRow2Btn = document.getElementById("addRow2Btn");
   const addRow3Btn = document.getElementById("addRow3Btn");
-  const editorClient = document.getElementById("editorClient");
-  const editorPartner = document.getElementById("editorPartner");
-  const editorClientLogoBtn = document.getElementById("editorClientLogoBtn");
-  const editorClientLogo = document.getElementById("editorClientLogo");
-  const editorClientLogoInput = document.getElementById("editorClientLogoInput");
-  const editorPartnerLogoBtn = document.getElementById("editorPartnerLogoBtn");
-  const editorPartnerLogo = document.getElementById("editorPartnerLogo");
-  const editorPartnerLogoInput = document.getElementById("editorPartnerLogoInput");
-  const editorIntro = document.getElementById("editorIntro");
-  const introGreyBtn = document.getElementById("introGreyBtn");
-  const introClearBtn = document.getElementById("introClearBtn");
+
+  // Preview pane (read-only mirror of the real case-study markup).
+  const previewClient = document.getElementById("previewClient");
+  const previewPartner = document.getElementById("previewPartner");
+  const previewClientLogo = document.getElementById("previewClientLogo");
+  const previewPartnerLogo = document.getElementById("previewPartnerLogo");
+  const previewIntro = document.getElementById("previewIntro");
   const editorGallery = document.getElementById("editorGallery");
 
   let projects = [];
@@ -86,8 +96,8 @@
   }
 
   // Builds an <img> or <video> for a media item — used both in project
-  // cards and inside the form's media list, so previews always match what
-  // the live site will actually render.
+  // cards and inside the preview pane, so previews always match what the
+  // live site will actually render.
   function buildMediaEl(item, className) {
     if (item.type === "video") {
       const video = document.createElement("video");
@@ -128,28 +138,28 @@
       const media = Array.isArray(project.media) ? project.media : [];
 
       const card = document.createElement("div");
-      card.className = "admin-card";
+      card.className = "u-project-card";
       card.addEventListener("click", () => openEditor(index));
 
       const thumb = document.createElement("div");
-      thumb.className = "admin-card-thumb";
+      thumb.className = "u-project-thumb";
       if (media[0]) {
-        thumb.appendChild(buildMediaEl(media[0], "admin-card-thumb-media"));
+        thumb.appendChild(buildMediaEl(media[0], "u-project-thumb-media"));
       }
       if (media[0] && media[0].type === "video") {
         const badge = document.createElement("span");
-        badge.className = "admin-media-badge";
+        badge.className = "u-project-badge";
         badge.textContent = "Video";
         thumb.appendChild(badge);
       }
 
       const body = document.createElement("div");
-      body.className = "admin-card-body";
+      body.className = "u-project-body";
       const titleEl = document.createElement("p");
-      titleEl.className = "admin-card-title";
+      titleEl.className = "u-project-title";
       titleEl.textContent = project.title || "(untitled)";
       const metaEl = document.createElement("p");
-      metaEl.className = "admin-card-meta";
+      metaEl.className = "u-project-meta";
       const sizeLabel = project.size === "large" ? "Large tile" : "Normal tile";
       const mediaCount = countMedia(project);
       const mediaLabel = mediaCount + (mediaCount === 1 ? " item" : " items");
@@ -157,34 +167,34 @@
       body.append(titleEl, metaEl);
 
       const actions = document.createElement("div");
-      actions.className = "admin-card-actions";
+      actions.className = "u-project-actions";
       // The whole card opens the editor (per-click), so the action row
       // stops its clicks from bubbling up to that handler.
       actions.addEventListener("click", (e) => e.stopPropagation());
 
       const upBtn = document.createElement("button");
       upBtn.type = "button";
-      upBtn.className = "admin-icon-btn";
+      upBtn.className = "u-btn u-btn-ghost u-btn-icon";
       upBtn.textContent = "↑";
       upBtn.disabled = index === 0;
       upBtn.addEventListener("click", () => moveProject(index, -1));
 
       const downBtn = document.createElement("button");
       downBtn.type = "button";
-      downBtn.className = "admin-icon-btn";
+      downBtn.className = "u-btn u-btn-ghost u-btn-icon";
       downBtn.textContent = "↓";
       downBtn.disabled = index === projects.length - 1;
       downBtn.addEventListener("click", () => moveProject(index, 1));
 
       const editBtn = document.createElement("button");
       editBtn.type = "button";
-      editBtn.className = "admin-text-btn";
+      editBtn.className = "u-btn u-btn-ghost u-btn-sm push-right";
       editBtn.textContent = "Edit";
       editBtn.addEventListener("click", () => openEditor(index));
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
-      deleteBtn.className = "admin-text-btn admin-text-btn-danger";
+      deleteBtn.className = "u-btn u-btn-ghost u-btn-sm u-btn-danger";
       deleteBtn.textContent = "Delete";
       deleteBtn.addEventListener("click", () => deleteProject(index));
 
@@ -211,127 +221,83 @@
     render();
   }
 
-  // ---- Editor: reuses the real case-study markup/CSS (case-modal-hero,
-  // case-meta, case-intro, case-gallery), so what's shown while editing is
-  // pixel-for-pixel what the live site renders. Text is edited directly on
-  // the real elements via contenteditable; hero/gallery media are edited by
-  // clicking the media itself (an upload input opens) rather than through
-  // a separate plain form. ----
+  // ---- Editor: a plain form on the left drives every field; renderPreview()
+  // keeps the right pane (the real case-study markup/classes) in sync with
+  // the current form state on every change. ----
 
-  function renderHero() {
+  function renderPreview() {
     editorHeroMedia.innerHTML = "";
-    if (formHero) {
-      editorHeroMedia.appendChild(buildMediaEl(formHero));
-    }
+    if (formHero) editorHeroMedia.appendChild(buildMediaEl(formHero));
+
+    previewClient.textContent = fieldClient.value.trim() || "Client Name";
+    previewPartner.textContent = fieldPartner.value.trim() || "Partner Name";
+    setLogoPreview(previewClientLogo, formClientLogo);
+    setLogoPreview(previewPartnerLogo, formPartnerLogo);
+    previewIntro.innerHTML = editorIntro.innerHTML;
+
+    editorGallery.innerHTML = "";
+    formGallery.forEach((row) => {
+      const rowEl = document.createElement("div");
+      rowEl.className = rowClass(row.type);
+      row.items.forEach((item) => {
+        if (!item) return;
+        const block = document.createElement("div");
+        block.className = "case-block";
+        block.appendChild(buildMediaEl(item));
+        rowEl.appendChild(block);
+      });
+      editorGallery.appendChild(rowEl);
+    });
   }
 
-  // pendingGallerySlot targets exactly one slot ({rowIndex, slotIndex}) for
-  // the next upload through editorGalleryInput.
-  let pendingGallerySlot = null;
+  function setLogoPreview(img, url) {
+    if (url) {
+      img.src = url;
+      img.hidden = false;
+    } else {
+      img.removeAttribute("src");
+      img.hidden = true;
+    }
+  }
 
   function rowClass(type) {
     return "case-row" + (type === 2 ? " case-row-2" : type === 3 ? " case-row-3" : "");
   }
 
-  function renderGallery() {
-    editorGallery.innerHTML = "";
-
-    formGallery.forEach((row, rowIndex) => {
-      const wrap = document.createElement("div");
-      wrap.className = "admin-editor-row";
-
-      const rowEl = document.createElement("div");
-      rowEl.className = rowClass(row.type);
-
-      for (let slotIndex = 0; slotIndex < row.type; slotIndex++) {
-        const item = row.items[slotIndex];
-        const block = document.createElement("div");
-        block.className = "case-block admin-editor-block";
-        block.addEventListener("click", () => startGalleryUpload(rowIndex, slotIndex));
-
-        if (item) {
-          block.appendChild(buildMediaEl(item));
-
-          const overlay = document.createElement("div");
-          overlay.className = "admin-editor-block-overlay";
-          overlay.addEventListener("click", (e) => e.stopPropagation());
-
-          const removeBtn = document.createElement("button");
-          removeBtn.type = "button";
-          removeBtn.className = "admin-text-btn admin-text-btn-danger";
-          removeBtn.textContent = "Remove";
-          removeBtn.addEventListener("click", () => {
-            row.items[slotIndex] = null;
-            renderGallery();
-          });
-
-          overlay.appendChild(removeBtn);
-          block.appendChild(overlay);
-        } else {
-          block.classList.add("admin-editor-block-empty");
-          block.textContent = "+ Add image";
-        }
-
-        rowEl.appendChild(block);
-      }
-
-      const toolbar = document.createElement("div");
-      toolbar.className = "admin-editor-row-toolbar";
-
-      const upBtn = document.createElement("button");
-      upBtn.type = "button";
-      upBtn.className = "admin-icon-btn";
-      upBtn.textContent = "↑";
-      upBtn.title = "Move row up";
-      upBtn.disabled = rowIndex === 0;
-      upBtn.addEventListener("click", () => {
-        const [moved] = formGallery.splice(rowIndex, 1);
-        formGallery.splice(rowIndex - 1, 0, moved);
-        renderGallery();
-      });
-
-      const downBtn = document.createElement("button");
-      downBtn.type = "button";
-      downBtn.className = "admin-icon-btn";
-      downBtn.textContent = "↓";
-      downBtn.title = "Move row down";
-      downBtn.disabled = rowIndex === formGallery.length - 1;
-      downBtn.addEventListener("click", () => {
-        const [moved] = formGallery.splice(rowIndex, 1);
-        formGallery.splice(rowIndex + 1, 0, moved);
-        renderGallery();
-      });
-
-      const removeRowBtn = document.createElement("button");
-      removeRowBtn.type = "button";
-      removeRowBtn.className = "admin-text-btn admin-text-btn-danger";
-      removeRowBtn.textContent = "Remove row";
-      removeRowBtn.addEventListener("click", () => {
-        formGallery.splice(rowIndex, 1);
-        renderGallery();
-      });
-
-      toolbar.append(upBtn, downBtn, removeRowBtn);
-      wrap.append(rowEl, toolbar);
-      editorGallery.appendChild(wrap);
-    });
+  // ---- Dropzone helper: shared look/behaviour for the hero box and the
+  // two logo boxes — shows a "+" placeholder until a file is set, then the
+  // file itself with a "Change" overlay on hover. ----
+  function renderDropzone(box, item, placeholderIcon) {
+    box.innerHTML = "";
+    if (item) {
+      box.appendChild(buildMediaEl(item, "u-dropzone-media"));
+      const overlay = document.createElement("div");
+      overlay.className = "u-dropzone-overlay";
+      overlay.textContent = "Change";
+      box.appendChild(overlay);
+    } else {
+      const icon = document.createElement("span");
+      icon.className = "u-dropzone-icon";
+      icon.textContent = placeholderIcon;
+      box.appendChild(icon);
+    }
   }
 
-  function startGalleryUpload(rowIndex, slotIndex) {
-    pendingGallerySlot = { rowIndex, slotIndex };
-    editorGalleryInput.click();
+  function renderHeroBox() {
+    heroBox.innerHTML = "";
+    if (formHero) {
+      renderDropzone(heroBox, formHero, "+");
+    } else {
+      const icon = document.createElement("span");
+      icon.className = "u-dropzone-icon";
+      icon.textContent = "+";
+      const label = document.createElement("span");
+      label.textContent = "Click to upload an image or video";
+      heroBox.append(icon, label);
+    }
   }
 
-  function addRow(type) {
-    formGallery.push({ type, items: new Array(type).fill(null) });
-    renderGallery();
-  }
-
-  addRow1Btn.addEventListener("click", () => addRow(1));
-  addRow2Btn.addEventListener("click", () => addRow(2));
-  addRow3Btn.addEventListener("click", () => addRow(3));
-
-  // Shared by the hero/gallery input and the two logo inputs below.
+  // Shared by the hero/gallery input and the two logo inputs.
   async function uploadMedia(file) {
     const res = await fetch("/api/upload-media", {
       method: "POST",
@@ -346,8 +312,7 @@
     return { type: data.type, url: data.url };
   }
 
-  editorHeroBtn.addEventListener("click", () => editorHeroInput.click());
-
+  heroBox.addEventListener("click", () => editorHeroInput.click());
   editorHeroInput.addEventListener("change", async () => {
     const file = editorHeroInput.files && editorHeroInput.files[0];
     editorHeroInput.value = "";
@@ -356,50 +321,16 @@
     uploadStatus.textContent = "Uploading…";
     try {
       formHero = await uploadMedia(file);
-      renderHero();
+      renderHeroBox();
+      renderPreview();
       uploadStatus.textContent = "Uploaded.";
     } catch (err) {
       uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
     }
   });
 
-  editorGalleryInput.addEventListener("change", async () => {
-    const file = editorGalleryInput.files && editorGalleryInput.files[0];
-    editorGalleryInput.value = "";
-    if (!file || !pendingGallerySlot) return;
-
-    uploadStatus.textContent = "Uploading…";
-    try {
-      const item = await uploadMedia(file);
-      const { rowIndex, slotIndex } = pendingGallerySlot;
-      formGallery[rowIndex].items[slotIndex] = item;
-      renderGallery();
-      uploadStatus.textContent = "Uploaded.";
-    } catch (err) {
-      uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
-    }
-  });
-
-  // ---- Client/partner logos: small 24x24 images shown next to each name,
-  // uploaded the same way as hero/gallery media. ----
-
-  function renderLogo(kind) {
-    const btn = kind === "client" ? editorClientLogoBtn : editorPartnerLogoBtn;
-    const img = kind === "client" ? editorClientLogo : editorPartnerLogo;
-    const url = kind === "client" ? formClientLogo : formPartnerLogo;
-    if (url) {
-      img.src = url;
-      img.hidden = false;
-      btn.classList.add("has-logo");
-    } else {
-      img.removeAttribute("src");
-      img.hidden = true;
-      btn.classList.remove("has-logo");
-    }
-  }
-
-  function setupLogoUpload(kind, btn, input) {
-    btn.addEventListener("click", () => input.click());
+  function setupLogoUpload(kind, box, input) {
+    box.addEventListener("click", () => input.click());
     input.addEventListener("change", async () => {
       const file = input.files && input.files[0];
       input.value = "";
@@ -413,7 +344,8 @@
         } else {
           formPartnerLogo = item.url;
         }
-        renderLogo(kind);
+        renderDropzone(box, item, "+");
+        renderPreview();
         uploadStatus.textContent = "Uploaded.";
       } catch (err) {
         uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
@@ -421,20 +353,166 @@
     });
   }
 
-  setupLogoUpload("client", editorClientLogoBtn, editorClientLogoInput);
-  setupLogoUpload("partner", editorPartnerLogoBtn, editorPartnerLogoInput);
+  setupLogoUpload("client", clientLogoBox, clientLogoInput);
+  setupLogoUpload("partner", partnerLogoBox, partnerLogoInput);
 
-  // Plain single-line editing for client/partner — a literal newline would
-  // look fine here but break the saved data's intent (these render as
-  // flowing inline text on the real site, not multi-line blocks). The
-  // intro is allowed one soft flow of text too — same reasoning — so it
-  // also blocks Enter, just not single-line-only in spirit, only in that
-  // it stays one paragraph.
-  [editorClient, editorPartner, editorIntro].forEach((el) => {
-    el.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") e.preventDefault();
+  // ---- Gallery rows (form side): each row is its own card with a fixed
+  // number of upload slots — the admin picks the row's shape (1/2/3 images)
+  // explicitly rather than sizing images individually. ----
+
+  let pendingGallerySlot = null; // {rowIndex, slotIndex} for the next upload
+
+  function renderRowsForm() {
+    editorRowsForm.innerHTML = "";
+
+    formGallery.forEach((row, rowIndex) => {
+      const card = document.createElement("div");
+      card.className = "u-row-card";
+
+      const header = document.createElement("div");
+      header.className = "u-row-card-header";
+      const title = document.createElement("span");
+      title.className = "u-row-card-title";
+      title.textContent = "Row " + (rowIndex + 1) + " · " + row.type + (row.type === 1 ? " image" : " images");
+      header.appendChild(title);
+
+      const actions = document.createElement("div");
+      actions.className = "u-row-card-actions";
+
+      const upBtn = document.createElement("button");
+      upBtn.type = "button";
+      upBtn.className = "u-btn u-btn-ghost u-btn-icon";
+      upBtn.textContent = "↑";
+      upBtn.title = "Move row up";
+      upBtn.disabled = rowIndex === 0;
+      upBtn.addEventListener("click", () => {
+        const [moved] = formGallery.splice(rowIndex, 1);
+        formGallery.splice(rowIndex - 1, 0, moved);
+        renderRowsForm();
+        renderPreview();
+      });
+
+      const downBtn = document.createElement("button");
+      downBtn.type = "button";
+      downBtn.className = "u-btn u-btn-ghost u-btn-icon";
+      downBtn.textContent = "↓";
+      downBtn.title = "Move row down";
+      downBtn.disabled = rowIndex === formGallery.length - 1;
+      downBtn.addEventListener("click", () => {
+        const [moved] = formGallery.splice(rowIndex, 1);
+        formGallery.splice(rowIndex + 1, 0, moved);
+        renderRowsForm();
+        renderPreview();
+      });
+
+      const removeRowBtn = document.createElement("button");
+      removeRowBtn.type = "button";
+      removeRowBtn.className = "u-btn u-btn-ghost u-btn-sm u-btn-danger";
+      removeRowBtn.textContent = "Remove";
+      removeRowBtn.addEventListener("click", () => {
+        formGallery.splice(rowIndex, 1);
+        renderRowsForm();
+        renderPreview();
+      });
+
+      actions.append(upBtn, downBtn, removeRowBtn);
+      header.appendChild(actions);
+
+      const slots = document.createElement("div");
+      slots.className = "u-row-card-slots";
+      slots.style.setProperty("--slots", row.type);
+      slots.style.gridTemplateColumns = "repeat(" + row.type + ", 1fr)";
+
+      for (let slotIndex = 0; slotIndex < row.type; slotIndex++) {
+        const item = row.items[slotIndex];
+        const box = document.createElement("div");
+        box.className = "u-dropzone u-row-slot";
+        box.addEventListener("click", () => {
+          pendingGallerySlot = { rowIndex, slotIndex };
+          editorGalleryInput.click();
+        });
+
+        if (item) {
+          box.appendChild(buildMediaEl(item, "u-dropzone-media"));
+          const overlay = document.createElement("div");
+          overlay.className = "u-dropzone-overlay";
+          overlay.textContent = "Change";
+          box.appendChild(overlay);
+
+          const removeSlotBtn = document.createElement("button");
+          removeSlotBtn.type = "button";
+          removeSlotBtn.className = "u-btn u-btn-ghost u-btn-icon";
+          removeSlotBtn.textContent = "×";
+          removeSlotBtn.title = "Remove image";
+          removeSlotBtn.style.position = "absolute";
+          removeSlotBtn.style.top = "4px";
+          removeSlotBtn.style.right = "4px";
+          removeSlotBtn.style.background = "rgba(0,0,0,0.5)";
+          removeSlotBtn.style.color = "#fff";
+          removeSlotBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            row.items[slotIndex] = null;
+            renderRowsForm();
+            renderPreview();
+          });
+          box.appendChild(removeSlotBtn);
+        } else {
+          const icon = document.createElement("span");
+          icon.className = "u-dropzone-icon";
+          icon.textContent = "+";
+          box.appendChild(icon);
+        }
+
+        slots.appendChild(box);
+      }
+
+      card.append(header, slots);
+      editorRowsForm.appendChild(card);
     });
+  }
+
+  editorGalleryInput.addEventListener("change", async () => {
+    const file = editorGalleryInput.files && editorGalleryInput.files[0];
+    editorGalleryInput.value = "";
+    if (!file || !pendingGallerySlot) return;
+
+    uploadStatus.textContent = "Uploading…";
+    try {
+      const item = await uploadMedia(file);
+      const { rowIndex, slotIndex } = pendingGallerySlot;
+      formGallery[rowIndex].items[slotIndex] = item;
+      renderRowsForm();
+      renderPreview();
+      uploadStatus.textContent = "Uploaded.";
+    } catch (err) {
+      uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
+    }
   });
+
+  function addRow(type) {
+    formGallery.push({ type, items: new Array(type).fill(null) });
+    renderRowsForm();
+    renderPreview();
+  }
+
+  addRow1Btn.addEventListener("click", () => addRow(1));
+  addRow2Btn.addEventListener("click", () => addRow(2));
+  addRow3Btn.addEventListener("click", () => addRow(3));
+
+  // ---- Text fields drive the preview live. ----
+  [fieldClient, fieldPartner].forEach((el) => {
+    el.addEventListener("input", renderPreview);
+  });
+  fieldTitle.addEventListener("input", () => {
+    editorTopbarTitle.textContent = fieldTitle.value.trim() || "New project";
+  });
+
+  // Intro stays one flowing line, matching how it renders on the real
+  // site — a literal newline would break that intent.
+  editorIntro.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") e.preventDefault();
+  });
+  editorIntro.addEventListener("input", renderPreview);
 
   // ---- Intro grey-out: select any word(s) in the intro, then mark them
   // .case-intro-muted — replaces the old "client name is always the grey
@@ -464,6 +542,7 @@
       range.insertNode(span);
     }
     sel.removeAllRanges();
+    renderPreview();
   });
 
   introClearBtn.addEventListener("click", () => {
@@ -480,6 +559,7 @@
       parent.removeChild(span);
     });
     sel.removeAllRanges();
+    renderPreview();
   });
 
   // Strips everything from a pasted/typed intro except plain text and
@@ -516,8 +596,8 @@
       const project = projects[index];
       fieldTitle.value = project.title || "";
       fieldSize.value = project.size === "large" ? "large" : "normal";
-      editorClient.textContent = project.client || "";
-      editorPartner.textContent = project.partner || "";
+      fieldClient.value = project.client || "";
+      fieldPartner.value = project.partner || "";
       editorIntro.innerHTML = project.introHtml || "";
       formHero = (Array.isArray(project.media) && project.media[0]) || null;
       formGallery = Array.isArray(project.gallery)
@@ -525,21 +605,25 @@
         : [];
       formClientLogo = project.clientLogo || "";
       formPartnerLogo = project.partnerLogo || "";
+      editorTopbarTitle.textContent = project.title || "New project";
     } else {
       fieldTitle.value = "";
       fieldSize.value = "normal";
-      editorClient.textContent = "";
-      editorPartner.textContent = "";
+      fieldClient.value = "";
+      fieldPartner.value = "";
       editorIntro.innerHTML = "";
       formHero = null;
       formGallery = [];
       formClientLogo = "";
       formPartnerLogo = "";
+      editorTopbarTitle.textContent = "New project";
     }
-    renderHero();
-    renderGallery();
-    renderLogo("client");
-    renderLogo("partner");
+
+    renderHeroBox();
+    renderDropzone(clientLogoBox, formClientLogo ? { type: "image", url: formClientLogo } : null, "+");
+    renderDropzone(partnerLogoBox, formPartnerLogo ? { type: "image", url: formPartnerLogo } : null, "+");
+    renderRowsForm();
+    renderPreview();
 
     editor.hidden = false;
   }
@@ -548,7 +632,7 @@
   // Back discards instead, see below).
   function commitEditor() {
     const title = fieldTitle.value.trim();
-    const client = editorClient.textContent.trim();
+    const client = fieldClient.value.trim();
     if (!title || !client) return false;
 
     const existing = editingIndex >= 0 ? projects[editingIndex] : null;
@@ -556,7 +640,7 @@
       id: existing ? existing.id : uniqueId(slugify(title)),
       title,
       client,
-      partner: editorPartner.textContent.trim() || "Partner Name",
+      partner: fieldPartner.value.trim() || "Partner Name",
       clientLogo: formClientLogo,
       partnerLogo: formPartnerLogo,
       introHtml: sanitizeIntroHtml(editorIntro.innerHTML),

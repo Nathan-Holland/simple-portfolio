@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noimageindex">
 <title>Nate Holland — Admin</title>
-<link rel="stylesheet" href="styles.css?v=70">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css?v=71">
+<link rel="stylesheet" href="admin.css?v=1">
 <link rel="icon" href="favicon.svg">
 </head>
 <body class="admin-page">
@@ -16,108 +20,167 @@
     document.body.classList.toggle("dark", storedDark === null ? dq.matches : storedDark === "1");
   </script>
 
-  <header class="admin-header">
-    <h1>Dashboard</h1>
-    <a href="index.html">← Back to site</a>
-  </header>
-
-  <main class="admin-main">
-    <div class="admin-stats">
-      <div class="admin-stat-card">
-        <span class="admin-stat-value" id="statCount">0</span>
-        <span class="admin-stat-label">Projects</span>
+  <div class="u-shell">
+    <header class="u-topbar">
+      <div class="u-topbar-title">
+        <h1>Projects</h1>
+        <p>Manage the case studies shown on your homepage.</p>
       </div>
-      <div class="admin-stat-card">
-        <span class="admin-stat-value" id="statMedia">0</span>
-        <span class="admin-stat-label">Media items</span>
-      </div>
-      <div class="admin-toolbar-actions">
+      <div class="u-topbar-actions">
         <span class="admin-status" id="adminStatus"></span>
-        <button type="button" class="admin-save-btn" id="saveChangesBtn">Save changes</button>
+        <a href="index.html" class="u-btn u-btn-secondary">View site</a>
+        <button type="button" class="u-btn u-btn-primary" id="saveChangesBtn">Save changes</button>
       </div>
-    </div>
-
-    <p class="admin-hint">Changes here are local until you press Save changes — that's what updates the live site.</p>
-
-    <div class="admin-grid" id="adminList"></div>
-
-    <button type="button" class="admin-add-card" id="addProjectBtn">+ Add project</button>
-  </main>
-
-  <!-- Reuses the real case-study markup/classes (case-modal-hero, case-meta,
-       case-intro, case-gallery) so this editor is styled identically to
-       how the project actually renders on the live site — editing happens
-       directly on the real-looking elements (contenteditable text,
-       click-to-replace media) instead of a plain form. -->
-  <div class="admin-editor" id="projectEditor" hidden>
-    <header class="admin-editor-topbar">
-      <button type="button" class="admin-editor-back" id="editorBackBtn">← Back</button>
-      <input type="text" class="admin-editor-title-input" id="fieldTitle" placeholder="Project title (homepage tile caption)">
-      <select class="admin-editor-size" id="fieldSize">
-        <option value="normal">Normal tile</option>
-        <option value="large">Large tile</option>
-      </select>
-      <span class="admin-upload-status" id="uploadStatus"></span>
-      <button type="button" class="admin-editor-done" id="editorDoneBtn">Done</button>
     </header>
 
-    <div class="admin-editor-preview">
-      <div class="case-modal-hero admin-editor-hero" id="editorHero">
-        <div class="case-modal-hero-media" id="editorHeroMedia"></div>
-        <button type="button" class="admin-editor-media-btn admin-editor-hero-btn" id="editorHeroBtn">Change hero media</button>
-        <input type="file" id="editorHeroInput" accept="image/*,video/*" hidden>
+    <main class="u-main">
+      <div class="u-stats-row">
+        <div class="u-stat-card">
+          <span class="u-stat-label">Projects</span>
+          <span class="u-stat-value" id="statCount">0</span>
+        </div>
+        <div class="u-stat-card">
+          <span class="u-stat-label">Media items</span>
+          <span class="u-stat-value" id="statMedia">0</span>
+        </div>
       </div>
 
-      <div class="case-modal-body visible">
-        <section class="case-meta grid14">
-          <div class="case-meta-info">
-            <p class="case-meta-year">© 2026</p>
-            <div class="case-meta-item">
-              <p class="case-meta-label">Client</p>
-              <div class="case-meta-value-row">
-                <button type="button" class="admin-editor-logo-btn" id="editorClientLogoBtn" title="Set client logo">
-                  <img class="case-meta-logo" id="editorClientLogo" alt="" hidden>
-                  <span class="admin-editor-logo-placeholder">+</span>
-                </button>
-                <input type="file" id="editorClientLogoInput" accept="image/*" hidden>
-                <p class="case-meta-value" contenteditable="true" id="editorClient" data-placeholder="Client Name"></p>
-              </div>
-            </div>
-            <div class="case-meta-divider"></div>
-            <div class="case-meta-item">
-              <p class="case-meta-label">Partner</p>
-              <div class="case-meta-value-row">
-                <button type="button" class="admin-editor-logo-btn" id="editorPartnerLogoBtn" title="Set partner logo">
-                  <img class="case-meta-logo" id="editorPartnerLogo" alt="" hidden>
-                  <span class="admin-editor-logo-placeholder">+</span>
-                </button>
-                <input type="file" id="editorPartnerLogoInput" accept="image/*" hidden>
-                <p class="case-meta-value" contenteditable="true" id="editorPartner" data-placeholder="Partner Name"></p>
-              </div>
-            </div>
-          </div>
-          <div class="admin-editor-intro-wrap">
-            <div class="admin-editor-intro-toolbar">
-              <span>Select a word in the intro, then:</span>
-              <button type="button" class="admin-text-btn" id="introGreyBtn">Grey out</button>
-              <button type="button" class="admin-text-btn" id="introClearBtn">Clear</button>
-            </div>
-            <p class="case-intro" contenteditable="true" id="editorIntro" data-placeholder="Intro text about the project — select a word above to grey it out"></p>
-          </div>
-        </section>
+      <p class="u-hint">Changes here are local until you press Save changes — that's what updates the live site.</p>
 
-        <section class="case-gallery" id="editorGallery"></section>
+      <div class="u-project-grid" id="adminList"></div>
+
+      <button type="button" class="u-add-card" id="addProjectBtn">+ Add project</button>
+    </main>
+  </div>
+
+  <!-- Editor: a form on the left drives every field; the right pane mirrors
+       the real case-study markup/classes (case-modal-hero, case-meta,
+       case-gallery) read-only, so it always matches what the live site
+       will actually render. -->
+  <div class="admin-editor" id="projectEditor" hidden>
+    <header class="u-editor-topbar">
+      <button type="button" class="u-btn u-btn-secondary u-btn-sm" id="editorBackBtn">← Back</button>
+      <span class="u-editor-topbar-title" id="editorTopbarTitle">New project</span>
+      <span class="admin-status" id="uploadStatus"></span>
+      <button type="button" class="u-btn u-btn-primary u-btn-sm" id="editorDoneBtn">Done</button>
+    </header>
+
+    <div class="u-editor-body">
+      <div class="u-editor-form">
+        <div class="u-field">
+          <label class="u-label" for="fieldTitle">Project title</label>
+          <input type="text" class="u-input" id="fieldTitle" placeholder="Homepage tile caption">
+        </div>
+
+        <div class="u-field">
+          <label class="u-label" for="fieldSize">Tile size</label>
+          <select class="u-input u-select" id="fieldSize">
+            <option value="normal">Normal tile</option>
+            <option value="large">Large tile</option>
+          </select>
+        </div>
+
+        <div class="u-section-label">Client &amp; partner</div>
+
+        <div class="u-field-row">
+          <div class="u-field">
+            <label class="u-label" for="fieldClient">Client</label>
+            <input type="text" class="u-input" id="fieldClient" placeholder="Client name">
+          </div>
+          <div class="u-field">
+            <label class="u-label" for="fieldPartner">Partner</label>
+            <input type="text" class="u-input" id="fieldPartner" placeholder="Partner name">
+          </div>
+        </div>
+
+        <div class="u-field-row">
+          <div class="u-field">
+            <label class="u-label">Client logo</label>
+            <div class="u-dropzone u-logo-upload" id="clientLogoBox">
+              <span class="u-dropzone-icon">+</span>
+            </div>
+            <input type="file" id="clientLogoInput" accept="image/*" hidden>
+          </div>
+          <div class="u-field">
+            <label class="u-label">Partner logo</label>
+            <div class="u-dropzone u-logo-upload" id="partnerLogoBox">
+              <span class="u-dropzone-icon">+</span>
+            </div>
+            <input type="file" id="partnerLogoInput" accept="image/*" hidden>
+          </div>
+        </div>
+
+        <div class="u-section-label">Intro</div>
+
+        <div class="u-field">
+          <label class="u-label">Intro text</label>
+          <div class="u-intro-toolbar">
+            <span>Select a word, then:</span>
+            <button type="button" class="u-btn u-btn-ghost u-btn-xs" id="introGreyBtn">Grey out</button>
+            <button type="button" class="u-btn u-btn-ghost u-btn-xs" id="introClearBtn">Clear</button>
+          </div>
+          <div class="u-textarea" contenteditable="true" id="editorIntro" data-placeholder="Intro text about the project — select a word above to grey it out"></div>
+        </div>
+
+        <div class="u-section-label">Hero media</div>
+
+        <div class="u-field">
+          <label class="u-label">Homepage tile / case-study hero</label>
+          <div class="u-dropzone u-dropzone-hero" id="heroBox">
+            <span class="u-dropzone-icon">+</span>
+            <span>Click to upload an image or video</span>
+          </div>
+          <input type="file" id="editorHeroInput" accept="image/*,video/*" hidden>
+        </div>
+
+        <div class="u-section-label">Gallery</div>
+
+        <div id="editorRowsForm"></div>
+        <div class="u-row-add">
+          <button type="button" class="u-btn u-btn-secondary u-btn-sm" id="addRow1Btn">+ 1-image row</button>
+          <button type="button" class="u-btn u-btn-secondary u-btn-sm" id="addRow2Btn">+ 2-image row</button>
+          <button type="button" class="u-btn u-btn-secondary u-btn-sm" id="addRow3Btn">+ 3-image row</button>
+        </div>
         <input type="file" id="editorGalleryInput" accept="image/*,video/*" hidden>
-        <div class="admin-editor-row-add">
-          <span>Add a row:</span>
-          <button type="button" class="admin-text-btn" id="addRow1Btn">1 image</button>
-          <button type="button" class="admin-text-btn" id="addRow2Btn">2 images</button>
-          <button type="button" class="admin-text-btn" id="addRow3Btn">3 images</button>
+      </div>
+
+      <div class="u-editor-preview-pane">
+        <div class="u-preview-label">Live preview</div>
+        <div class="admin-editor-preview">
+          <div class="case-modal-hero admin-editor-hero" id="editorHero">
+            <div class="case-modal-hero-media" id="editorHeroMedia"></div>
+          </div>
+
+          <div class="case-modal-body visible">
+            <section class="case-meta grid14">
+              <div class="case-meta-info">
+                <p class="case-meta-year">© 2026</p>
+                <div class="case-meta-item">
+                  <p class="case-meta-label">Client</p>
+                  <div class="case-meta-value-row">
+                    <img class="case-meta-logo" id="previewClientLogo" alt="" hidden>
+                    <p class="case-meta-value" id="previewClient"></p>
+                  </div>
+                </div>
+                <div class="case-meta-divider"></div>
+                <div class="case-meta-item">
+                  <p class="case-meta-label">Partner</p>
+                  <div class="case-meta-value-row">
+                    <img class="case-meta-logo" id="previewPartnerLogo" alt="" hidden>
+                    <p class="case-meta-value" id="previewPartner"></p>
+                  </div>
+                </div>
+              </div>
+              <p class="case-intro" id="previewIntro"></p>
+            </section>
+
+            <section class="case-gallery" id="editorGallery"></section>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="admin.js?v=7"></script>
+  <script src="admin.js?v=8"></script>
 </body>
 </html>
