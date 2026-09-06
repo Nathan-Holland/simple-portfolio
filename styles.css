@@ -696,7 +696,7 @@ body.case-study .nav {
 /* The full-width (1-image) row is a wide banner shape, not the default
    4:3 — :not() excludes the 2/3-image rows, which also carry .case-row. */
 .case-row:not(.case-row-2):not(.case-row-3) .case-block {
-  aspect-ratio: 19 / 6;
+  aspect-ratio: 16 / 9;
 }
 .case-block img,
 .case-block video {
