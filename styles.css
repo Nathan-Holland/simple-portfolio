@@ -52,6 +52,13 @@
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: "GT Standard Trial";
+  src: url("fonts/GT-Standard-L-Standard-Medium-Trial.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ---- tokens ---- */
 :root {
@@ -602,6 +609,8 @@ body.case-study .nav-logo img {
   margin-bottom: 6px;
 }
 .case-meta-value {
+  font-family: "GT Standard Trial", "Lay Grotesk", sans-serif;
+  font-weight: 500;
   font-size: 14px;
 }
 .case-meta-value-row {
