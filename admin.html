@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noimageindex">
 <title>Nate Holland — Admin</title>
-<link rel="stylesheet" href="styles.css?v=61">
+<link rel="stylesheet" href="styles.css?v=62">
 <link rel="icon" href="favicon.svg">
 </head>
 <body class="admin-page">
@@ -44,56 +44,51 @@
     <button type="button" class="admin-add-card" id="addProjectBtn">+ Add project</button>
   </main>
 
-  <div class="admin-modal" id="projectForm" hidden>
-    <div class="admin-modal-backdrop" id="projectFormBackdrop"></div>
-    <form class="admin-form" id="projectFormEl">
-      <h2 id="formTitle">Add project</h2>
+  <!-- Reuses the real case-study markup/classes (case-modal-hero, case-meta,
+       case-intro, case-gallery) so this editor is styled identically to
+       how the project actually renders on the live site — editing happens
+       directly on the real-looking elements (contenteditable text,
+       click-to-replace media) instead of a plain form. -->
+  <div class="admin-editor" id="projectEditor" hidden>
+    <header class="admin-editor-topbar">
+      <button type="button" class="admin-editor-back" id="editorBackBtn">← Back</button>
+      <input type="text" class="admin-editor-title-input" id="fieldTitle" placeholder="Project title (homepage tile caption)">
+      <select class="admin-editor-size" id="fieldSize">
+        <option value="normal">Normal tile</option>
+        <option value="large">Large tile</option>
+      </select>
+      <span class="admin-upload-status" id="uploadStatus"></span>
+      <button type="button" class="admin-editor-done" id="editorDoneBtn">Done</button>
+    </header>
 
-      <label class="admin-field">
-        Title
-        <input type="text" id="fieldTitle" required>
-      </label>
-
-      <label class="admin-field">
-        Client
-        <input type="text" id="fieldClient" required>
-      </label>
-
-      <label class="admin-field">
-        Partner
-        <input type="text" id="fieldPartner" placeholder="Partner Name">
-      </label>
-
-      <label class="admin-field">
-        Intro text (shown after the client name in the case study)
-        <textarea id="fieldIntro" rows="3"></textarea>
-      </label>
-
-      <label class="admin-field">
-        Tile size
-        <select id="fieldSize">
-          <option value="normal">Normal</option>
-          <option value="large">Large</option>
-        </select>
-      </label>
-
-      <div class="admin-field">
-        <span>Media — the first item is the homepage tile / case-study hero (image or video), the rest fill the case-study gallery</span>
-        <div class="admin-media-list" id="mediaList"></div>
-        <label class="admin-media-add">
-          + Add image or video
-          <input type="file" id="fieldMediaInput" accept="image/*,video/*" hidden>
-        </label>
-        <span class="admin-upload-status" id="uploadStatus"></span>
+    <div class="admin-editor-preview">
+      <div class="case-modal-hero admin-editor-hero" id="editorHero">
+        <div class="case-modal-hero-media" id="editorHeroMedia"></div>
+        <button type="button" class="admin-editor-media-btn admin-editor-hero-btn" id="editorHeroBtn">Change hero media</button>
+        <input type="file" id="editorHeroInput" accept="image/*,video/*" hidden>
       </div>
 
-      <div class="admin-form-actions">
-        <button type="button" id="cancelFormBtn">Cancel</button>
-        <button type="submit" id="submitFormBtn">Save project</button>
+      <div class="case-modal-body visible">
+        <section class="case-meta grid14">
+          <div class="case-meta-info">
+            <p class="case-meta-year">© 2026</p>
+            <div class="case-meta-item">
+              <p class="case-meta-label">Client</p>
+              <p class="case-meta-value" contenteditable="true" id="editorClient" data-placeholder="Client Name"></p>
+            </div>
+            <div class="case-meta-item">
+              <p class="case-meta-label">Partner</p>
+              <p class="case-meta-value" contenteditable="true" id="editorPartner" data-placeholder="Partner Name"></p>
+            </div>
+          </div>
+          <p class="case-intro"><span class="case-intro-lead" id="editorIntroLead">Client Name</span><span class="admin-editor-intro-rest" contenteditable="true" id="editorIntroRest" data-placeholder=" Intro text about the project..."></span></p>
+        </section>
+
+        <section class="case-gallery dynamic" id="editorGallery"></section>
       </div>
-    </form>
+    </div>
   </div>
 
-  <script src="admin.js?v=2"></script>
+  <script src="admin.js?v=3"></script>
 </body>
 </html>

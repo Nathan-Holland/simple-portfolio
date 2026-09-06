@@ -6,24 +6,25 @@
   const statCount = document.getElementById("statCount");
   const statMedia = document.getElementById("statMedia");
 
-  const formModal = document.getElementById("projectForm");
-  const formBackdrop = document.getElementById("projectFormBackdrop");
-  const formEl = document.getElementById("projectFormEl");
-  const formTitle = document.getElementById("formTitle");
-  const cancelBtn = document.getElementById("cancelFormBtn");
-
+  const editor = document.getElementById("projectEditor");
+  const editorBackBtn = document.getElementById("editorBackBtn");
+  const editorDoneBtn = document.getElementById("editorDoneBtn");
   const fieldTitle = document.getElementById("fieldTitle");
-  const fieldClient = document.getElementById("fieldClient");
-  const fieldPartner = document.getElementById("fieldPartner");
-  const fieldIntro = document.getElementById("fieldIntro");
   const fieldSize = document.getElementById("fieldSize");
-  const fieldMediaInput = document.getElementById("fieldMediaInput");
-  const mediaListEl = document.getElementById("mediaList");
   const uploadStatus = document.getElementById("uploadStatus");
+
+  const editorHeroMedia = document.getElementById("editorHeroMedia");
+  const editorHeroBtn = document.getElementById("editorHeroBtn");
+  const editorHeroInput = document.getElementById("editorHeroInput");
+  const editorClient = document.getElementById("editorClient");
+  const editorPartner = document.getElementById("editorPartner");
+  const editorIntroLead = document.getElementById("editorIntroLead");
+  const editorIntroRest = document.getElementById("editorIntroRest");
+  const editorGallery = document.getElementById("editorGallery");
 
   let projects = [];
   let editingIndex = -1; // -1 means "adding a new project"
-  let formMedia = []; // the media[] array being edited in the open form
+  let formMedia = []; // the media[] array being edited — [0] is the hero, the rest are gallery
   let dirty = false;
 
   function slugify(text) {
@@ -66,7 +67,7 @@
   function buildMediaEl(item, className) {
     if (item.type === "video") {
       const video = document.createElement("video");
-      video.className = className;
+      if (className) video.className = className;
       video.src = item.url;
       video.muted = true;
       video.loop = true;
@@ -75,7 +76,7 @@
       return video;
     }
     const img = document.createElement("img");
-    img.className = className;
+    if (className) img.className = className;
     img.src = item.url;
     img.alt = "";
     return img;
@@ -104,6 +105,7 @@
 
       const card = document.createElement("div");
       card.className = "admin-card";
+      card.addEventListener("click", () => openEditor(index));
 
       const thumb = document.createElement("div");
       thumb.className = "admin-card-thumb";
@@ -131,6 +133,9 @@
 
       const actions = document.createElement("div");
       actions.className = "admin-card-actions";
+      // The whole card opens the editor (per-click), so the action row
+      // stops its clicks from bubbling up to that handler.
+      actions.addEventListener("click", (e) => e.stopPropagation());
 
       const upBtn = document.createElement("button");
       upBtn.type = "button";
@@ -150,7 +155,7 @@
       editBtn.type = "button";
       editBtn.className = "admin-text-btn";
       editBtn.textContent = "Edit";
-      editBtn.addEventListener("click", () => openForm(index));
+      editBtn.addEventListener("click", () => openEditor(index));
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
@@ -181,34 +186,46 @@
     render();
   }
 
-  // ---- Media list inside the add/edit form ----
+  // ---- Editor: reuses the real case-study markup/CSS (case-modal-hero,
+  // case-meta, case-intro, case-gallery), so what's shown while editing is
+  // pixel-for-pixel what the live site renders. Text is edited directly on
+  // the real elements via contenteditable; hero/gallery media are edited by
+  // clicking the media itself (an upload input opens) rather than through
+  // a separate plain form. ----
 
-  function renderMediaList() {
-    mediaListEl.innerHTML = "";
-    formMedia.forEach((item, index) => {
-      const row = document.createElement("div");
-      row.className = "admin-media-item";
+  let pendingUploadTarget = null; // index into formMedia the next upload replaces, or null for "append new"
 
-      const thumb = document.createElement("div");
-      thumb.className = "admin-media-item-thumb";
-      thumb.appendChild(buildMediaEl(item, "admin-media-item-media"));
+  function renderHero() {
+    editorHeroMedia.innerHTML = "";
+    if (formMedia[0]) {
+      editorHeroMedia.appendChild(buildMediaEl(formMedia[0]));
+    }
+  }
 
-      const label = document.createElement("span");
-      label.className = "admin-media-item-label";
-      label.textContent = index === 0 ? "Hero / Tile" : "Gallery " + index;
+  function renderGallery() {
+    editorGallery.innerHTML = "";
 
-      const actions = document.createElement("div");
-      actions.className = "admin-media-item-actions";
+    formMedia.slice(1).forEach((item, i) => {
+      const index = i + 1; // absolute index into formMedia
+      const block = document.createElement("div");
+      block.className = "case-block admin-editor-block";
+      block.appendChild(buildMediaEl(item));
+      block.addEventListener("click", () => startUpload(index));
+
+      const overlay = document.createElement("div");
+      overlay.className = "admin-editor-block-overlay";
+      overlay.addEventListener("click", (e) => e.stopPropagation());
 
       const upBtn = document.createElement("button");
       upBtn.type = "button";
       upBtn.className = "admin-icon-btn";
       upBtn.textContent = "↑";
-      upBtn.disabled = index === 0;
+      upBtn.title = index === 1 ? "Make hero" : "Move up";
       upBtn.addEventListener("click", () => {
         const [moved] = formMedia.splice(index, 1);
         formMedia.splice(index - 1, 0, moved);
-        renderMediaList();
+        renderHero();
+        renderGallery();
       });
 
       const downBtn = document.createElement("button");
@@ -219,7 +236,7 @@
       downBtn.addEventListener("click", () => {
         const [moved] = formMedia.splice(index, 1);
         formMedia.splice(index + 1, 0, moved);
-        renderMediaList();
+        renderGallery();
       });
 
       const removeBtn = document.createElement("button");
@@ -228,16 +245,34 @@
       removeBtn.textContent = "Remove";
       removeBtn.addEventListener("click", () => {
         formMedia.splice(index, 1);
-        renderMediaList();
+        renderGallery();
       });
 
-      actions.append(upBtn, downBtn, removeBtn);
-      row.append(thumb, label, actions);
-      mediaListEl.appendChild(row);
+      overlay.append(upBtn, downBtn, removeBtn);
+      block.appendChild(overlay);
+      editorGallery.appendChild(block);
     });
+
+    const addBlock = document.createElement("button");
+    addBlock.type = "button";
+    addBlock.className = "case-block admin-editor-add-block";
+    addBlock.textContent = "+ Add to gallery";
+    addBlock.addEventListener("click", () => startUpload(null));
+    editorGallery.appendChild(addBlock);
   }
 
-  async function uploadMedia(file) {
+  function startUpload(index) {
+    pendingUploadTarget = index;
+    editorHeroInput.click();
+  }
+
+  editorHeroBtn.addEventListener("click", () => startUpload(0));
+
+  editorHeroInput.addEventListener("change", async () => {
+    const file = editorHeroInput.files && editorHeroInput.files[0];
+    editorHeroInput.value = "";
+    if (!file) return;
+
     uploadStatus.textContent = "Uploading…";
     try {
       const res = await fetch("/api/upload-media", {
@@ -249,71 +284,80 @@
         body: file,
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error || "upload failed");
+      if (!res.ok || !data.ok) throw new Error(data.error || "upload failed");
+
+      const item = { type: data.type, url: data.url };
+      if (pendingUploadTarget === null) {
+        formMedia.push(item);
+      } else {
+        formMedia[pendingUploadTarget] = item;
       }
-      formMedia.push({ type: data.type, url: data.url });
-      renderMediaList();
+      renderHero();
+      renderGallery();
       uploadStatus.textContent = "Uploaded.";
     } catch (err) {
       uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
     }
-  }
-
-  fieldMediaInput.addEventListener("change", () => {
-    const file = fieldMediaInput.files && fieldMediaInput.files[0];
-    if (file) uploadMedia(file);
-    fieldMediaInput.value = "";
   });
 
-  function openForm(index) {
+  // Client name drives both the meta field and the intro's lead word live,
+  // matching how the real case-study page derives introLead from client.
+  editorClient.addEventListener("input", () => {
+    editorIntroLead.textContent = editorClient.textContent;
+  });
+
+  // Plain single-line editing — a literal newline would look fine here but
+  // break the saved data's intent (these render as flowing inline text on
+  // the real site, not multi-line blocks).
+  [editorClient, editorPartner, editorIntroRest].forEach((el) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") e.preventDefault();
+    });
+  });
+
+  function openEditor(index) {
     editingIndex = index;
-    fieldMediaInput.value = "";
     uploadStatus.textContent = "";
+    pendingUploadTarget = null;
 
     if (index >= 0) {
       const project = projects[index];
-      formTitle.textContent = "Edit project";
       fieldTitle.value = project.title || "";
-      fieldClient.value = project.client || "";
-      fieldPartner.value = project.partner || "";
-      fieldIntro.value = (project.introRest || "").trim();
       fieldSize.value = project.size === "large" ? "large" : "normal";
+      editorClient.textContent = project.client || "";
+      editorPartner.textContent = project.partner || "";
+      editorIntroLead.textContent = project.client || "";
+      editorIntroRest.textContent = (project.introRest || "").trim();
       formMedia = Array.isArray(project.media) ? project.media.slice() : [];
     } else {
-      formTitle.textContent = "Add project";
-      formEl.reset();
+      fieldTitle.value = "";
+      fieldSize.value = "normal";
+      editorClient.textContent = "";
+      editorPartner.textContent = "";
+      editorIntroLead.textContent = "";
+      editorIntroRest.textContent = "";
       formMedia = [];
     }
-    renderMediaList();
+    renderHero();
+    renderGallery();
 
-    formModal.hidden = false;
+    editor.hidden = false;
   }
 
-  function closeForm() {
-    formModal.hidden = true;
-    editingIndex = -1;
-    formMedia = [];
-  }
-
-  addBtn.addEventListener("click", () => openForm(-1));
-  cancelBtn.addEventListener("click", closeForm);
-  formBackdrop.addEventListener("click", closeForm);
-
-  formEl.addEventListener("submit", (e) => {
-    e.preventDefault();
-
+  // Commits the open editor's fields into projects[] (called by Done —
+  // Back discards instead, see below).
+  function commitEditor() {
     const title = fieldTitle.value.trim();
-    const client = fieldClient.value.trim();
-    if (!title || !client) return;
+    const client = editorClient.textContent.trim();
+    if (!title || !client) return false;
 
     const existing = editingIndex >= 0 ? projects[editingIndex] : null;
     const project = {
       id: existing ? existing.id : uniqueId(slugify(title)),
       title,
       client,
-      partner: fieldPartner.value.trim() || "Partner Name",
-      introRest: fieldIntro.value.trim() ? " " + fieldIntro.value.trim() : "",
+      partner: editorPartner.textContent.trim() || "Partner Name",
+      introRest: editorIntroRest.textContent.trim() ? " " + editorIntroRest.textContent.trim() : "",
       size: fieldSize.value === "large" ? "large" : "normal",
       media: formMedia.slice(),
     };
@@ -323,11 +367,26 @@
     } else {
       projects.push(project);
     }
-
     markDirty();
+    return true;
+  }
+
+  function closeEditor() {
+    editor.hidden = true;
+    editingIndex = -1;
+    formMedia = [];
+  }
+
+  addBtn.addEventListener("click", () => openEditor(-1));
+
+  // Done saves the project's edits into projects[]; Back discards them —
+  // distinct actions, matching what each button says.
+  editorDoneBtn.addEventListener("click", () => {
+    commitEditor();
     render();
-    closeForm();
+    closeEditor();
   });
+  editorBackBtn.addEventListener("click", closeEditor);
 
   saveBtn.addEventListener("click", async () => {
     setStatus("Saving…");
