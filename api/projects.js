@@ -15,6 +15,11 @@ const COOKIE_NAME = "site_auth";
 const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
 const BLOB_PATH = "data/projects.json";
 
+// Each project now carries a media[] array instead of a single image field
+// — media[0] is the homepage tile / case-study hero, the rest populate the
+// case-study gallery. Every item is {type: 'image'|'video', url}, so a
+// project's hero (or any gallery slot) can be a video just as easily as an
+// image.
 const DEFAULT_PROJECTS = [
   {
     id: "wedge",
@@ -22,7 +27,7 @@ const DEFAULT_PROJECTS = [
     client: "Wedge",
     partner: "Partner Name",
     introRest: " is a closer look at the design and development work behind the golf app. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.",
-    image: "Projects/Wedge/wedge_main.jpg",
+    media: [{ type: "image", url: "Projects/Wedge/wedge_main.jpg" }],
     size: "normal",
   },
   {
@@ -31,7 +36,7 @@ const DEFAULT_PROJECTS = [
     client: "Tottenham Hotspur F.C.",
     partner: "Partner Name",
     introRest: " is a closer look at the design work for the club. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.",
-    image: "Projects/Tottenham Hotspur/spurs.jpg",
+    media: [{ type: "image", url: "Projects/Tottenham Hotspur/spurs.jpg" }],
     size: "large",
   },
   {
@@ -40,7 +45,7 @@ const DEFAULT_PROJECTS = [
     client: "OpenFortune",
     partner: "Partner Name",
     introRest: " is a closer look at the design and development work for the project. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.",
-    image: "Projects/OpenFortune/openfortune_main.png",
+    media: [{ type: "image", url: "Projects/OpenFortune/openfortune_main.png" }],
     size: "normal",
   },
   {
@@ -49,13 +54,23 @@ const DEFAULT_PROJECTS = [
     client: "Mailboard",
     partner: "Partner Name",
     introRest: " is a closer look at the project — more of the breakdown is coming soon.",
-    image: null,
+    media: [],
     size: "large",
   },
 ];
 
 function isAuthed(req) {
   return !!(req.cookies && req.cookies[COOKIE_NAME] === COOKIE_VALUE);
+}
+
+// Normalizes older saved data (a single `image` string/null) onto the
+// current media[] shape, so admin.js and the homepage never have to deal
+// with both shapes — only this one place does.
+function normalizeProject(project) {
+  if (Array.isArray(project.media)) return project;
+  const media = project.image ? [{ type: "image", url: project.image }] : [];
+  const { image, ...rest } = project;
+  return { ...rest, media };
 }
 
 async function readProjects() {
@@ -75,6 +90,7 @@ export default async function handler(req, res) {
       projects = null;
     }
     if (!Array.isArray(projects)) projects = DEFAULT_PROJECTS;
+    projects = projects.map(normalizeProject);
     res.status(200).json({ projects });
     return;
   }

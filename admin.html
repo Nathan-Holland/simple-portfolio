@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noimageindex">
 <title>Nate Holland — Admin</title>
-<link rel="stylesheet" href="styles.css?v=60">
+<link rel="stylesheet" href="styles.css?v=61">
 <link rel="icon" href="favicon.svg">
 </head>
 <body class="admin-page">
@@ -17,21 +17,31 @@
   </script>
 
   <header class="admin-header">
-    <h1>Projects</h1>
+    <h1>Dashboard</h1>
     <a href="index.html">← Back to site</a>
   </header>
 
   <main class="admin-main">
+    <div class="admin-stats">
+      <div class="admin-stat-card">
+        <span class="admin-stat-value" id="statCount">0</span>
+        <span class="admin-stat-label">Projects</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="admin-stat-value" id="statMedia">0</span>
+        <span class="admin-stat-label">Media items</span>
+      </div>
+      <div class="admin-toolbar-actions">
+        <span class="admin-status" id="adminStatus"></span>
+        <button type="button" class="admin-save-btn" id="saveChangesBtn">Save changes</button>
+      </div>
+    </div>
+
     <p class="admin-hint">Changes here are local until you press Save changes — that's what updates the live site.</p>
 
-    <div class="admin-list" id="adminList"></div>
+    <div class="admin-grid" id="adminList"></div>
 
-    <button type="button" class="admin-add-btn" id="addProjectBtn">+ Add project</button>
-
-    <div class="admin-save-row">
-      <button type="button" class="admin-save-btn" id="saveChangesBtn">Save changes</button>
-      <span class="admin-status" id="adminStatus"></span>
-    </div>
+    <button type="button" class="admin-add-card" id="addProjectBtn">+ Add project</button>
   </main>
 
   <div class="admin-modal" id="projectForm" hidden>
@@ -67,12 +77,15 @@
         </select>
       </label>
 
-      <label class="admin-field">
-        Image
-        <input type="file" id="fieldImage" accept="image/*">
-      </label>
-      <img class="admin-field-preview" id="fieldImagePreview" hidden alt="">
-      <span class="admin-upload-status" id="uploadStatus"></span>
+      <div class="admin-field">
+        <span>Media — the first item is the homepage tile / case-study hero (image or video), the rest fill the case-study gallery</span>
+        <div class="admin-media-list" id="mediaList"></div>
+        <label class="admin-media-add">
+          + Add image or video
+          <input type="file" id="fieldMediaInput" accept="image/*,video/*" hidden>
+        </label>
+        <span class="admin-upload-status" id="uploadStatus"></span>
+      </div>
 
       <div class="admin-form-actions">
         <button type="button" id="cancelFormBtn">Cancel</button>
@@ -81,6 +94,6 @@
     </form>
   </div>
 
-  <script src="admin.js?v=1"></script>
+  <script src="admin.js?v=2"></script>
 </body>
 </html>

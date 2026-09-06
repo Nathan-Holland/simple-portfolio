@@ -196,12 +196,33 @@ if (window.gsap && window.ScrollSmoother) {
     const scrollArea = document.getElementById("caseModalScroll");
     const body = document.getElementById("caseModalBody");
     const hero = document.getElementById("caseModalHero");
-    const heroImg = document.getElementById("caseModalHeroImg");
+    const heroMedia = document.getElementById("caseModalHeroMedia");
+    const galleryEl = document.getElementById("caseGallery");
     const closeBtn = document.getElementById("caseModalClose");
     const clientEl = document.getElementById("caseModalClient");
     const partnerEl = document.getElementById("caseModalPartner");
     const introLead = document.getElementById("caseModalIntroLead");
     const introRest = document.getElementById("caseModalIntroRest");
+
+    // Builds an <img> or <video> for one media item — shared by the hero
+    // and the gallery. Video plays like a background/GIF (autoplay, muted,
+    // looping, no controls) rather than something the visitor has to
+    // start themselves.
+    function buildMediaEl(item, alt) {
+      if (item.type === "video") {
+        const video = document.createElement("video");
+        video.src = item.url;
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        return video;
+      }
+      const img = document.createElement("img");
+      img.src = item.url;
+      img.alt = alt || "";
+      return img;
+    }
 
     const navEl = document.querySelector(".nav");
     let activeTile = null;
@@ -238,12 +259,23 @@ if (window.gsap && window.ScrollSmoother) {
     }
 
     function openCase(project, tileMedia) {
-      if (!project || !project.image || animating || caseModal.classList.contains("open")) return;
+      const media = Array.isArray(project && project.media) ? project.media : [];
+      if (!project || !media[0] || animating || caseModal.classList.contains("open")) return;
       animating = true;
       activeTile = tileMedia;
 
-      heroImg.src = project.image;
-      heroImg.alt = project.title || project.client || "";
+      heroMedia.innerHTML = "";
+      heroMedia.appendChild(buildMediaEl(media[0], project.title || project.client));
+
+      galleryEl.innerHTML = "";
+      galleryEl.classList.add("dynamic");
+      media.slice(1).forEach((item) => {
+        const block = document.createElement("div");
+        block.className = "case-block";
+        block.appendChild(buildMediaEl(item, project.title || project.client));
+        galleryEl.appendChild(block);
+      });
+
       clientEl.textContent = project.client;
       partnerEl.textContent = project.partner || "Partner Name";
       introLead.textContent = project.client;
@@ -378,18 +410,17 @@ if (window.gsap && window.ScrollSmoother) {
         a.href = "#";
         a.className = "work-tile" + (project.size === "large" ? " size-lg" : "");
 
-        const media = document.createElement("div");
-        media.className = "work-media";
-        if (project.image) {
-          const img = document.createElement("img");
-          img.src = project.image;
-          img.alt = project.title || project.client || "";
-          img.loading = "lazy";
-          media.appendChild(img);
+        const mediaEl = document.createElement("div");
+        mediaEl.className = "work-media";
+        const heroItem = Array.isArray(project.media) ? project.media[0] : null;
+        if (heroItem) {
+          const el = buildMediaEl(heroItem, project.title || project.client);
+          if (el.tagName === "IMG") el.loading = "lazy";
+          mediaEl.appendChild(el);
           a.addEventListener("click", (e) => {
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
             e.preventDefault();
-            openCase(project, media);
+            openCase(project, mediaEl);
           });
         }
 
@@ -397,7 +428,7 @@ if (window.gsap && window.ScrollSmoother) {
         title.className = "work-title";
         title.textContent = project.title || project.client || "";
 
-        a.append(media, title);
+        a.append(mediaEl, title);
         return a;
       }
 
