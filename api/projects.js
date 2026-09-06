@@ -15,11 +15,11 @@ const COOKIE_NAME = "site_auth";
 const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
 const BLOB_PATH = "data/projects.json";
 
-// Each project now carries a media[] array instead of a single image field
-// — media[0] is the homepage tile / case-study hero, the rest populate the
-// case-study gallery. Every item is {type: 'image'|'video', url}, so a
-// project's hero (or any gallery slot) can be a video just as easily as an
-// image.
+// media[0] is the homepage tile / case-study hero — {type: 'image'|'video',
+// url}, so the hero can be a video just as easily as an image. Below it,
+// `gallery` is an array of rows, each an explicit 1/2/3-image template
+// chosen in the admin editor ({type: 1|2|3, items: [{type,url}, ...]}) —
+// same .case-row/-2/-3 layout the standalone case-study pages use.
 // introHtml is plain text plus optional <span class="case-intro-muted">
 // wrappers around any manually-selected grey word(s) (authored in the
 // admin editor, see admin.js) — no longer always the client name at the
@@ -32,6 +32,7 @@ const DEFAULT_PROJECTS = [
     partner: "Partner Name",
     introHtml: '<span class="case-intro-muted">Wedge</span> is a closer look at the design and development work behind the golf app. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.',
     media: [{ type: "image", url: "Projects/Wedge/wedge_main.jpg" }],
+    gallery: [],
     size: "normal",
   },
   {
@@ -41,6 +42,7 @@ const DEFAULT_PROJECTS = [
     partner: "Partner Name",
     introHtml: '<span class="case-intro-muted">Tottenham Hotspur F.C.</span> is a closer look at the design work for the club. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.',
     media: [{ type: "image", url: "Projects/Tottenham Hotspur/spurs.jpg" }],
+    gallery: [],
     size: "large",
   },
   {
@@ -50,6 +52,7 @@ const DEFAULT_PROJECTS = [
     partner: "Partner Name",
     introHtml: '<span class="case-intro-muted">OpenFortune</span> is a closer look at the design and development work for the project. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.',
     media: [{ type: "image", url: "Projects/OpenFortune/openfortune_main.png" }],
+    gallery: [],
     size: "normal",
   },
   {
@@ -59,6 +62,7 @@ const DEFAULT_PROJECTS = [
     partner: "Partner Name",
     introHtml: '<span class="case-intro-muted">Mailboard</span> is a closer look at the project — more of the breakdown is coming soon.',
     media: [],
+    gallery: [],
     size: "large",
   },
 ];
@@ -86,6 +90,16 @@ function normalizeProject(project) {
     const media = next.image ? [{ type: "image", url: next.image }] : [];
     const { image, ...rest } = next;
     next = { ...rest, media };
+  }
+
+  // Gallery used to just be media.slice(1) (optionally with a `width`
+  // field per item) — now it's explicit 1/2/3-image rows chosen in the
+  // admin editor, so each leftover flat item becomes its own single-image
+  // row and media is trimmed down to hold only the hero.
+  if (!Array.isArray(next.gallery)) {
+    const extra = next.media.slice(1);
+    const gallery = extra.map((item) => ({ type: 1, items: [{ type: item.type, url: item.url }] }));
+    next = { ...next, media: next.media.slice(0, 1), gallery };
   }
 
   if (typeof next.introHtml !== "string") {

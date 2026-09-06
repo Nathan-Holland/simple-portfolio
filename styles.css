@@ -726,33 +726,10 @@ body.case-study .nav-logo img {
 }
 
 /* The case-study modal's gallery (index.html, built from a project's
-   media[] in script.js) uses a 12-column grid instead of the fixed
-   1/2/3/1 row layout above — each item picks its own width (full/half/
-   third, set per-image in the admin editor) and the grid just flows
-   items into new rows as each row's columns fill up, so any mix of
-   widths in any order is possible ("build your own grid") rather than
-   being locked to fixed row templates. The standalone case-study pages
-   (wedge.html etc.) are hand-written and keep the row layout above
-   untouched. */
-.case-gallery.dynamic {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-}
-.case-gallery.dynamic .case-block {
-  grid-column: span 12;
-}
-.case-gallery.dynamic .case-block.width-half {
-  grid-column: span 6;
-}
-.case-gallery.dynamic .case-block.width-third {
-  grid-column: span 4;
-}
-@media (max-width: 700px) {
-  .case-gallery.dynamic .case-block.width-half,
-  .case-gallery.dynamic .case-block.width-third {
-    grid-column: span 12;
-  }
-}
+   gallery[] in script.js) reuses the exact .case-row/-2/-3 row templates
+   above — the admin picks a row type (1/2/3 images) per row in the CMS,
+   so the CMS-driven gallery and the hand-written standalone pages
+   (wedge.html etc.) render identically off the same CSS. */
 
 /* ---- profile page: editorial statement ---- */
 .statement-block {
@@ -1199,4 +1176,39 @@ body.dark .footer-icon { filter: invert(1); }
 .admin-editor-add-block:hover {
   color: var(--text);
   border-color: var(--text-2);
+}
+
+/* Empty slot in a not-yet-fully-uploaded row — same dashed-box treatment
+   as .admin-editor-add-block, just sized to the slot instead of being
+   its own full block. */
+.admin-editor-block-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  color: var(--text-2);
+  font-size: 13px;
+}
+.admin-editor-block-empty:hover {
+  color: var(--text);
+  border-color: var(--text-2);
+}
+
+/* Row-level controls (reorder/remove the whole row) sit below the row,
+   distinct from each slot's own hover overlay (which only replaces or
+   removes that one image). */
+.admin-editor-row-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-top: 6px;
+}
+.admin-editor-row-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-2);
 }

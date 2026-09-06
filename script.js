@@ -281,15 +281,21 @@ if (window.gsap && window.ScrollSmoother) {
       heroMedia.appendChild(buildMediaEl(media[0], project.title || project.client));
 
       galleryEl.innerHTML = "";
-      galleryEl.classList.add("dynamic");
-      media.slice(1).forEach((item) => {
-        const block = document.createElement("div");
-        // Each gallery item picks its own width (full/half/third, set in
-        // the admin editor) — the 12-column .case-gallery.dynamic grid
-        // flows them into rows from that, so any mix is possible.
-        block.className = "case-block" + (item.width && item.width !== "full" ? " width-" + item.width : "");
-        block.appendChild(buildMediaEl(item, project.title || project.client));
-        galleryEl.appendChild(block);
+      const gallery = Array.isArray(project.gallery) ? project.gallery : [];
+      // Each row is a fixed 1/2/3-image template chosen in the admin
+      // editor — same .case-row/-2/-3 classes the standalone case-study
+      // pages use, so CMS and hand-written pages render identically.
+      gallery.forEach((row) => {
+        const rowEl = document.createElement("div");
+        rowEl.className = "case-row" + (row.type === 2 ? " case-row-2" : row.type === 3 ? " case-row-3" : "");
+        (row.items || []).forEach((item) => {
+          if (!item) return;
+          const block = document.createElement("div");
+          block.className = "case-block";
+          block.appendChild(buildMediaEl(item, project.title || project.client));
+          rowEl.appendChild(block);
+        });
+        galleryEl.appendChild(rowEl);
       });
 
       clientEl.textContent = project.client;

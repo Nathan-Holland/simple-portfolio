@@ -16,6 +16,10 @@
   const editorHeroMedia = document.getElementById("editorHeroMedia");
   const editorHeroBtn = document.getElementById("editorHeroBtn");
   const editorHeroInput = document.getElementById("editorHeroInput");
+  const editorGalleryInput = document.getElementById("editorGalleryInput");
+  const addRow1Btn = document.getElementById("addRow1Btn");
+  const addRow2Btn = document.getElementById("addRow2Btn");
+  const addRow3Btn = document.getElementById("addRow3Btn");
   const editorClient = document.getElementById("editorClient");
   const editorPartner = document.getElementById("editorPartner");
   const editorClientLogoBtn = document.getElementById("editorClientLogoBtn");
@@ -31,10 +35,21 @@
 
   let projects = [];
   let editingIndex = -1; // -1 means "adding a new project"
-  let formMedia = []; // the media[] array being edited — [0] is the hero, the rest are gallery
+  let formHero = null; // single {type,url} for the homepage tile / case-study hero, or null
+  let formGallery = []; // rows below the hero: [{type: 1|2|3, items: [{type,url}|null, ...]}]
   let formClientLogo = "";
   let formPartnerLogo = "";
   let dirty = false;
+
+  // Total media count for a project — hero (if any) plus every filled
+  // gallery slot — used for the dashboard stats and each card's caption.
+  function countMedia(project) {
+    const hero = Array.isArray(project.media) && project.media[0] ? 1 : 0;
+    const gallery = Array.isArray(project.gallery)
+      ? project.gallery.reduce((n, row) => n + (Array.isArray(row.items) ? row.items.filter(Boolean).length : 0), 0)
+      : 0;
+    return hero + gallery;
+  }
 
   function slugify(text) {
     return text
@@ -67,7 +82,7 @@
 
   function updateStats() {
     statCount.textContent = projects.length;
-    statMedia.textContent = projects.reduce((n, p) => n + (Array.isArray(p.media) ? p.media.length : 0), 0);
+    statMedia.textContent = projects.reduce((n, p) => n + countMedia(p), 0);
   }
 
   // Builds an <img> or <video> for a media item — used both in project
@@ -136,7 +151,8 @@
       const metaEl = document.createElement("p");
       metaEl.className = "admin-card-meta";
       const sizeLabel = project.size === "large" ? "Large tile" : "Normal tile";
-      const mediaLabel = media.length + (media.length === 1 ? " item" : " items");
+      const mediaCount = countMedia(project);
+      const mediaLabel = mediaCount + (mediaCount === 1 ? " item" : " items");
       metaEl.textContent = (project.client || "") + " · " + sizeLabel + " · " + mediaLabel;
       body.append(titleEl, metaEl);
 
@@ -202,50 +218,75 @@
   // clicking the media itself (an upload input opens) rather than through
   // a separate plain form. ----
 
-  let pendingUploadTarget = null; // index into formMedia the next upload replaces, or null for "append new"
-
   function renderHero() {
     editorHeroMedia.innerHTML = "";
-    if (formMedia[0]) {
-      editorHeroMedia.appendChild(buildMediaEl(formMedia[0]));
+    if (formHero) {
+      editorHeroMedia.appendChild(buildMediaEl(formHero));
     }
+  }
+
+  // pendingGallerySlot targets exactly one slot ({rowIndex, slotIndex}) for
+  // the next upload through editorGalleryInput.
+  let pendingGallerySlot = null;
+
+  function rowClass(type) {
+    return "case-row" + (type === 2 ? " case-row-2" : type === 3 ? " case-row-3" : "");
   }
 
   function renderGallery() {
     editorGallery.innerHTML = "";
 
-    formMedia.slice(1).forEach((item, i) => {
-      const index = i + 1; // absolute index into formMedia
-      const width = item.width && item.width !== "full" ? item.width : "full";
-      const block = document.createElement("div");
-      block.className = "case-block admin-editor-block" + (width !== "full" ? " width-" + width : "");
-      block.appendChild(buildMediaEl(item));
-      block.addEventListener("click", () => startUpload(index));
+    formGallery.forEach((row, rowIndex) => {
+      const wrap = document.createElement("div");
+      wrap.className = "admin-editor-row";
 
-      const overlay = document.createElement("div");
-      overlay.className = "admin-editor-block-overlay";
-      overlay.addEventListener("click", (e) => e.stopPropagation());
+      const rowEl = document.createElement("div");
+      rowEl.className = rowClass(row.type);
 
-      const widthBtn = document.createElement("button");
-      widthBtn.type = "button";
-      widthBtn.className = "admin-icon-btn admin-editor-width-btn";
-      widthBtn.textContent = width === "full" ? "Full" : width === "half" ? "Half" : "Third";
-      widthBtn.title = "Click to change width (full / half / third)";
-      widthBtn.addEventListener("click", () => {
-        const next = width === "full" ? "half" : width === "half" ? "third" : "full";
-        item.width = next;
-        renderGallery();
-      });
+      for (let slotIndex = 0; slotIndex < row.type; slotIndex++) {
+        const item = row.items[slotIndex];
+        const block = document.createElement("div");
+        block.className = "case-block admin-editor-block";
+        block.addEventListener("click", () => startGalleryUpload(rowIndex, slotIndex));
+
+        if (item) {
+          block.appendChild(buildMediaEl(item));
+
+          const overlay = document.createElement("div");
+          overlay.className = "admin-editor-block-overlay";
+          overlay.addEventListener("click", (e) => e.stopPropagation());
+
+          const removeBtn = document.createElement("button");
+          removeBtn.type = "button";
+          removeBtn.className = "admin-text-btn admin-text-btn-danger";
+          removeBtn.textContent = "Remove";
+          removeBtn.addEventListener("click", () => {
+            row.items[slotIndex] = null;
+            renderGallery();
+          });
+
+          overlay.appendChild(removeBtn);
+          block.appendChild(overlay);
+        } else {
+          block.classList.add("admin-editor-block-empty");
+          block.textContent = "+ Add image";
+        }
+
+        rowEl.appendChild(block);
+      }
+
+      const toolbar = document.createElement("div");
+      toolbar.className = "admin-editor-row-toolbar";
 
       const upBtn = document.createElement("button");
       upBtn.type = "button";
       upBtn.className = "admin-icon-btn";
       upBtn.textContent = "↑";
-      upBtn.title = index === 1 ? "Make hero" : "Move up";
+      upBtn.title = "Move row up";
+      upBtn.disabled = rowIndex === 0;
       upBtn.addEventListener("click", () => {
-        const [moved] = formMedia.splice(index, 1);
-        formMedia.splice(index - 1, 0, moved);
-        renderHero();
+        const [moved] = formGallery.splice(rowIndex, 1);
+        formGallery.splice(rowIndex - 1, 0, moved);
         renderGallery();
       });
 
@@ -253,39 +294,42 @@
       downBtn.type = "button";
       downBtn.className = "admin-icon-btn";
       downBtn.textContent = "↓";
-      downBtn.disabled = index === formMedia.length - 1;
+      downBtn.title = "Move row down";
+      downBtn.disabled = rowIndex === formGallery.length - 1;
       downBtn.addEventListener("click", () => {
-        const [moved] = formMedia.splice(index, 1);
-        formMedia.splice(index + 1, 0, moved);
+        const [moved] = formGallery.splice(rowIndex, 1);
+        formGallery.splice(rowIndex + 1, 0, moved);
         renderGallery();
       });
 
-      const removeBtn = document.createElement("button");
-      removeBtn.type = "button";
-      removeBtn.className = "admin-text-btn admin-text-btn-danger";
-      removeBtn.textContent = "Remove";
-      removeBtn.addEventListener("click", () => {
-        formMedia.splice(index, 1);
+      const removeRowBtn = document.createElement("button");
+      removeRowBtn.type = "button";
+      removeRowBtn.className = "admin-text-btn admin-text-btn-danger";
+      removeRowBtn.textContent = "Remove row";
+      removeRowBtn.addEventListener("click", () => {
+        formGallery.splice(rowIndex, 1);
         renderGallery();
       });
 
-      overlay.append(widthBtn, upBtn, downBtn, removeBtn);
-      block.appendChild(overlay);
-      editorGallery.appendChild(block);
+      toolbar.append(upBtn, downBtn, removeRowBtn);
+      wrap.append(rowEl, toolbar);
+      editorGallery.appendChild(wrap);
     });
-
-    const addBlock = document.createElement("button");
-    addBlock.type = "button";
-    addBlock.className = "case-block admin-editor-add-block";
-    addBlock.textContent = "+ Add to gallery";
-    addBlock.addEventListener("click", () => startUpload(null));
-    editorGallery.appendChild(addBlock);
   }
 
-  function startUpload(index) {
-    pendingUploadTarget = index;
-    editorHeroInput.click();
+  function startGalleryUpload(rowIndex, slotIndex) {
+    pendingGallerySlot = { rowIndex, slotIndex };
+    editorGalleryInput.click();
   }
+
+  function addRow(type) {
+    formGallery.push({ type, items: new Array(type).fill(null) });
+    renderGallery();
+  }
+
+  addRow1Btn.addEventListener("click", () => addRow(1));
+  addRow2Btn.addEventListener("click", () => addRow(2));
+  addRow3Btn.addEventListener("click", () => addRow(3));
 
   // Shared by the hero/gallery input and the two logo inputs below.
   async function uploadMedia(file) {
@@ -302,7 +346,7 @@
     return { type: data.type, url: data.url };
   }
 
-  editorHeroBtn.addEventListener("click", () => startUpload(0));
+  editorHeroBtn.addEventListener("click", () => editorHeroInput.click());
 
   editorHeroInput.addEventListener("change", async () => {
     const file = editorHeroInput.files && editorHeroInput.files[0];
@@ -311,13 +355,24 @@
 
     uploadStatus.textContent = "Uploading…";
     try {
-      const item = await uploadMedia(file);
-      if (pendingUploadTarget === null) {
-        formMedia.push(item);
-      } else {
-        formMedia[pendingUploadTarget] = item;
-      }
+      formHero = await uploadMedia(file);
       renderHero();
+      uploadStatus.textContent = "Uploaded.";
+    } catch (err) {
+      uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
+    }
+  });
+
+  editorGalleryInput.addEventListener("change", async () => {
+    const file = editorGalleryInput.files && editorGalleryInput.files[0];
+    editorGalleryInput.value = "";
+    if (!file || !pendingGallerySlot) return;
+
+    uploadStatus.textContent = "Uploading…";
+    try {
+      const item = await uploadMedia(file);
+      const { rowIndex, slotIndex } = pendingGallerySlot;
+      formGallery[rowIndex].items[slotIndex] = item;
       renderGallery();
       uploadStatus.textContent = "Uploaded.";
     } catch (err) {
@@ -455,7 +510,7 @@
   function openEditor(index) {
     editingIndex = index;
     uploadStatus.textContent = "";
-    pendingUploadTarget = null;
+    pendingGallerySlot = null;
 
     if (index >= 0) {
       const project = projects[index];
@@ -464,7 +519,10 @@
       editorClient.textContent = project.client || "";
       editorPartner.textContent = project.partner || "";
       editorIntro.innerHTML = project.introHtml || "";
-      formMedia = Array.isArray(project.media) ? project.media.slice() : [];
+      formHero = (Array.isArray(project.media) && project.media[0]) || null;
+      formGallery = Array.isArray(project.gallery)
+        ? project.gallery.map((row) => ({ type: row.type, items: row.items.slice() }))
+        : [];
       formClientLogo = project.clientLogo || "";
       formPartnerLogo = project.partnerLogo || "";
     } else {
@@ -473,7 +531,8 @@
       editorClient.textContent = "";
       editorPartner.textContent = "";
       editorIntro.innerHTML = "";
-      formMedia = [];
+      formHero = null;
+      formGallery = [];
       formClientLogo = "";
       formPartnerLogo = "";
     }
@@ -502,7 +561,12 @@
       partnerLogo: formPartnerLogo,
       introHtml: sanitizeIntroHtml(editorIntro.innerHTML),
       size: fieldSize.value === "large" ? "large" : "normal",
-      media: formMedia.slice(),
+      media: formHero ? [formHero] : [],
+      // Rows left fully empty (no image ever uploaded into any slot) are
+      // dropped rather than saved as empty gaps on the live page.
+      gallery: formGallery
+        .filter((row) => row.items.some(Boolean))
+        .map((row) => ({ type: row.type, items: row.items.slice() })),
     };
 
     if (editingIndex >= 0) {
@@ -517,7 +581,8 @@
   function closeEditor() {
     editor.hidden = true;
     editingIndex = -1;
-    formMedia = [];
+    formHero = null;
+    formGallery = [];
     formClientLogo = "";
     formPartnerLogo = "";
   }
