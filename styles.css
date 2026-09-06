@@ -606,7 +606,7 @@ body.case-study .nav-logo img {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-2);
-  margin-bottom: 6px;
+  margin-bottom: 24px;
 }
 .case-meta-value {
   font-family: "GT Standard Trial", "Lay Grotesk", sans-serif;
@@ -625,11 +625,16 @@ body.case-study .nav-logo img {
   object-fit: contain;
   flex-shrink: 0;
 }
-/* Dotted rule between the client and partner blocks — sits after the
+/* Dashed rule between the client and partner blocks — sits after the
    client's value row, replacing the old flex `gap` that used to space
-   every .case-meta-info child evenly. */
+   every .case-meta-info child evenly. Matches the Figma spec exactly
+   (a 1px dashed #E4E4E4 line), rather than reusing a theme token. */
 .case-meta-divider {
-  border-top: 1px dotted var(--text-2);
+  box-sizing: border-box;
+  width: 100%;
+  height: 1px;
+  border: none;
+  border-top: 1px dashed #e4e4e4;
   margin-bottom: 24px;
 }
 .case-meta-item:last-child .case-meta-value-row {
