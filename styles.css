@@ -593,15 +593,15 @@ body.case-study .nav-logo img {
   margin-bottom: 55px;
 }
 .case-meta-label {
+  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-2);
   margin-bottom: 6px;
 }
 .case-meta-value {
-  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
-  font-weight: 500;
-  font-size: 12px;
+  font-size: 14px;
 }
 .case-meta-value-row {
   display: flex;
