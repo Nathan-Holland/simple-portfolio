@@ -689,6 +689,10 @@ body.case-study .nav {
   aspect-ratio: 4 / 3;
   overflow: hidden;
 }
+/* The 2-image row is a pair of square images, not the default 4:3. */
+.case-row-2 .case-block {
+  aspect-ratio: 1 / 1;
+}
 .case-block img,
 .case-block video {
   width: 100%;
