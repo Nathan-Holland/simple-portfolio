@@ -18,8 +18,9 @@
   const editorHeroInput = document.getElementById("editorHeroInput");
   const editorClient = document.getElementById("editorClient");
   const editorPartner = document.getElementById("editorPartner");
-  const editorIntroLead = document.getElementById("editorIntroLead");
-  const editorIntroRest = document.getElementById("editorIntroRest");
+  const editorIntro = document.getElementById("editorIntro");
+  const introGreyBtn = document.getElementById("introGreyBtn");
+  const introClearBtn = document.getElementById("introClearBtn");
   const editorGallery = document.getElementById("editorGallery");
 
   let projects = [];
@@ -300,20 +301,88 @@
     }
   });
 
-  // Client name drives both the meta field and the intro's lead word live,
-  // matching how the real case-study page derives introLead from client.
-  editorClient.addEventListener("input", () => {
-    editorIntroLead.textContent = editorClient.textContent;
-  });
-
-  // Plain single-line editing — a literal newline would look fine here but
-  // break the saved data's intent (these render as flowing inline text on
-  // the real site, not multi-line blocks).
-  [editorClient, editorPartner, editorIntroRest].forEach((el) => {
+  // Plain single-line editing for client/partner — a literal newline would
+  // look fine here but break the saved data's intent (these render as
+  // flowing inline text on the real site, not multi-line blocks). The
+  // intro is allowed one soft flow of text too — same reasoning — so it
+  // also blocks Enter, just not single-line-only in spirit, only in that
+  // it stays one paragraph.
+  [editorClient, editorPartner, editorIntro].forEach((el) => {
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") e.preventDefault();
     });
   });
+
+  // ---- Intro grey-out: select any word(s) in the intro, then mark them
+  // .case-intro-muted — replaces the old "client name is always the grey
+  // lead word" behaviour with a manual choice of what to grey. ----
+
+  function currentIntroSelectionRange() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (!editorIntro.contains(range.commonAncestorContainer)) return null;
+    return { sel, range };
+  }
+
+  introGreyBtn.addEventListener("click", () => {
+    const found = currentIntroSelectionRange();
+    if (!found) return;
+    const { sel, range } = found;
+    const span = document.createElement("span");
+    span.className = "case-intro-muted";
+    try {
+      range.surroundContents(span);
+    } catch {
+      // Selection crosses an existing span's boundary — surroundContents
+      // can't wrap that in one piece, so move the selected nodes into the
+      // new span instead.
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+    }
+    sel.removeAllRanges();
+  });
+
+  introClearBtn.addEventListener("click", () => {
+    const found = currentIntroSelectionRange();
+    if (!found) return;
+    const { sel, range } = found;
+    // Unwrap every .case-intro-muted span the selection touches — including
+    // one the selection sits entirely inside, where the span itself isn't
+    // "in" the selection, only its text is.
+    editorIntro.querySelectorAll(".case-intro-muted").forEach((span) => {
+      if (!range.intersectsNode(span)) return;
+      const parent = span.parentNode;
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+    });
+    sel.removeAllRanges();
+  });
+
+  // Strips everything from a pasted/typed intro except plain text and
+  // .case-intro-muted spans — contenteditable can otherwise leave behind
+  // stray <div>/<b>/<br> etc. from normal typing or paste.
+  function sanitizeIntroHtml(html) {
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    (function clean(node) {
+      Array.from(node.childNodes).forEach((child) => {
+        if (child.nodeType === Node.TEXT_NODE) return;
+        if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "SPAN" && child.classList.contains("case-intro-muted")) {
+          clean(child);
+          return;
+        }
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          clean(child);
+          const text = document.createTextNode(child.textContent);
+          node.replaceChild(text, child);
+        } else {
+          node.removeChild(child);
+        }
+      });
+    })(temp);
+    return temp.innerHTML;
+  }
 
   function openEditor(index) {
     editingIndex = index;
@@ -326,16 +395,14 @@
       fieldSize.value = project.size === "large" ? "large" : "normal";
       editorClient.textContent = project.client || "";
       editorPartner.textContent = project.partner || "";
-      editorIntroLead.textContent = project.client || "";
-      editorIntroRest.textContent = (project.introRest || "").trim();
+      editorIntro.innerHTML = project.introHtml || "";
       formMedia = Array.isArray(project.media) ? project.media.slice() : [];
     } else {
       fieldTitle.value = "";
       fieldSize.value = "normal";
       editorClient.textContent = "";
       editorPartner.textContent = "";
-      editorIntroLead.textContent = "";
-      editorIntroRest.textContent = "";
+      editorIntro.innerHTML = "";
       formMedia = [];
     }
     renderHero();
@@ -357,7 +424,7 @@
       title,
       client,
       partner: editorPartner.textContent.trim() || "Partner Name",
-      introRest: editorIntroRest.textContent.trim() ? " " + editorIntroRest.textContent.trim() : "",
+      introHtml: sanitizeIntroHtml(editorIntro.innerHTML),
       size: fieldSize.value === "large" ? "large" : "normal",
       media: formMedia.slice(),
     };

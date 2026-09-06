@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noimageindex">
 <title>Nate Holland — Admin</title>
-<link rel="stylesheet" href="styles.css?v=62">
+<link rel="stylesheet" href="styles.css?v=63">
 <link rel="icon" href="favicon.svg">
 </head>
 <body class="admin-page">
@@ -81,7 +81,14 @@
               <p class="case-meta-value" contenteditable="true" id="editorPartner" data-placeholder="Partner Name"></p>
             </div>
           </div>
-          <p class="case-intro"><span class="case-intro-lead" id="editorIntroLead">Client Name</span><span class="admin-editor-intro-rest" contenteditable="true" id="editorIntroRest" data-placeholder=" Intro text about the project..."></span></p>
+          <div class="admin-editor-intro-wrap">
+            <div class="admin-editor-intro-toolbar">
+              <span>Select a word in the intro, then:</span>
+              <button type="button" class="admin-text-btn" id="introGreyBtn">Grey out</button>
+              <button type="button" class="admin-text-btn" id="introClearBtn">Clear</button>
+            </div>
+            <p class="case-intro" contenteditable="true" id="editorIntro" data-placeholder="Intro text about the project — select a word above to grey it out"></p>
+          </div>
         </section>
 
         <section class="case-gallery dynamic" id="editorGallery"></section>
@@ -89,6 +96,6 @@
     </div>
   </div>
 
-  <script src="admin.js?v=3"></script>
+  <script src="admin.js?v=4"></script>
 </body>
 </html>

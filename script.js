@@ -201,8 +201,7 @@ if (window.gsap && window.ScrollSmoother) {
     const closeBtn = document.getElementById("caseModalClose");
     const clientEl = document.getElementById("caseModalClient");
     const partnerEl = document.getElementById("caseModalPartner");
-    const introLead = document.getElementById("caseModalIntroLead");
-    const introRest = document.getElementById("caseModalIntroRest");
+    const introEl = document.getElementById("caseModalIntro");
 
     // Builds an <img> or <video> for one media item — shared by the hero
     // and the gallery. Video plays like a background/GIF (autoplay, muted,
@@ -278,8 +277,10 @@ if (window.gsap && window.ScrollSmoother) {
 
       clientEl.textContent = project.client;
       partnerEl.textContent = project.partner || "Partner Name";
-      introLead.textContent = project.client;
-      introRest.textContent = project.introRest || "";
+      // introHtml is authored in the admin editor (see admin.js), which
+      // sanitizes it down to plain text plus .case-intro-muted spans before
+      // saving — trusted content, not visitor input.
+      introEl.innerHTML = project.introHtml || "";
 
       // Move the real nav out to the body level so it can actually paint
       // above .case-modal — #smooth-wrapper is its own stacking context

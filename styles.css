@@ -593,20 +593,50 @@ body.case-study .nav-logo img {
 }
 .case-intro {
   grid-column: 6 / span 9;
-  font-size: clamp(20px, 14px + 1vw, 32px);
-  font-weight: 600;
+  font-size: 42px;
+  font-weight: 400;
   line-height: 1.5;
+  text-indent: 150px;
 }
 .case-intro-lead {
   color: var(--text-2);
 }
+/* Modal-only: the CMS lets you select any word(s) in the intro and grey
+   them out via the admin editor, rather than always the client name at
+   the start (that's what .case-intro-lead above still is, for the
+   hand-written standalone case-study pages). */
+.case-intro-muted {
+  color: var(--text-2);
+}
+/* Admin editor only: wraps .case-intro to add a toolbar above it. Takes
+   over .case-intro's own grid placement so the wrapped paragraph can just
+   be a normal full-width block inside it. */
+.admin-editor-intro-wrap {
+  grid-column: 6 / span 9;
+}
+.admin-editor-intro-wrap .case-intro {
+  grid-column: unset;
+}
+.admin-editor-intro-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+}
 @media (max-width: 900px) {
   .case-meta-info,
-  .case-intro {
+  .case-intro,
+  .admin-editor-intro-wrap {
     grid-column: 1 / -1;
   }
   .case-meta-info {
     margin-bottom: 32px;
+  }
+  .case-intro {
+    font-size: 28px;
+    text-indent: 60px;
   }
 }
 

@@ -20,13 +20,17 @@ const BLOB_PATH = "data/projects.json";
 // case-study gallery. Every item is {type: 'image'|'video', url}, so a
 // project's hero (or any gallery slot) can be a video just as easily as an
 // image.
+// introHtml is plain text plus optional <span class="case-intro-muted">
+// wrappers around any manually-selected grey word(s) (authored in the
+// admin editor, see admin.js) — no longer always the client name at the
+// start.
 const DEFAULT_PROJECTS = [
   {
     id: "wedge",
     title: "Wedge",
     client: "Wedge",
     partner: "Partner Name",
-    introRest: " is a closer look at the design and development work behind the golf app. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.",
+    introHtml: '<span class="case-intro-muted">Wedge</span> is a closer look at the design and development work behind the golf app. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.',
     media: [{ type: "image", url: "Projects/Wedge/wedge_main.jpg" }],
     size: "normal",
   },
@@ -35,7 +39,7 @@ const DEFAULT_PROJECTS = [
     title: "Tottenham Hotspur F.C.",
     client: "Tottenham Hotspur F.C.",
     partner: "Partner Name",
-    introRest: " is a closer look at the design work for the club. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.",
+    introHtml: '<span class="case-intro-muted">Tottenham Hotspur F.C.</span> is a closer look at the design work for the club. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.',
     media: [{ type: "image", url: "Projects/Tottenham Hotspur/spurs.jpg" }],
     size: "large",
   },
@@ -44,7 +48,7 @@ const DEFAULT_PROJECTS = [
     title: "OpenFortune",
     client: "OpenFortune",
     partner: "Partner Name",
-    introRest: " is a closer look at the design and development work for the project. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.",
+    introHtml: '<span class="case-intro-muted">OpenFortune</span> is a closer look at the design and development work for the project. Across products, features, and brand experiences, this is where a short summary of the project and approach goes.',
     media: [{ type: "image", url: "Projects/OpenFortune/openfortune_main.png" }],
     size: "normal",
   },
@@ -53,7 +57,7 @@ const DEFAULT_PROJECTS = [
     title: "Mailboard",
     client: "Mailboard",
     partner: "Partner Name",
-    introRest: " is a closer look at the project — more of the breakdown is coming soon.",
+    introHtml: '<span class="case-intro-muted">Mailboard</span> is a closer look at the project — more of the breakdown is coming soon.',
     media: [],
     size: "large",
   },
@@ -63,14 +67,34 @@ function isAuthed(req) {
   return !!(req.cookies && req.cookies[COOKIE_NAME] === COOKIE_VALUE);
 }
 
-// Normalizes older saved data (a single `image` string/null) onto the
-// current media[] shape, so admin.js and the homepage never have to deal
-// with both shapes — only this one place does.
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Normalizes older saved data onto the current shape, so admin.js and the
+// homepage never have to deal with legacy fields — only this one place
+// does: a single `image` string/null becomes media[], and a separate
+// `client` + `introRest` pair (client always the grey lead word) becomes
+// one introHtml string.
 function normalizeProject(project) {
-  if (Array.isArray(project.media)) return project;
-  const media = project.image ? [{ type: "image", url: project.image }] : [];
-  const { image, ...rest } = project;
-  return { ...rest, media };
+  let next = project;
+
+  if (!Array.isArray(next.media)) {
+    const media = next.image ? [{ type: "image", url: next.image }] : [];
+    const { image, ...rest } = next;
+    next = { ...rest, media };
+  }
+
+  if (typeof next.introHtml !== "string") {
+    const { introRest, ...rest } = next;
+    const introHtml = '<span class="case-intro-muted">' + escapeHtml(next.client || "") + "</span>" + escapeHtml(introRest || "");
+    next = { ...rest, introHtml };
+  }
+
+  return next;
 }
 
 async function readProjects() {
