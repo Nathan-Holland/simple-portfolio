@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noimageindex">
 <title>Nate Holland — Admin</title>
-<link rel="stylesheet" href="styles.css?v=63">
+<link rel="stylesheet" href="styles.css?v=64">
 <link rel="icon" href="favicon.svg">
 </head>
 <body class="admin-page">
@@ -74,11 +74,26 @@
             <p class="case-meta-year">© 2026</p>
             <div class="case-meta-item">
               <p class="case-meta-label">Client</p>
-              <p class="case-meta-value" contenteditable="true" id="editorClient" data-placeholder="Client Name"></p>
+              <div class="case-meta-value-row">
+                <button type="button" class="admin-editor-logo-btn" id="editorClientLogoBtn" title="Set client logo">
+                  <img class="case-meta-logo" id="editorClientLogo" alt="" hidden>
+                  <span class="admin-editor-logo-placeholder">+</span>
+                </button>
+                <input type="file" id="editorClientLogoInput" accept="image/*" hidden>
+                <p class="case-meta-value" contenteditable="true" id="editorClient" data-placeholder="Client Name"></p>
+              </div>
             </div>
+            <div class="case-meta-divider"></div>
             <div class="case-meta-item">
               <p class="case-meta-label">Partner</p>
-              <p class="case-meta-value" contenteditable="true" id="editorPartner" data-placeholder="Partner Name"></p>
+              <div class="case-meta-value-row">
+                <button type="button" class="admin-editor-logo-btn" id="editorPartnerLogoBtn" title="Set partner logo">
+                  <img class="case-meta-logo" id="editorPartnerLogo" alt="" hidden>
+                  <span class="admin-editor-logo-placeholder">+</span>
+                </button>
+                <input type="file" id="editorPartnerLogoInput" accept="image/*" hidden>
+                <p class="case-meta-value" contenteditable="true" id="editorPartner" data-placeholder="Partner Name"></p>
+              </div>
             </div>
           </div>
           <div class="admin-editor-intro-wrap">
@@ -96,6 +111,6 @@
     </div>
   </div>
 
-  <script src="admin.js?v=4"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 </html>

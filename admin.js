@@ -18,6 +18,12 @@
   const editorHeroInput = document.getElementById("editorHeroInput");
   const editorClient = document.getElementById("editorClient");
   const editorPartner = document.getElementById("editorPartner");
+  const editorClientLogoBtn = document.getElementById("editorClientLogoBtn");
+  const editorClientLogo = document.getElementById("editorClientLogo");
+  const editorClientLogoInput = document.getElementById("editorClientLogoInput");
+  const editorPartnerLogoBtn = document.getElementById("editorPartnerLogoBtn");
+  const editorPartnerLogo = document.getElementById("editorPartnerLogo");
+  const editorPartnerLogoInput = document.getElementById("editorPartnerLogoInput");
   const editorIntro = document.getElementById("editorIntro");
   const introGreyBtn = document.getElementById("introGreyBtn");
   const introClearBtn = document.getElementById("introClearBtn");
@@ -26,6 +32,8 @@
   let projects = [];
   let editingIndex = -1; // -1 means "adding a new project"
   let formMedia = []; // the media[] array being edited — [0] is the hero, the rest are gallery
+  let formClientLogo = "";
+  let formPartnerLogo = "";
   let dirty = false;
 
   function slugify(text) {
@@ -267,6 +275,21 @@
     editorHeroInput.click();
   }
 
+  // Shared by the hero/gallery input and the two logo inputs below.
+  async function uploadMedia(file) {
+    const res = await fetch("/api/upload-media", {
+      method: "POST",
+      headers: {
+        "content-type": file.type,
+        "x-filename": encodeURIComponent(file.name),
+      },
+      body: file,
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "upload failed");
+    return { type: data.type, url: data.url };
+  }
+
   editorHeroBtn.addEventListener("click", () => startUpload(0));
 
   editorHeroInput.addEventListener("change", async () => {
@@ -276,18 +299,7 @@
 
     uploadStatus.textContent = "Uploading…";
     try {
-      const res = await fetch("/api/upload-media", {
-        method: "POST",
-        headers: {
-          "content-type": file.type,
-          "x-filename": encodeURIComponent(file.name),
-        },
-        body: file,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "upload failed");
-
-      const item = { type: data.type, url: data.url };
+      const item = await uploadMedia(file);
       if (pendingUploadTarget === null) {
         formMedia.push(item);
       } else {
@@ -300,6 +312,50 @@
       uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
     }
   });
+
+  // ---- Client/partner logos: small 24x24 images shown next to each name,
+  // uploaded the same way as hero/gallery media. ----
+
+  function renderLogo(kind) {
+    const btn = kind === "client" ? editorClientLogoBtn : editorPartnerLogoBtn;
+    const img = kind === "client" ? editorClientLogo : editorPartnerLogo;
+    const url = kind === "client" ? formClientLogo : formPartnerLogo;
+    if (url) {
+      img.src = url;
+      img.hidden = false;
+      btn.classList.add("has-logo");
+    } else {
+      img.removeAttribute("src");
+      img.hidden = true;
+      btn.classList.remove("has-logo");
+    }
+  }
+
+  function setupLogoUpload(kind, btn, input) {
+    btn.addEventListener("click", () => input.click());
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
+      input.value = "";
+      if (!file) return;
+
+      uploadStatus.textContent = "Uploading…";
+      try {
+        const item = await uploadMedia(file);
+        if (kind === "client") {
+          formClientLogo = item.url;
+        } else {
+          formPartnerLogo = item.url;
+        }
+        renderLogo(kind);
+        uploadStatus.textContent = "Uploaded.";
+      } catch (err) {
+        uploadStatus.textContent = "Upload failed: " + (err.message || "try again");
+      }
+    });
+  }
+
+  setupLogoUpload("client", editorClientLogoBtn, editorClientLogoInput);
+  setupLogoUpload("partner", editorPartnerLogoBtn, editorPartnerLogoInput);
 
   // Plain single-line editing for client/partner — a literal newline would
   // look fine here but break the saved data's intent (these render as
@@ -397,6 +453,8 @@
       editorPartner.textContent = project.partner || "";
       editorIntro.innerHTML = project.introHtml || "";
       formMedia = Array.isArray(project.media) ? project.media.slice() : [];
+      formClientLogo = project.clientLogo || "";
+      formPartnerLogo = project.partnerLogo || "";
     } else {
       fieldTitle.value = "";
       fieldSize.value = "normal";
@@ -404,9 +462,13 @@
       editorPartner.textContent = "";
       editorIntro.innerHTML = "";
       formMedia = [];
+      formClientLogo = "";
+      formPartnerLogo = "";
     }
     renderHero();
     renderGallery();
+    renderLogo("client");
+    renderLogo("partner");
 
     editor.hidden = false;
   }
@@ -424,6 +486,8 @@
       title,
       client,
       partner: editorPartner.textContent.trim() || "Partner Name",
+      clientLogo: formClientLogo,
+      partnerLogo: formPartnerLogo,
       introHtml: sanitizeIntroHtml(editorIntro.innerHTML),
       size: fieldSize.value === "large" ? "large" : "normal",
       media: formMedia.slice(),
@@ -442,6 +506,8 @@
     editor.hidden = true;
     editingIndex = -1;
     formMedia = [];
+    formClientLogo = "";
+    formPartnerLogo = "";
   }
 
   addBtn.addEventListener("click", () => openEditor(-1));

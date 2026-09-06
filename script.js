@@ -201,7 +201,21 @@ if (window.gsap && window.ScrollSmoother) {
     const closeBtn = document.getElementById("caseModalClose");
     const clientEl = document.getElementById("caseModalClient");
     const partnerEl = document.getElementById("caseModalPartner");
+    const clientLogoEl = document.getElementById("caseModalClientLogo");
+    const partnerLogoEl = document.getElementById("caseModalPartnerLogo");
     const introEl = document.getElementById("caseModalIntro");
+
+    // Logos are optional per project — hide the <img> entirely rather than
+    // showing a broken-image icon when a project has none set.
+    function setLogo(img, url) {
+      if (url) {
+        img.src = url;
+        img.hidden = false;
+      } else {
+        img.removeAttribute("src");
+        img.hidden = true;
+      }
+    }
 
     // Builds an <img> or <video> for one media item — shared by the hero
     // and the gallery. Video plays like a background/GIF (autoplay, muted,
@@ -277,6 +291,8 @@ if (window.gsap && window.ScrollSmoother) {
 
       clientEl.textContent = project.client;
       partnerEl.textContent = project.partner || "Partner Name";
+      setLogo(clientLogoEl, project.clientLogo);
+      setLogo(partnerLogoEl, project.partnerLogo);
       // introHtml is authored in the admin editor (see admin.js), which
       // sanitizes it down to plain text plus .case-intro-muted spans before
       // saving — trusted content, not visitor input.
