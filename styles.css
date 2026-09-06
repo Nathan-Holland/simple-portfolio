@@ -584,7 +584,7 @@ body.case-study .nav {
 }
 
 .case-meta {
-  padding: 64px var(--page-margin);
+  padding: 64px 20px;
 }
 .case-meta-info {
   grid-column: 1 / span 4;
@@ -670,13 +670,13 @@ body.case-study .nav {
 .case-gallery {
   display: flex;
   flex-direction: column;
-  gap: var(--gutter);
-  padding-bottom: var(--gutter);
+  gap: 20px;
+  padding: 0 20px 20px;
 }
 .case-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--gutter);
+  gap: 20px;
 }
 .case-row-2 {
   grid-template-columns: repeat(2, 1fr);
