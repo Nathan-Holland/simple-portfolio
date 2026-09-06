@@ -93,7 +93,9 @@ body.profile {
   --border: rgba(255, 255, 255, 0.25);
   --card: rgba(255, 255, 255, 0.08);
 }
-body.profile .nav-logo img,
+/* Only the footer icon needs this now — nav's logo is already
+   unconditionally inverted (see .nav-logo img) ahead of its own exclusion
+   blend. */
 body.profile .footer-icon {
   filter: invert(1);
 }
@@ -293,14 +295,28 @@ body {
 }
 
 /* ---- GSAP ScrollSmoother wrapper (see script.js) ---- */
+/* position:fixed makes this its own stacking context, which also isolates
+   any mix-blend-mode used inside it (nav's exclusion blend, see .nav) —
+   without a real background painted here first, nav would blend against
+   nothing (transparent) instead of the page, washing out instead of
+   inverting. This background is otherwise invisible: it's identical to
+   body's own and every child (hero images included) still paints over it
+   normally. */
 #smooth-wrapper {
   position: fixed;
   inset: 0;
   overflow: hidden;
+  background: var(--bg);
 }
+/* Same reasoning as #smooth-wrapper above, and just as necessary: once
+   ScrollSmoother is running it keeps a `transform` on this element (even
+   translate(0,0) at rest), which — like position:fixed — creates its own
+   stacking context and isolates blending, one level deeper than the
+   wrapper's own background can reach. */
 #smooth-content {
   overflow: visible;
   width: 100%;
+  background: var(--bg);
 }
 /* Hidden from first paint in CSS, not just via the deferred gsap.set() —
    otherwise there's a brief flash of fully-visible content before GSAP
@@ -331,14 +347,21 @@ body {
 .grid-overlay.show { display: grid; }
 .grid-overlay-col { background: rgba(255, 0, 64, 0.08); height: 100%; }
 
-/* ---- nav ---- */
+/* ---- nav ----
+   mix-blend-mode: exclusion on solid white text makes the nav
+   auto-contrast against whatever's behind it — light or dark backgrounds,
+   a photo hero, the brand-blue profile page — so it stays legible
+   everywhere without a manual white-on-photo override per context (that's
+   what used to happen in .nav.on-modal and body.case-study .nav below;
+   those now only need to handle positioning, not color). */
 .nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 24px var(--page-margin);
+  mix-blend-mode: exclusion;
 }
-/* Smooths any color change on nav's text (dark-mode toggle, and reparenting
+/* Smooths any color change on nav's text (hover states, and reparenting
    onto the case-study modal via .on-modal) — without this the swap is an
    instant snap rather than an ease. */
 .nav-name,
@@ -347,8 +370,9 @@ body {
 .nav-profile {
   transition: color 0.3s ease;
 }
-.nav-profile { color: var(--text-2); perspective: 200px; }
-.nav-profile:hover { color: var(--text); }
+.nav-name { color: #fff; }
+.nav-profile { color: rgba(255, 255, 255, 0.5); perspective: 200px; }
+.nav-profile:hover { color: #fff; }
 /* Work/Profile flip: both words sit in the same slot, one rotated face-down
    behind the other via backface-visibility, and a GSAP rotateX tween on
    .nav-word-flip (see script.js) flips the front word away and brings the
@@ -378,10 +402,11 @@ body {
   cursor: pointer;
   font: inherit;
 }
-.nav-logo img { height: 1.125em; width: auto; transition: filter .2s ease; }
-body.dark .nav-logo img { filter: invert(1); }
-.nav-email { color: var(--text-2); }
-.nav-email:hover { color: var(--text); }
+/* logo.svg is a solid black mark — inverted unconditionally so it's
+   already white going into the exclusion blend above, same as the text. */
+.nav-logo img { height: 1.125em; width: auto; filter: invert(1); }
+.nav-email { color: rgba(255, 255, 255, 0.5); }
+.nav-email:hover { color: #fff; }
 /* Reserves width for the full "00:00:00" string up front (both here and in
    the footer's clock-el) so swapping from the "—" placeholder to the real
    time — or between different times — never nudges neighbouring nav/footer
@@ -393,7 +418,7 @@ body.dark .nav-logo img { filter: invert(1); }
   font-variant-numeric: tabular-nums;
 }
 .nav-clock {
-  color: var(--text-2);
+  color: rgba(255, 255, 255, 0.5);
 }
 @media (max-width: 900px) {
   .nav-logo, .nav-email { display: none; }
@@ -475,29 +500,14 @@ body.modal-open #smooth-wrapper {
   overflow: hidden;
 }
 /* Applied by script.js only while nav has been reparented to the body
-   level for the modal — same white-on-photo treatment as the standalone
-   case-study pages' body.case-study .nav, just scoped to a class instead
-   since this nav needs to go back to its normal styling once restored. */
+   level for the modal, so it can paint above it — the exclusion blend
+   above already keeps its color correct, only positioning is needed here. */
 .nav.on-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1500;
-}
-.nav.on-modal .nav-name,
-.nav.on-modal .nav-email,
-.nav.on-modal .nav-clock {
-  color: #fff;
-}
-.nav.on-modal .nav-profile {
-  color: rgba(255, 255, 255, 0.7);
-}
-.nav.on-modal .nav-profile:hover {
-  color: #fff;
-}
-.nav.on-modal .nav-logo img {
-  filter: invert(1);
 }
 
 /* The hero flies from the clicked tile's rect to the fullscreen hero rect
@@ -545,31 +555,17 @@ body.modal-open #smooth-wrapper {
 }
 
 /* ---- case study page ---- */
-/* Nav overlays the hero image (fixed white, not theme-based, since it sits
-   on a photo) — position:absolute removes it from flow so the hero fills
-   the space it would have taken, and it scrolls away with the rest of the
-   page since #smooth-content becomes its containing block once GSAP applies
-   a transform to it for ScrollSmoother. */
+/* Nav overlays the hero image — position:absolute removes it from flow so
+   the hero fills the space it would have taken, and it scrolls away with
+   the rest of the page since #smooth-content becomes its containing block
+   once GSAP applies a transform to it for ScrollSmoother. The exclusion
+   blend above already keeps its color correct over the photo. */
 body.case-study .nav {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   z-index: 2;
-}
-body.case-study .nav-name,
-body.case-study .nav-email,
-body.case-study .nav-clock {
-  color: #fff;
-}
-body.case-study .nav-profile {
-  color: rgba(255, 255, 255, 0.7);
-}
-body.case-study .nav-profile:hover {
-  color: #fff;
-}
-body.case-study .nav-logo img {
-  filter: invert(1);
 }
 
 .case-hero {
