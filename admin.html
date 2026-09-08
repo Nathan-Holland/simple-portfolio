@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=77">
-<link rel="stylesheet" href="admin.css?v=1">
+<link rel="stylesheet" href="styles.css?v=78">
+<link rel="stylesheet" href="admin.css?v=2">
 <link rel="icon" href="favicon.svg">
 </head>
 <body class="admin-page">
@@ -84,11 +84,17 @@
 
         <div class="u-field-row">
           <div class="u-field">
-            <label class="u-label" for="fieldClient">Client</label>
+            <div class="u-label-row">
+              <label class="u-label" for="fieldClient">Client</label>
+              <button type="button" class="u-toggle" id="toggleClient" role="switch" aria-checked="true" title="Show client on the case study"><span class="u-toggle-thumb"></span></button>
+            </div>
             <input type="text" class="u-input" id="fieldClient" placeholder="Client name">
           </div>
           <div class="u-field">
-            <label class="u-label" for="fieldPartner">Partner</label>
+            <div class="u-label-row">
+              <label class="u-label" for="fieldPartner">Partner</label>
+              <button type="button" class="u-toggle" id="togglePartner" role="switch" aria-checked="true" title="Show partner on the case study"><span class="u-toggle-thumb"></span></button>
+            </div>
             <input type="text" class="u-input" id="fieldPartner" placeholder="Partner name">
           </div>
         </div>
@@ -155,15 +161,15 @@
             <section class="case-meta grid14">
               <div class="case-meta-info">
                 <p class="case-meta-year">© 2026</p>
-                <div class="case-meta-item">
+                <div class="case-meta-item" id="previewClientItem">
                   <p class="case-meta-label">Client</p>
                   <div class="case-meta-value-row">
                     <img class="case-meta-logo" id="previewClientLogo" alt="" hidden>
                     <p class="case-meta-value" id="previewClient"></p>
                   </div>
                 </div>
-                <div class="case-meta-divider"></div>
-                <div class="case-meta-item">
+                <div class="case-meta-divider" id="previewDivider"></div>
+                <div class="case-meta-item" id="previewPartnerItem">
                   <p class="case-meta-label">Partner</p>
                   <div class="case-meta-value-row">
                     <img class="case-meta-logo" id="previewPartnerLogo" alt="" hidden>
@@ -181,6 +187,6 @@
     </div>
   </div>
 
-  <script src="admin.js?v=8"></script>
+  <script src="admin.js?v=9"></script>
 </body>
 </html>

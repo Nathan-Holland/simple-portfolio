@@ -14,6 +14,8 @@
   const fieldSize = document.getElementById("fieldSize");
   const fieldClient = document.getElementById("fieldClient");
   const fieldPartner = document.getElementById("fieldPartner");
+  const toggleClient = document.getElementById("toggleClient");
+  const togglePartner = document.getElementById("togglePartner");
   const uploadStatus = document.getElementById("uploadStatus");
 
   const heroBox = document.getElementById("heroBox");
@@ -40,6 +42,9 @@
   const previewPartner = document.getElementById("previewPartner");
   const previewClientLogo = document.getElementById("previewClientLogo");
   const previewPartnerLogo = document.getElementById("previewPartnerLogo");
+  const previewClientItem = document.getElementById("previewClientItem");
+  const previewPartnerItem = document.getElementById("previewPartnerItem");
+  const previewDivider = document.getElementById("previewDivider");
   const previewIntro = document.getElementById("previewIntro");
   const editorGallery = document.getElementById("editorGallery");
 
@@ -49,6 +54,8 @@
   let formGallery = []; // rows below the hero: [{type: 1|2|3, items: [{type,url}|null, ...]}]
   let formClientLogo = "";
   let formPartnerLogo = "";
+  let formShowClient = true;
+  let formShowPartner = true;
   let dirty = false;
 
   // Total media count for a project — hero (if any) plus every filled
@@ -233,6 +240,9 @@
     previewPartner.textContent = fieldPartner.value.trim() || "Partner Name";
     setLogoPreview(previewClientLogo, formClientLogo);
     setLogoPreview(previewPartnerLogo, formPartnerLogo);
+    previewClientItem.hidden = !formShowClient;
+    previewPartnerItem.hidden = !formShowPartner;
+    previewDivider.hidden = !(formShowClient && formShowPartner);
     previewIntro.innerHTML = editorIntro.innerHTML;
 
     editorGallery.innerHTML = "";
@@ -507,6 +517,23 @@
     editorTopbarTitle.textContent = fieldTitle.value.trim() || "New project";
   });
 
+  // ---- Show/hide toggles: independent of whatever text is in the field —
+  // flip one off to drop that whole block (and the divider between them,
+  // once neither or only one is left) from the case study. ----
+  function setToggle(btn, on) {
+    btn.setAttribute("aria-checked", String(on));
+  }
+  toggleClient.addEventListener("click", () => {
+    formShowClient = !formShowClient;
+    setToggle(toggleClient, formShowClient);
+    renderPreview();
+  });
+  togglePartner.addEventListener("click", () => {
+    formShowPartner = !formShowPartner;
+    setToggle(togglePartner, formShowPartner);
+    renderPreview();
+  });
+
   // Intro stays one flowing line, matching how it renders on the real
   // site — a literal newline would break that intent.
   editorIntro.addEventListener("keydown", (e) => {
@@ -605,6 +632,8 @@
         : [];
       formClientLogo = project.clientLogo || "";
       formPartnerLogo = project.partnerLogo || "";
+      formShowClient = project.showClient !== false;
+      formShowPartner = project.showPartner !== false;
       editorTopbarTitle.textContent = project.title || "New project";
     } else {
       fieldTitle.value = "";
@@ -616,9 +645,13 @@
       formGallery = [];
       formClientLogo = "";
       formPartnerLogo = "";
+      formShowClient = true;
+      formShowPartner = true;
       editorTopbarTitle.textContent = "New project";
     }
 
+    setToggle(toggleClient, formShowClient);
+    setToggle(togglePartner, formShowPartner);
     renderHeroBox();
     renderDropzone(clientLogoBox, formClientLogo ? { type: "image", url: formClientLogo } : null, "+");
     renderDropzone(partnerLogoBox, formPartnerLogo ? { type: "image", url: formPartnerLogo } : null, "+");
@@ -643,6 +676,8 @@
       partner: fieldPartner.value.trim() || "Partner Name",
       clientLogo: formClientLogo,
       partnerLogo: formPartnerLogo,
+      showClient: formShowClient,
+      showPartner: formShowPartner,
       introHtml: sanitizeIntroHtml(editorIntro.innerHTML),
       size: fieldSize.value === "large" ? "large" : "normal",
       media: formHero ? [formHero] : [],
@@ -669,6 +704,8 @@
     formGallery = [];
     formClientLogo = "";
     formPartnerLogo = "";
+    formShowClient = true;
+    formShowPartner = true;
   }
 
   addBtn.addEventListener("click", () => openEditor(-1));

@@ -203,6 +203,9 @@ if (window.gsap && window.ScrollSmoother) {
     const partnerEl = document.getElementById("caseModalPartner");
     const clientLogoEl = document.getElementById("caseModalClientLogo");
     const partnerLogoEl = document.getElementById("caseModalPartnerLogo");
+    const clientItemEl = document.getElementById("caseModalClientItem");
+    const partnerItemEl = document.getElementById("caseModalPartnerItem");
+    const metaDividerEl = document.getElementById("caseModalDivider");
     const introEl = document.getElementById("caseModalIntro");
 
     // Logos are optional per project — hide the <img> entirely rather than
@@ -302,6 +305,12 @@ if (window.gsap && window.ScrollSmoother) {
       partnerEl.textContent = project.partner || "Partner Name";
       setLogo(clientLogoEl, project.clientLogo);
       setLogo(partnerLogoEl, project.partnerLogo);
+      // Both default to shown for projects saved before this toggle existed.
+      const showClient = project.showClient !== false;
+      const showPartner = project.showPartner !== false;
+      clientItemEl.hidden = !showClient;
+      partnerItemEl.hidden = !showPartner;
+      metaDividerEl.hidden = !(showClient && showPartner);
       // introHtml is authored in the admin editor (see admin.js), which
       // sanitizes it down to plain text plus .case-intro-muted spans before
       // saving — trusted content, not visitor input.
