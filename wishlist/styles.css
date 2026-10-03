@@ -67,19 +67,19 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
 
 /* Hero */
 .hero {
-  max-width: 640px;
-  margin: 64px auto 48px;
-  padding: 0 24px;
-  text-align: center;
+  max-width: 1600px;
+  margin: 72px auto 56px;
+  padding: 0 16px;
+  text-align: left;
 }
 .eyebrow { margin: 0 0 16px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 .eyebrow svg { width: 15px; height: 15px; }
 h1 {
   margin: 0;
   font-weight: 400;
-  font-size: clamp(28px, 5vw, 36px);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(40px, 6.5vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
 }
 
 /* Toolbar: categories left, sort right */
