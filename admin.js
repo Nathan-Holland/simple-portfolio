@@ -90,6 +90,7 @@
   function setStatus(text, isError) {
     statusEl.textContent = text;
     statusEl.classList.toggle("error", !!isError);
+    statusEl.classList.toggle("ok", /^Saved/.test(text));
   }
 
   function markDirty() {
@@ -137,6 +138,50 @@
     render();
   }
 
+  // ---- Motion (matches /wishlist). GSAP only animates in-flow elements here:
+  // its first transform read briefly detaches fixed-position elements, so the
+  // full-screen editor is animated with CSS instead (see admin.css). ----
+  const gsap = window.gsap;
+  const Flip = window.Flip;
+  if (gsap && Flip) gsap.registerPlugin(Flip);
+  const motion = !!(gsap && Flip) && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let firstRender = true;
+  let listFlip = null;
+
+  // Re-renders the project grid, gliding cards from their old positions to
+  // their new ones (reorder / add / edit) and fading in any new cards.
+  function renderAnimated() {
+    if (!motion || firstRender) return render();
+    const state = Flip.getState(listEl.children);
+    if (listFlip) listFlip.kill();
+    render();
+    listFlip = Flip.from(state, {
+      targets: listEl.children,
+      duration: 0.55,
+      ease: "power3.inOut",
+      onEnter: (els) =>
+        gsap.fromTo(els, { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out", delay: 0.1, clearProps: "transform,opacity" }),
+      onComplete: () => gsap.set(listEl.children, { clearProps: "transform" }),
+    });
+  }
+
+  const ICON = (d) => '<svg class="u-icon" viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>";
+  const ICON_UP = ICON('<path d="M12 19V5M6 11l6-6 6 6"/>');
+  const ICON_DOWN = ICON('<path d="M12 5v14M6 13l6 6 6-6"/>');
+  const ICON_EDIT = ICON('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>');
+  const ICON_DELETE = ICON('<path d="M4.5 7h15M10 11v6M14 11v6M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18 7M9 7V4.5h6V7"/>');
+  const ICON_CLOSE = ICON('<path d="M7 7l10 10M17 7 7 17"/>');
+
+  function iconButton(icon, tip, extraClass) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "u-btn u-btn-icon" + (extraClass ? " " + extraClass : "");
+    btn.innerHTML = icon;
+    btn.setAttribute("aria-label", tip);
+    btn.dataset.tip = tip;
+    return btn;
+  }
+
   function render() {
     listEl.innerHTML = "";
     updateStats();
@@ -146,6 +191,7 @@
 
       const card = document.createElement("div");
       card.className = "u-project-card";
+      card.dataset.flipId = project.id || "p" + index;
       card.addEventListener("click", () => openEditor(index));
 
       const thumb = document.createElement("div");
@@ -165,13 +211,16 @@
       const titleEl = document.createElement("p");
       titleEl.className = "u-project-title";
       titleEl.textContent = project.title || "(untitled)";
+      // Same anatomy as a wishlist card: muted meta line, name, mono detail.
       const metaEl = document.createElement("p");
       metaEl.className = "u-project-meta";
       const sizeLabel = project.size === "large" ? "Large tile" : "Normal tile";
+      metaEl.textContent = [project.client, sizeLabel].filter(Boolean).join(" · ");
       const mediaCount = countMedia(project);
-      const mediaLabel = mediaCount + (mediaCount === 1 ? " item" : " items");
-      metaEl.textContent = (project.client || "") + " · " + sizeLabel + " · " + mediaLabel;
-      body.append(titleEl, metaEl);
+      const countEl = document.createElement("p");
+      countEl.className = "u-project-count";
+      countEl.textContent = mediaCount + (mediaCount === 1 ? " media item" : " media items");
+      body.append(titleEl, metaEl, countEl);
 
       const actions = document.createElement("div");
       actions.className = "u-project-actions";
@@ -179,36 +228,30 @@
       // stops its clicks from bubbling up to that handler.
       actions.addEventListener("click", (e) => e.stopPropagation());
 
-      const upBtn = document.createElement("button");
-      upBtn.type = "button";
-      upBtn.className = "u-btn u-btn-ghost u-btn-icon";
-      upBtn.textContent = "↑";
+      const upBtn = iconButton(ICON_UP, "Move earlier");
       upBtn.disabled = index === 0;
       upBtn.addEventListener("click", () => moveProject(index, -1));
 
-      const downBtn = document.createElement("button");
-      downBtn.type = "button";
-      downBtn.className = "u-btn u-btn-ghost u-btn-icon";
-      downBtn.textContent = "↓";
+      const downBtn = iconButton(ICON_DOWN, "Move later");
       downBtn.disabled = index === projects.length - 1;
       downBtn.addEventListener("click", () => moveProject(index, 1));
 
-      const editBtn = document.createElement("button");
-      editBtn.type = "button";
-      editBtn.className = "u-btn u-btn-ghost u-btn-sm push-right";
-      editBtn.textContent = "Edit";
+      const editBtn = iconButton(ICON_EDIT, "Edit", "push-right");
       editBtn.addEventListener("click", () => openEditor(index));
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = "u-btn u-btn-ghost u-btn-sm u-btn-danger";
-      deleteBtn.textContent = "Delete";
+      const deleteBtn = iconButton(ICON_DELETE, "Delete", "u-btn-danger");
       deleteBtn.addEventListener("click", () => deleteProject(index));
 
       actions.append(upBtn, downBtn, editBtn, deleteBtn);
       card.append(thumb, body, actions);
       listEl.appendChild(card);
     });
+
+    if (motion && firstRender && listEl.children.length) {
+      gsap.from(".u-hero > *, .u-stats-row, .u-hint", { y: 14, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.07, clearProps: "transform,opacity" });
+      gsap.from(listEl.children, { y: 28, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.05, delay: 0.25, clearProps: "transform,opacity" });
+    }
+    if (listEl.children.length) firstRender = false;
   }
 
   function moveProject(index, delta) {
@@ -217,15 +260,24 @@
     const [item] = projects.splice(index, 1);
     projects.splice(target, 0, item);
     markDirty();
-    render();
+    renderAnimated();
   }
 
   function deleteProject(index) {
     const project = projects[index];
     if (!confirm('Delete "' + (project.title || "this project") + '"? This only takes effect once you Save changes.')) return;
-    projects.splice(index, 1);
-    markDirty();
-    render();
+    const remove = () => {
+      projects.splice(index, 1);
+      markDirty();
+      renderAnimated();
+    };
+    // Like the wishlist's filtering: the card fades away, then the rest close the gap.
+    const card = listEl.children[index];
+    if (motion && card) {
+      gsap.to(card, { opacity: 0, scale: 0.96, duration: 0.35, ease: "power2.inOut", onComplete: remove });
+    } else {
+      remove();
+    }
   }
 
   // ---- Editor: a plain form on the left drives every field; renderPreview()
@@ -389,11 +441,7 @@
       const actions = document.createElement("div");
       actions.className = "u-row-card-actions";
 
-      const upBtn = document.createElement("button");
-      upBtn.type = "button";
-      upBtn.className = "u-btn u-btn-ghost u-btn-icon";
-      upBtn.textContent = "↑";
-      upBtn.title = "Move row up";
+      const upBtn = iconButton(ICON_UP, "Move row up");
       upBtn.disabled = rowIndex === 0;
       upBtn.addEventListener("click", () => {
         const [moved] = formGallery.splice(rowIndex, 1);
@@ -402,11 +450,7 @@
         renderPreview();
       });
 
-      const downBtn = document.createElement("button");
-      downBtn.type = "button";
-      downBtn.className = "u-btn u-btn-ghost u-btn-icon";
-      downBtn.textContent = "↓";
-      downBtn.title = "Move row down";
+      const downBtn = iconButton(ICON_DOWN, "Move row down");
       downBtn.disabled = rowIndex === formGallery.length - 1;
       downBtn.addEventListener("click", () => {
         const [moved] = formGallery.splice(rowIndex, 1);
@@ -415,10 +459,7 @@
         renderPreview();
       });
 
-      const removeRowBtn = document.createElement("button");
-      removeRowBtn.type = "button";
-      removeRowBtn.className = "u-btn u-btn-ghost u-btn-sm u-btn-danger";
-      removeRowBtn.textContent = "Remove";
+      const removeRowBtn = iconButton(ICON_DELETE, "Remove row", "u-btn-danger");
       removeRowBtn.addEventListener("click", () => {
         formGallery.splice(rowIndex, 1);
         renderRowsForm();
@@ -449,16 +490,13 @@
           overlay.textContent = "Change";
           box.appendChild(overlay);
 
-          const removeSlotBtn = document.createElement("button");
-          removeSlotBtn.type = "button";
-          removeSlotBtn.className = "u-btn u-btn-ghost u-btn-icon";
-          removeSlotBtn.textContent = "×";
-          removeSlotBtn.title = "Remove image";
+          const removeSlotBtn = iconButton(ICON_CLOSE, "Remove image");
           removeSlotBtn.style.position = "absolute";
-          removeSlotBtn.style.top = "4px";
-          removeSlotBtn.style.right = "4px";
-          removeSlotBtn.style.background = "rgba(0,0,0,0.5)";
-          removeSlotBtn.style.color = "#fff";
+          removeSlotBtn.style.top = "6px";
+          removeSlotBtn.style.right = "6px";
+          removeSlotBtn.style.width = "28px";
+          removeSlotBtn.style.height = "28px";
+          removeSlotBtn.style.background = "rgba(255,255,255,0.92)";
           removeSlotBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             row.items[slotIndex] = null;
@@ -502,6 +540,8 @@
   function addRow(type) {
     formGallery.push({ type, items: new Array(type).fill(null) });
     renderRowsForm();
+    const newRow = editorRowsForm.lastElementChild;
+    if (newRow) newRow.classList.add("entering");
     renderPreview();
   }
 
@@ -658,7 +698,18 @@
     renderRowsForm();
     renderPreview();
 
+    // Stagger order for the open/close animation (see admin.css): --i counts
+    // down the form for the rise-in, --rev counts back up for the exit.
+    const formEl = document.querySelector(".u-editor-form");
+    const blocks = Array.from(formEl.children);
+    blocks.forEach((el, i) => {
+      el.style.setProperty("--i", Math.min(i, 14));
+      el.style.setProperty("--rev", Math.min(blocks.length - 1 - i, 14));
+    });
+    clearTimeout(closeTimer);
+    editor.classList.remove("closing");
     editor.hidden = false;
+    formEl.scrollTop = 0;
   }
 
   // Commits the open editor's fields into projects[] (called by Done —
@@ -697,8 +748,19 @@
     return true;
   }
 
+  // Plays the exit animation (admin.css .closing), then hides the editor.
+  let closeTimer = null;
   function closeEditor() {
-    editor.hidden = true;
+    if (motion && !editor.hidden) {
+      editor.classList.add("closing");
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => {
+        editor.hidden = true;
+        editor.classList.remove("closing");
+      }, 460);
+    } else {
+      editor.hidden = true;
+    }
     editingIndex = -1;
     formHero = null;
     formGallery = [];
@@ -714,7 +776,7 @@
   // distinct actions, matching what each button says.
   editorDoneBtn.addEventListener("click", () => {
     commitEditor();
-    render();
+    renderAnimated();
     closeEditor();
   });
   editorBackBtn.addEventListener("click", closeEditor);
