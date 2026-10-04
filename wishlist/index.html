@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/wishlist/styles.css?v=33" />
+  <link rel="stylesheet" href="/wishlist/styles.css?v=37" />
 </head>
 <body>
   <header class="top">
@@ -79,6 +79,20 @@
           <p class="price" id="dPrice"></p>
         </div>
         <dl class="facts" id="dFacts"></dl>
+        <section class="saver" id="dSaver" aria-labelledby="saverTitle">
+          <div class="saver-head">
+            <p class="notes-label" id="saverTitle">Save up for it</p>
+            <div class="segmented" id="saverPeriods" role="radiogroup" aria-label="Save over">
+              <span class="seg-indicator" aria-hidden="true"></span>
+              <button type="button" role="radio" data-months="1">1 mo</button>
+              <button type="button" role="radio" data-months="3">3 mo</button>
+              <button type="button" role="radio" data-months="6">6 mo</button>
+              <button type="button" role="radio" data-months="12">12 mo</button>
+            </div>
+          </div>
+          <p class="saver-amount" aria-live="polite"><span id="saverMonthly">€0</span><span class="per"> / month</span></p>
+          <p class="saver-sub" id="saverSub"></p>
+        </section>
         <div class="notes" id="dNotesWrap">
           <p class="notes-label">Notes</p>
           <p id="dNotes"></p>
@@ -166,6 +180,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
-  <script src="/wishlist/app.js?v=33"></script>
+  <script src="/wishlist/app.js?v=37"></script>
 </body>
 </html>

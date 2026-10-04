@@ -537,6 +537,83 @@
   }
   detail.addEventListener("close", cleanupDetail);
 
+  // ---------- savings calculator (detail modal) ----------
+  // Pick 1/3/6/12 months; shows what to put aside per month and per week,
+  // rounded UP to whole euros so sticking to the plan always covers the price.
+  const SAVE_KEY = "wishlist-supply:saveMonths";
+  const saver = $("dSaver"), saverPeriods = $("saverPeriods");
+  let saveMonths = 3;
+  try { saveMonths = Number(localStorage.getItem(SAVE_KEY)) || 3; } catch {}
+  let saverItem = null;
+  const shownAmount = { v: 0 };
+
+  // instant = jump straight there (when an item opens) instead of sliding.
+  function placeSegIndicator(instant) {
+    const btn = saverPeriods.querySelector('[aria-checked="true"]');
+    const ind = saverPeriods.querySelector(".seg-indicator");
+    if (!btn || !ind) return;
+    if (instant) ind.style.transition = "none";
+    ind.style.translate = btn.offsetLeft + "px 0";
+    ind.style.width = btn.offsetWidth + "px";
+    if (instant) { void ind.offsetWidth; ind.style.transition = ""; }
+  }
+
+  function updateSaver(animate) {
+    const price = Number(saverItem?.price) || 0;
+    const target = new Date();
+    target.setMonth(target.getMonth() + saveMonths);
+    const weeks = Math.max(1, (target - Date.now()) / (7 * 864e5));
+    const monthly = Math.ceil(price / saveMonths);
+    const weekly = Math.ceil(price / weeks);
+    const when = target.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+    saverPeriods.querySelectorAll("button").forEach((b) => b.setAttribute("aria-checked", Number(b.dataset.months) === saveMonths));
+    placeSegIndicator();
+    $("saverSub").textContent = saveMonths === 1
+      ? `Put it all aside this month · ready by ${when}`
+      : `${money(weekly)} a week · ready by ${when}`;
+
+    const out = $("saverMonthly");
+    if (motion && animate) {
+      gsap.to(shownAmount, {
+        v: monthly,
+        duration: 0.6,
+        ease: "power3.out",
+        overwrite: true,
+        onUpdate: () => (out.textContent = money(Math.round(shownAmount.v))),
+      });
+    } else {
+      shownAmount.v = monthly;
+      out.textContent = money(monthly);
+    }
+  }
+
+  function renderSaver(item) {
+    saverItem = item;
+    saver.hidden = !!item.bought || !(Number(item.price) > 0);
+    if (!saver.hidden) {
+      updateSaver(false);
+      requestAnimationFrame(() => placeSegIndicator(true)); // positions are only measurable once the dialog is shown
+    }
+  }
+
+  saverPeriods.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-months]");
+    if (!b || Number(b.dataset.months) === saveMonths) return;
+    saveMonths = Number(b.dataset.months);
+    try { localStorage.setItem(SAVE_KEY, String(saveMonths)); } catch {}
+    updateSaver(true);
+  });
+  saverPeriods.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const btns = [...saverPeriods.querySelectorAll("button")];
+    const i = btns.findIndex((b) => Number(b.dataset.months) === saveMonths);
+    const next = btns[(i + (e.key === "ArrowRight" ? 1 : btns.length - 1)) % btns.length];
+    next.focus();
+    next.click();
+  });
+
   function openDetail(id, card) {
     const i = items.find((x) => x.id === id);
     if (!i) return;
@@ -564,6 +641,7 @@
     $("dFacts").hidden = !$("dFacts").children.length;
     $("dNotes").textContent = i.notes || "";
     $("dNotesWrap").hidden = !i.notes;
+    renderSaver(i);
     const link = $("dLink");
     if (i.link) { link.href = i.link; link.removeAttribute("aria-disabled"); }
     else { link.removeAttribute("href"); link.setAttribute("aria-disabled", "true"); }
@@ -583,6 +661,8 @@
     } else {
       showDialog(detail);
     }
+    // The dialog is laid out now, so the period pills can be measured.
+    if (!saver.hidden) placeSegIndicator(true);
   }
 
   function openEditor(item) {

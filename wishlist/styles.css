@@ -605,7 +605,7 @@ label.check input { width: auto; }
 .detail-sheet.staged.closing .detail-body > * {
   translate: 0 8px;
   transition: opacity .2s ease, translate .25s cubic-bezier(.4,0,1,1);
-  transition-delay: calc((4 - var(--i)) * 35ms); /* last in, first out */
+  transition-delay: calc((5 - var(--i)) * 35ms); /* last in, first out */
 }
 .detail-sheet.morphing.closing .close { transition-delay: .14s; }
 
@@ -709,3 +709,54 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 .site-menu-list .menu-sep { height: 1px; margin: 6px 4px; padding: 0; background: var(--line); }
 .site-menu-list { min-width: 160px; }
 .site-menu-list a svg.logo { fill: currentColor; stroke: none; width: 15px; height: 15px; color: var(--ink); }
+
+/* Savings calculator (detail modal) */
+.saver {
+  background: var(--tile);
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+  display: grid;
+  gap: 4px;
+}
+.saver-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.saver-head .notes-label { margin: 0 !important; }
+.segmented {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--line);
+}
+.segmented button {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color .2s;
+  white-space: nowrap;
+}
+.segmented button:hover, .segmented button[aria-checked="true"] { color: var(--ink); }
+.segmented button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.seg-indicator {
+  position: absolute;
+  top: 3px; bottom: 3px; left: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  transition: translate .45s cubic-bezier(.2,.7,.2,1), width .45s cubic-bezier(.2,.7,.2,1);
+}
+.saver-amount { margin: 0; font-size: 30px; letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.saver-amount .per { font-size: 15px; letter-spacing: 0; color: var(--muted); }
+.saver-sub { margin: 0; color: var(--muted); font-size: 13px; }
+@media (max-width: 420px) {
+  .saver-head { flex-direction: column; align-items: flex-start; }
+}
+.saver-head { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 8px; }
+.saver-head .segmented { display: flex; }
+.saver-head .segmented button { flex: 1; padding: 6px 4px; }
