@@ -670,3 +670,42 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 .signin-error { margin: 0; min-height: 1em; font-size: 13px; color: #c62828; }
 .signin-error:empty { display: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Site menu (top-left mark → switch between portfolio sections) */
+.top { position: relative; z-index: 20; }
+.site-menu { position: relative; }
+.mark-btn {
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  margin: -11px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background .2s;
+}
+.mark-btn:hover, .mark-btn:focus-visible, .mark-btn[aria-expanded="true"] { background: var(--card); outline: none; }
+.mark-btn .mark { transition: rotate .45s cubic-bezier(.34,1.56,.64,1), scale .3s cubic-bezier(.2,.7,.2,1), border-radius .3s; }
+.mark-btn:hover .mark { scale: 1.12; }
+.mark-btn[aria-expanded="true"] .mark { rotate: 45deg; border-radius: 3px; scale: .9; }
+.site-menu-list { left: -11px; right: auto; top: calc(100% + 14px); transform-origin: top left; min-width: 210px; }
+.site-menu-list li { padding: 0; }
+.site-menu-list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.site-menu-list a:hover, .site-menu-list a:focus-visible { background: var(--tile); outline: none; }
+.site-menu-list a svg { width: 16px; height: 16px; color: var(--muted); visibility: visible; flex: none; }
+.site-menu-list a[aria-current="page"] svg { color: var(--ink); }
+.site-menu-list a .tick { margin-left: auto; width: 14px; height: 14px; stroke-width: 2; color: var(--ink); }
+.site-menu-list li:hover, .site-menu-list li:focus-visible { background: none; }
+.site-menu-list .menu-sep { height: 1px; margin: 6px 4px; padding: 0; background: var(--line); }
+.site-menu-list { min-width: 160px; }
+.site-menu-list a svg.logo { fill: currentColor; stroke: none; width: 15px; height: 15px; color: var(--ink); }

@@ -9,11 +9,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/wishlist/styles.css?v=31" />
+  <link rel="stylesheet" href="/wishlist/styles.css?v=33" />
 </head>
 <body>
   <header class="top">
-    <div class="mark" aria-hidden="true"></div>
+    <div class="site-menu" id="siteMenu">
+      <button class="mark-btn" id="siteMenuBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="siteMenuList" aria-label="Open site menu">
+        <span class="mark" aria-hidden="true"></span>
+      </button>
+      <ul class="sort-menu site-menu-list" id="siteMenuList" role="menu" hidden>
+        <li role="none">
+          <a role="menuitem" href="/">
+            <svg class="logo" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 0L0 4V8L4 12H0V24L4 28H12V20L20 28H24L28 24V20L24 16H28V4L24 0H16V8L8 0H4Z" /></svg>
+            <span>Portfolio</span>
+          </a>
+        </li>
+      </ul>
+    </div>
     <nav class="top-actions">
       <button class="icon-btn lock-btn view-only" id="signInBtn" type="button" aria-label="Sign in to edit" data-tip="Sign in to edit">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></svg>
@@ -31,7 +43,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
       <span id="updated">Personal wishlist</span>
     </p>
-    <h1>Things I'd like to own,<br />saved in one place</h1>
+    <h1>Things I’m Pretending<br />I Don’t Want</h1>
   </section>
 
   <div class="toolbar">
@@ -154,6 +166,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
-  <script src="/wishlist/app.js?v=31"></script>
+  <script src="/wishlist/app.js?v=33"></script>
 </body>
 </html>

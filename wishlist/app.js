@@ -383,6 +383,7 @@
     sortBtn.setAttribute("aria-expanded", open);
     const chev = sortBtn.querySelector(".chev");
     if (open) {
+      toggleSiteMenu(false);
       sortMenu.hidden = false;
       sortMenu.querySelector('[aria-selected="true"]')?.focus();
       if (motion) {
@@ -416,6 +417,36 @@
     if (e.key === "Escape") { toggleSort(false); sortBtn.focus(); }
   });
   document.addEventListener("click", (e) => { if (!$("sort").contains(e.target)) toggleSort(false); });
+
+  // ---------- site menu (top-left mark): switch between portfolio sections ----------
+  const siteMenuBtn = $("siteMenuBtn"), siteMenuList = $("siteMenuList");
+  const siteLinks = () => [...siteMenuList.querySelectorAll("a")];
+  function toggleSiteMenu(open = siteMenuList.hidden) {
+    siteMenuBtn.setAttribute("aria-expanded", open);
+    siteMenuBtn.setAttribute("aria-label", open ? "Close site menu" : "Open site menu");
+    if (open) {
+      toggleSort(false);
+      siteMenuList.hidden = false;
+      siteLinks()[0]?.focus();
+      if (motion) {
+        gsap.fromTo(siteMenuList, { opacity: 0, y: -6, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" });
+        gsap.from(siteMenuList.children, { opacity: 0, y: -4, duration: 0.25, stagger: 0.03, ease: "power2.out" });
+      }
+    } else if (!siteMenuList.hidden) {
+      if (motion) gsap.to(siteMenuList, { opacity: 0, y: -6, scale: 0.97, duration: 0.18, ease: "power2.in", onComplete: () => (siteMenuList.hidden = true) });
+      else siteMenuList.hidden = true;
+    }
+  }
+  siteMenuBtn.onclick = (e) => { e.stopPropagation(); toggleSiteMenu(); };
+  siteMenuList.addEventListener("keydown", (e) => {
+    const links = siteLinks();
+    const i = links.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); links[(i + 1) % links.length].focus(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); links[(i - 1 + links.length) % links.length].focus(); }
+    if (e.key === "Escape") { toggleSiteMenu(false); siteMenuBtn.focus(); }
+  });
+  document.addEventListener("click", (e) => { if (!$("siteMenu").contains(e.target)) toggleSiteMenu(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !siteMenuList.hidden) { toggleSiteMenu(false); siteMenuBtn.focus(); } });
 
   // ---------- dialogs ----------
   // Entrance is a CSS animation (dialog[open]). Don't tween a modal <dialog> with GSAP: its first
