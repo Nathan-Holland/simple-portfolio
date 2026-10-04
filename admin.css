@@ -157,15 +157,6 @@
 .admin-status.error::before { background: var(--u-danger); }
 .admin-status.ok::before { background: #2e9e5b; }
 
-/* ---- stats ---- */
-.u-stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-.u-stat-card {
-  background: var(--u-surface);
-  border-radius: 16px;
-  padding: 18px 20px;
-}
-.u-stat-label { display: block; font-size: 13px; color: var(--u-text-secondary); margin-bottom: 6px; }
-.u-stat-value { font-size: 36px; font-weight: 400; letter-spacing: -0.03em; line-height: 1; }
 
 .u-hint { font-size: 13px; color: var(--u-text-secondary); margin: 0 0 20px; }
 

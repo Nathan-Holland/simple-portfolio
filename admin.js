@@ -3,8 +3,6 @@
   const addBtn = document.getElementById("addProjectBtn");
   const saveBtn = document.getElementById("saveChangesBtn");
   const statusEl = document.getElementById("adminStatus");
-  const statCount = document.getElementById("statCount");
-  const statMedia = document.getElementById("statMedia");
 
   const editor = document.getElementById("projectEditor");
   const editorBackBtn = document.getElementById("editorBackBtn");
@@ -59,7 +57,7 @@
   let dirty = false;
 
   // Total media count for a project — hero (if any) plus every filled
-  // gallery slot — used for the dashboard stats and each card's caption.
+  // gallery slot — used for each card's caption.
   function countMedia(project) {
     const hero = Array.isArray(project.media) && project.media[0] ? 1 : 0;
     const gallery = Array.isArray(project.gallery)
@@ -98,10 +96,6 @@
     setStatus("Unsaved changes");
   }
 
-  function updateStats() {
-    statCount.textContent = projects.length;
-    statMedia.textContent = projects.reduce((n, p) => n + countMedia(p), 0);
-  }
 
   // Builds an <img> or <video> for a media item — used both in project
   // cards and inside the preview pane, so previews always match what the
@@ -184,7 +178,6 @@
 
   function render() {
     listEl.innerHTML = "";
-    updateStats();
 
     projects.forEach((project, index) => {
       const media = Array.isArray(project.media) ? project.media : [];
@@ -248,7 +241,7 @@
     });
 
     if (motion && firstRender && listEl.children.length) {
-      gsap.from(".u-hero > *, .u-stats-row, .u-hint", { y: 14, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.07, clearProps: "transform,opacity" });
+      gsap.from(".u-hero > *, .u-hint", { y: 14, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.07, clearProps: "transform,opacity" });
       gsap.from(listEl.children, { y: 28, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.05, delay: 0.25, clearProps: "transform,opacity" });
     }
     if (listEl.children.length) firstRender = false;
