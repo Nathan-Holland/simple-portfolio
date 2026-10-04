@@ -614,6 +614,13 @@
     next.click();
   });
 
+  /** "stepneyworkersclub.com" → "Stepneyworkersclub", "shop.example.co.uk" → "Example". */
+  function storeName(host) {
+    const parts = host.replace(/\.(co|com|org|net|gov|ac)\.[a-z]{2}$/, ".x").split(".");
+    const name = parts.length > 1 ? parts[parts.length - 2] : parts[0];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
   function openDetail(id, card) {
     const i = items.find((x) => x.id === id);
     if (!i) return;
@@ -629,16 +636,23 @@
     $("dPrice").textContent = money(i.price);
     let host = "";
     try { host = i.link ? new URL(i.link).hostname.replace(/^www\./, "") : ""; } catch {}
-    $("dFacts").innerHTML = [
+    // Store: the shop's favicon + its name, linking to the product page.
+    const store = host && `<a class="store-link" href="${esc(i.link)}" target="_blank" rel="noopener" title="${esc(host)}">
+        <img src="https://icons.duckduckgo.com/ip3/${esc(host)}.ico" alt="" width="16" height="16" loading="lazy"
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'store-fallback'}))" />
+        <span class="store-name">${esc(storeName(host))}</span>
+        <svg class="store-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5" /></svg>
+      </a>`;
+    const facts = [
       ["Size", i.size && esc(i.size)],
       ["Desire", !i.bought && `${prioDot(i.priority)}${priorityLabel[i.priority || 2]}`],
-      ["Store", host && esc(host)],
-      ["Added", i.added && new Date(i.added).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })],
-    ]
-      .filter(([, v]) => v)
-      .map(([k, v]) => `<div class="fact"><dt>${k}</dt><dd>${v}</dd></div>`)
-      .join("");
-    $("dFacts").hidden = !$("dFacts").children.length;
+      ["Store", store],
+    ].filter(([, v]) => v);
+    const added = i.added && new Date(i.added).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    $("dFacts").innerHTML =
+      (facts.length ? `<dl class="facts-row">${facts.map(([k, v]) => `<div class="fact"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>` : "") +
+      (added ? `<p class="facts-added">Added ${added}</p>` : "");
+    $("dFacts").hidden = !facts.length && !added;
     $("dNotes").textContent = i.notes || "";
     $("dNotesWrap").hidden = !i.notes;
     renderSaver(i);
