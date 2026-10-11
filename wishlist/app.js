@@ -849,7 +849,13 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: $("signInPassword").value }),
       });
-      if (!res.ok) throw new Error(res.status === 401 ? "That password isn't right" : "Couldn't sign in");
+      if (!res.ok) {
+        throw new Error(
+          res.status === 401 ? "That password isn't right"
+          : res.status === 503 ? "Editing isn't set up on this site yet — the wishlist password is missing from its settings"
+          : "Couldn't sign in"
+        );
+      }
       signIn.close();
       setEditor(true);
       toast("Editing unlocked");

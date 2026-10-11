@@ -17,8 +17,18 @@ const BLOB_PATH = "data/wishlist.json";
 // The session cookie holds an HMAC of a fixed message keyed by the password,
 // so it can be checked without storing sessions, and changing the password
 // signs every existing session out.
+// Trimmed so a stray space or newline pasted into the Vercel setting doesn’t lock you out.
+function configuredPassword() {
+  return (process.env.WISHLIST_PASSWORD || "").trim();
+}
+
+/** False when WISHLIST_PASSWORD isn’t set for this deployment (e.g. only set for Production). */
+export function passwordConfigured() {
+  return configuredPassword().length > 0;
+}
+
 function sessionToken() {
-  const password = process.env.WISHLIST_PASSWORD;
+  const password = configuredPassword();
   if (!password) return null;
   return createHmac("sha256", password).update("wishlist-editor-v1").digest("hex");
 }
@@ -30,8 +40,8 @@ function safeEqual(a, b) {
 }
 
 export function checkPassword(attempt) {
-  const password = process.env.WISHLIST_PASSWORD;
-  return !!password && typeof attempt === "string" && safeEqual(attempt, password);
+  const password = configuredPassword();
+  return !!password && typeof attempt === "string" && safeEqual(attempt.trim(), password);
 }
 
 export function isEditor(req) {
