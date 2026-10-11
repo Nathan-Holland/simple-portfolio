@@ -214,6 +214,98 @@
   }, true);
 
   // ---------- render ----------
+  // ---------- bought ----------
+  /** Marks an item bought (stamping when) or back to wanted. */
+  function setBought(item, bought) {
+    if (bought && !item.bought) item.boughtAt = new Date().toISOString();
+    if (!bought) delete item.boughtAt;
+    item.bought = !!bought;
+  }
+
+  // The Bought tab's summary: total spent, a few stats, and spend by category.
+  // Numbers count up and bars grow each time you open the tab.
+  let summaryShown = false;
+  function renderBoughtSummary() {
+    const box = $("boughtSummary");
+    const show = active === BOUGHT;
+    box.hidden = !show;
+    if (!show) { summaryShown = false; return; }
+
+    const bought = items.filter((i) => i.bought);
+    const wantedNow = items.filter((i) => !i.bought);
+    const priced = bought.filter((i) => Number(i.price) > 0);
+    const total = priced.reduce((s, i) => s + Number(i.price), 0);
+    const stillTotal = wantedNow.reduce((s, i) => s + (Number(i.price) || 0), 0);
+
+    if (!bought.length) {
+      box.innerHTML = `
+        <div class="bs-empty">
+          <div class="bs-empty-icon">${ICON_BOUGHT}</div>
+          <p class="bs-empty-title">Nothing bought yet</p>
+          <p class="bs-empty-sub">When you mark something as bought, your total spend and stats show up here.${stillTotal ? ` For now, ${money(stillTotal)} is still on the list.` : ""}</p>
+        </div>`;
+      summaryShown = true;
+      return;
+    }
+
+    const biggest = priced.reduce((a, b) => (Number(b.price) > Number(a?.price || 0) ? b : a), null);
+    const waits = bought
+      .filter((i) => i.added && i.boughtAt)
+      .map((i) => (Date.parse(i.boughtAt) - Date.parse(i.added)) / 864e5)
+      .filter((d) => d >= 0);
+    const avgWait = waits.length ? waits.reduce((a, b) => a + b, 0) / waits.length : null;
+    const waitText = avgWait === null ? null
+      : avgWait < 1 ? "Same day"
+      : avgWait < 14 ? `${Math.round(avgWait)} day${Math.round(avgWait) === 1 ? "" : "s"}`
+      : `${Math.round(avgWait / 7)} weeks`;
+
+    const byCat = new Map();
+    for (const i of priced) {
+      const c = i.category || "Other";
+      byCat.set(c, (byCat.get(c) || 0) + Number(i.price));
+    }
+    const cats = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
+    const top = cats[0]?.[1] || 1;
+
+    box.innerHTML = `
+      <div class="bs-hero">
+        <p class="bs-label">You’ve spent</p>
+        <p class="bs-total" data-count="${total}">${money(total)}</p>
+        <p class="bs-sub">on ${bought.length} thing${bought.length === 1 ? "" : "s"} you stopped pretending about</p>
+      </div>
+      <div class="bs-stats">
+        <div class="bs-stat"><span class="bs-stat-label">Average price</span><span class="bs-stat-value" data-count="${priced.length ? total / priced.length : 0}">${money(priced.length ? total / priced.length : 0)}</span></div>
+        <div class="bs-stat"><span class="bs-stat-label">Biggest buy</span><span class="bs-stat-value">${biggest ? money(biggest.price) : "—"}</span>${biggest ? `<span class="bs-stat-note">${esc(biggest.name)}</span>` : ""}</div>
+        <div class="bs-stat"><span class="bs-stat-label">Average wait</span><span class="bs-stat-value">${waitText || "—"}</span><span class="bs-stat-note">${waitText ? "from wishlist to bought" : "shows once you buy from the list"}</span></div>
+      </div>
+      ${cats.length ? `
+      <div class="bs-cats">
+        <p class="bs-label">By category</p>
+        ${cats.map(([c, v]) => `
+          <div class="bs-cat">
+            <span class="bs-cat-name">${iconFor(c)}${esc(c)}</span>
+            <span class="bs-bar"><span style="--w:${(v / top) * 100}%"></span></span>
+            <span class="bs-cat-value">${money(v)}<small>${Math.round((v / total) * 100)}%</small></span>
+          </div>`).join("")}
+      </div>` : ""}
+      ${stillTotal ? `<p class="bs-still">Still pretending: <strong>${money(stillTotal)}</strong> across ${wantedNow.length} thing${wantedNow.length === 1 ? "" : "s"} on your list.</p>` : ""}`;
+
+    // Animate when the tab is opened (not on every re-render while it's open).
+    const firstShow = !summaryShown;
+    summaryShown = true;
+    if (!firstShow) { box.classList.add("bs-in"); return; }
+    box.classList.remove("bs-in");
+    requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add("bs-in"))); // bars grow via CSS
+    if (motion) {
+      gsap.from(box.querySelectorAll(".bs-hero, .bs-stat, .bs-cats, .bs-still"), { opacity: 0, y: 14, duration: 0.6, ease: "power3.out", stagger: 0.07 });
+      box.querySelectorAll("[data-count]").forEach((el) => {
+        const to = Number(el.dataset.count) || 0;
+        const n = { v: 0 };
+        gsap.to(n, { v: to, duration: 1.1, ease: "power3.out", onUpdate: () => (el.textContent = money(Math.round(n.v))) });
+      });
+    }
+  }
+
   function render() {
     const wanted = items.filter((i) => !i.bought);
     $("updated").textContent = updatedAt
@@ -236,6 +328,7 @@
     moveIndicator(firstRender);
     $("cats").innerHTML = categories().map((c) => `<option value="${esc(c)}">`).join("");
     renderSortMenu();
+    renderBoughtSummary();
 
     // cards — persistent elements; filtering hides them, sorting reorders them, Flip animates the move.
     // Cards that are leaving fade out first; then the rest move into place.
@@ -769,7 +862,7 @@
 
   $("dToggle").onclick = () => {
     const i = items.find((x) => x.id === current);
-    i.bought = !i.bought;
+    setBought(i, !i.bought);
     detail.close();
     save();
   };
@@ -798,8 +891,11 @@
       bought: f.bought.checked,
     };
     const id = form.dataset.id;
-    if (id) Object.assign(items.find((x) => x.id === id), data);
-    else items.unshift({ id: slug(data.name), added: new Date().toISOString(), ...data });
+    const { bought, ...fields } = data;
+    let target = id && items.find((x) => x.id === id);
+    if (target) Object.assign(target, fields);
+    else items.unshift((target = { id: slug(data.name), added: new Date().toISOString(), ...fields, bought: false }));
+    setBought(target, bought);
     closeDialog(editor);
     save();
   });
