@@ -648,11 +648,10 @@
       ["Desire", !i.bought && `${prioDot(i.priority)}${priorityLabel[i.priority || 2]}`],
       ["Store", store],
     ].filter(([, v]) => v);
-    const added = i.added && new Date(i.added).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-    $("dFacts").innerHTML =
-      (facts.length ? `<dl class="facts-row">${facts.map(([k, v]) => `<div class="fact"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>` : "") +
-      (added ? `<p class="facts-added">Added ${added}</p>` : "");
-    $("dFacts").hidden = !facts.length && !added;
+    $("dFacts").innerHTML = facts.length
+      ? `<dl class="facts-row">${facts.map(([k, v]) => `<div class="fact"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>`
+      : "";
+    $("dFacts").hidden = !facts.length;
     $("dNotes").textContent = i.notes || "";
     $("dNotesWrap").hidden = !i.notes;
     renderSaver(i);
