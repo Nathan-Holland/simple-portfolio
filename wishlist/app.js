@@ -893,11 +893,194 @@ function cancelDelete() {
 }
 $("dDelete").onclick = askDelete;
 $("dConfirmCancel").onclick = cancelDelete;
+// ---------- delete: the card turns to dust and blows away ----------
+// Paint the card onto a canvas, cut it into specks of its own colours, then let them
+// drift up and to the right in a sweep from left to right.
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h);
+}
+
+function wrapText(c, text, maxW) {
+  const lines = [];
+  let line = "";
+  for (const word of text.split(/\s+/)) {
+    const next = line ? line + " " + word : word;
+    if (line && c.measureText(next).width > maxW) { lines.push(line); line = word; }
+    else line = next;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function snapshotCard(card, C, dpr) {
+  const snap = document.createElement("canvas");
+  snap.width = Math.ceil(C.w * dpr);
+  snap.height = Math.ceil(C.h * dpr);
+  const c = snap.getContext("2d");
+  c.scale(dpr, dpr);
+  const rel = (el) => { const r = rect(el); return { x: r.x - C.x, y: r.y - C.y, w: r.w, h: r.h }; };
+  const faded = card.classList.contains("bought");
+
+  roundRect(c, 0, 0, C.w, C.h, 16);
+  c.fillStyle = getComputedStyle(card).backgroundColor;
+  c.fill();
+
+  c.save();
+  if (faded) { c.globalAlpha = 0.5; c.filter = "grayscale(1)"; }
+  const mediaEl = card.querySelector(".media");
+  const M = rel(mediaEl);
+  c.save();
+  roundRect(c, M.x, M.y, M.w, M.h, 10);
+  c.fillStyle = getComputedStyle(mediaEl).backgroundColor;
+  c.fill();
+  c.clip();
+  const img = mediaEl.querySelector("img");
+  if (img?.complete && img.naturalWidth) {
+    const s = Math.min(M.w / img.naturalWidth, M.h / img.naturalHeight); // object-fit: contain
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    try { c.drawImage(img, M.x + (M.w - w) / 2, M.y + (M.h - h) / 2, w, h); } catch {}
+  }
+  const ph = mediaEl.querySelector(".placeholder");
+  if (ph) {
+    const cs = getComputedStyle(ph);
+    c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    c.fillStyle = cs.color;
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(ph.textContent.toUpperCase(), M.x + M.w / 2, M.y + M.h / 2);
+    c.textAlign = "left";
+  }
+  c.restore();
+
+  const dot = mediaEl.querySelector(".prio");
+  if (dot) {
+    const D = rel(dot);
+    c.beginPath();
+    c.arc(D.x + D.w / 2, D.y + D.h / 2, D.w / 2 + 2, 0, Math.PI * 2);
+    c.fillStyle = "rgba(255,255,255,.9)";
+    c.fill();
+    c.beginPath();
+    c.arc(D.x + D.w / 2, D.y + D.h / 2, D.w / 2, 0, Math.PI * 2);
+    c.fillStyle = getComputedStyle(dot).backgroundColor;
+    c.fill();
+  }
+
+  c.textBaseline = "middle";
+  for (const el of card.querySelectorAll(".info p")) {
+    if (!el.textContent.trim()) continue;
+    const cs = getComputedStyle(el);
+    const T = rel(el);
+    const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
+    c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    c.fillStyle = cs.color;
+    wrapText(c, el.textContent.trim(), T.w).forEach((line, n) => c.fillText(line, T.x, T.y + lh * (n + 0.5)));
+  }
+  c.restore();
+  return snap;
+}
+
+function dustCard(card) {
+  const C = rect(card);
+  if (!motion || reduceMotion || !onScreen(C)) return false;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  let snap;
+  try { snap = snapshotCard(card, C, dpr); } catch { return false; }
+
+  // Cut the card into 2px specks (sampled at 1x, which is plenty for dust).
+  const cell = 2;
+  const cols = Math.ceil(C.w / cell), rows = Math.ceil(C.h / cell);
+  const small = document.createElement("canvas");
+  small.width = cols; small.height = rows;
+  const sc = small.getContext("2d", { willReadFrequently: true });
+  sc.drawImage(snap, 0, 0, cols, rows);
+  let px;
+  try { px = sc.getImageData(0, 0, cols, rows).data; } catch { return false; }
+
+  const SWEEP = 0.75, JITTER = 0.35;
+  const parts = [];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      if (px[i + 3] < 16) continue;
+      // Specks peel off in clumps, so the edge of the sweep looks ragged rather than a clean line.
+      const clump = Math.sin(x * 0.21 + y * 0.13) * Math.cos(y * 0.17 - x * 0.05);
+      parts.push({
+        x: x * cell, y: y * cell,
+        r: px[i], g: px[i + 1], b: px[i + 2], a: px[i + 3],
+        delay: (x / cols) * SWEEP + (clump * 0.5 + 0.5) * JITTER * 0.7 + Math.random() * JITTER * 0.3,
+        vx: 50 + Math.random() * 110,
+        vy: -(25 + Math.random() * 95),
+        life: 0.8 + Math.random() * 0.7,
+        wob: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  // The overlay leaves room for the dust to drift above and to the right of the card.
+  const padL = 24, padT = 260, padR = 320, padB = 24;
+  const W = Math.ceil(C.w + padL + padR), H = Math.ceil(C.h + padT + padB);
+  const layer = document.createElement("canvas");
+  layer.className = "dust";
+  layer.width = W * dpr; layer.height = H * dpr;
+  Object.assign(layer.style, { left: C.x - padL + "px", top: C.y - padT + "px", width: W + "px", height: H + "px" });
+  const lc = layer.getContext("2d");
+  const buf = document.createElement("canvas"); // specks, drawn at 1x then scaled up crisply
+  buf.width = W; buf.height = H;
+  const bc = buf.getContext("2d");
+  const frame = bc.createImageData(W, H);
+  const fd = frame.data;
+  document.body.appendChild(layer);
+  card.style.visibility = "hidden";
+
+  const draw = (t) => {
+    fd.fill(0);
+    // Anything right of this line hasn't started to go yet, so it's drawn sharp from the snapshot.
+    const intact = Math.max(0, (t / SWEEP) * C.w);
+    for (const p of parts) {
+      const age = t - p.delay;
+      if (age < 0 && p.x >= intact) continue;
+      let x = p.x, y = p.y, a = p.a;
+      if (age > 0) {
+        if (age > p.life) continue;
+        const k = age / p.life;
+        x += p.vx * age + 70 * age * age + Math.sin(p.wob + age * 6) * 6 * k;
+        y += p.vy * age - 40 * age * age;
+        a *= (1 - k) * (1 - k);
+      }
+      x = Math.round(x + padL); y = Math.round(y + padT);
+      if (x < 0 || y < 0 || x >= W - 1 || y >= H - 1) continue;
+      for (let dy = 0; dy < cell; dy++) {
+        let o = ((y + dy) * W + x) * 4;
+        for (let dx = 0; dx < cell; dx++, o += 4) {
+          fd[o] = p.r; fd[o + 1] = p.g; fd[o + 2] = p.b; fd[o + 3] = a;
+        }
+      }
+    }
+    bc.putImageData(frame, 0, 0);
+    lc.clearRect(0, 0, layer.width, layer.height);
+    if (intact < C.w) {
+      const sx = Math.floor(intact);
+      lc.drawImage(snap, sx * dpr, 0, (C.w - sx) * dpr, C.h * dpr, (padL + sx) * dpr, padT * dpr, (C.w - sx) * dpr, C.h * dpr);
+    }
+    lc.imageSmoothingEnabled = false;
+    lc.drawImage(buf, 0, 0, layer.width, layer.height);
+  };
+
+  const end = SWEEP + JITTER + 1.5;
+  const state = { t: 0 };
+  draw(0);
+  gsap.to(state, { t: end, duration: end, ease: "none", onUpdate: () => draw(state.t), onComplete: () => layer.remove() });
+  return true;
+}
+
 $("dConfirmDelete").onclick = () => {
   const index = items.findIndex((x) => x.id === current);
   if (index < 0) return;
   const [removed] = items.splice(index, 1);
-  detail.close();
+  detail.close(); // also puts the card back (it was hidden while the modal was open)
+  const card = cardEls.get(removed.id);
+  if (card) dustCard(card);
   save();
   toast(`Removed ${removed.name}`, false, {
     label: "Undo",
