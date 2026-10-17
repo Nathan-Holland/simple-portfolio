@@ -826,3 +826,40 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
   .bs-cat { grid-template-columns: minmax(90px, 120px) 1fr auto; gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .bs-bar span { transition: none; } }
+
+/* ---- Inline delete confirmation (replaces the browser's confirm box) ---- */
+.detail-body.confirming .detail-actions { display: none; }
+.delete-confirm {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fdecea;
+  animation: confirm-in .35s cubic-bezier(.2,.7,.2,1);
+}
+.delete-confirm[hidden] { display: none; }
+.delete-confirm-icon { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #c62828; display: grid; place-items: center; }
+.delete-confirm-icon svg { width: 18px; height: 18px; }
+.delete-confirm p { margin: 0; line-height: 1.4; color: var(--ink); }
+.delete-confirm strong { font-weight: 500; }
+.delete-confirm-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; }
+.delete-confirm-actions .ghost { color: var(--ink); }
+.delete-confirm-actions .ghost:hover { background: rgba(255,255,255,.7); }
+.pill-btn.danger-fill { background: #c62828; color: #fff; box-shadow: none; padding: 9px 20px; }
+.pill-btn.danger-fill:hover { background: #b71c1c; }
+@keyframes confirm-in { from { opacity: 0; translate: 0 10px; scale: .98; } }
+
+/* Toast with an action (e.g. Undo) */
+.toast { display: inline-flex; align-items: center; gap: 14px; }
+.toast-action {
+  border: 0; border-radius: 999px;
+  background: rgba(255,255,255,.16); color: #fff;
+  font: inherit; font-weight: 600; font-size: 13px;
+  padding: 5px 12px; margin-right: -6px;
+  cursor: pointer;
+}
+.toast-action:hover { background: rgba(255,255,255,.28); }
+@media (prefers-reduced-motion: reduce) { .delete-confirm { animation: none; } }

@@ -77,14 +77,19 @@
   }
 
   let toastTimer;
-  function toast(msg, isError = false) {
+  function toast(msg, isError = false, action = null) {
     const t = $("toast");
     t.textContent = msg;
+    if (action) {
+      const b = Object.assign(document.createElement("button"), { type: "button", className: "toast-action", textContent: action.label });
+      b.onclick = () => { clearTimeout(toastTimer); t.hidden = true; action.run(); };
+      t.append(b);
+    }
     t.className = "toast" + (isError ? " error" : "");
     t.hidden = false;
     if (motion) gsap.fromTo(t, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" });
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => (t.hidden = true), isError ? 5000 : 2200);
+    toastTimer = setTimeout(() => (t.hidden = true), action ? 6000 : isError ? 5000 : 2200);
   }
 
   // ---------- helpers ----------
@@ -715,6 +720,8 @@
   }
 
   function openDetail(id, card) {
+    $("dConfirm").hidden = true;
+    detail.querySelector(".detail-body").classList.remove("confirming");
     const i = items.find((x) => x.id === id);
     if (!i) return;
     current = id;
@@ -867,13 +874,39 @@
     save();
   };
 
-  $("dDelete").onclick = () => {
-    const i = items.find((x) => x.id === current);
-    if (!confirm(`Remove "${i.name}" from your wishlist?`)) return;
-    items = items.filter((x) => x.id !== current);
-    detail.close();
-    save();
-  };
+// Delete: the action row turns into an inline "Remove …?" confirmation (no browser pop-up),
+// and after deleting there is an Undo in the toast.
+const detailBody = detail.querySelector(".detail-body");
+const confirming = () => !$("dConfirm").hidden;
+function askDelete() {
+  const i = items.find((x) => x.id === current);
+  if (!i) return;
+  $("dConfirmName").textContent = `“${i.name}”`;
+  $("dConfirm").hidden = false;
+  detailBody.classList.add("confirming");
+  $("dConfirmCancel").focus();
+}
+function cancelDelete() {
+  $("dConfirm").hidden = true;
+  detailBody.classList.remove("confirming");
+  $("dDelete").focus();
+}
+$("dDelete").onclick = askDelete;
+$("dConfirmCancel").onclick = cancelDelete;
+$("dConfirmDelete").onclick = () => {
+  const index = items.findIndex((x) => x.id === current);
+  if (index < 0) return;
+  const [removed] = items.splice(index, 1);
+  detail.close();
+  save();
+  toast(`Removed ${removed.name}`, false, {
+    label: "Undo",
+    run: () => {
+      items.splice(Math.min(index, items.length), 0, removed);
+      save();
+    },
+  });
+};
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -923,7 +956,11 @@
   document.querySelectorAll("[data-close]").forEach((b) => (b.onclick = () => closeDialog(b.closest("dialog"))));
   document.querySelectorAll("dialog").forEach((d) => {
     d.addEventListener("click", (e) => { if (e.target === d) closeDialog(d); });
-    d.addEventListener("cancel", (e) => { e.preventDefault(); closeDialog(d); }); // Escape key
+    d.addEventListener("cancel", (e) => { // Escape key
+      e.preventDefault();
+      if (d === detail && confirming()) return cancelDelete();
+      closeDialog(d);
+    });
   });
 
   // ---------- sign in / out ----------
