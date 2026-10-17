@@ -854,6 +854,7 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 
 /* Toast with an action (e.g. Undo) */
 .toast { display: inline-flex; align-items: center; gap: 14px; }
+.toast[hidden] { display: none; }
 .toast-action {
   border: 0; border-radius: 999px;
   background: rgba(255,255,255,.16); color: #fff;
