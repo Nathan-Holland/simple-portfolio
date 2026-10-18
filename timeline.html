@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noimageindex">
+<title>Nate Holland — Timeline</title>
+<link rel="stylesheet" href="styles.css?v=78">
+<link rel="stylesheet" href="timeline.css?v=2">
+<link rel="icon" href="favicon.svg">
+</head>
+<body class="timeline-page">
+
+  <script>
+    var dq = window.matchMedia("(prefers-color-scheme: dark)");
+    var storedDark = localStorage.getItem("dark");
+    document.body.classList.toggle("dark", storedDark === null ? dq.matches : storedDark === "1");
+  </script>
+
+  <header class="tl-bar">
+    <a href="index.html" class="tl-name">Nate Holland</a>
+    <button type="button" class="tl-logo" id="darkToggle" aria-label="Toggle dark mode"><img src="logo.svg" alt=""></button>
+    <a href="index.html" class="tl-back">Work</a>
+  </header>
+
+  <!-- Tall spacer: its height (set in timeline.js) is the scroll distance.
+       The stage inside it stays pinned while scrolling drives which entry
+       is "hovered", the way the cursor does along a Dock. -->
+  <div class="tl-scroll" id="tlScroll">
+    <div class="tl-stage" id="tlStage">
+      <div class="tl-list-wrap">
+        <span class="tl-spine"></span>
+        <span class="tl-focus" id="tlFocus"></span>
+        <ol class="tl-list" id="tlList"></ol>
+      </div>
+      <div class="tl-detail-wrap" id="tlDetail"></div>
+      <div class="tl-hint" id="tlHint">Scroll</div>
+      <div class="tl-count" id="tlCount"></div>
+    </div>
+  </div>
+
+  <script src="timeline.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+/* Alt version of the portfolio: a career timeline whose entries magnify
+   like Dock icons — driven by scroll position instead of the cursor.
+   Colors/fonts come from styles.css tokens; layout is all here. */
+
+.tl-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 24px var(--page-margin);
+  pointer-events: none;
+}
+.tl-bar > * { pointer-events: auto; }
+.tl-name { color: var(--text); justify-self: start; }
+.tl-back {
+  justify-self: end;
+  color: var(--text-2);
+  transition: color 0.2s ease;
+}
+.tl-back:hover { color: var(--text); }
+.tl-logo {
+  background: none;
+  border: 0;
+  padding: 0;
+  line-height: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.tl-logo img { height: 1.125em; width: auto; }
+body.dark .tl-logo img { filter: invert(1); }
+
+/* JS sets the real height from the entry count; this is just a fallback. */
+.tl-scroll { position: relative; min-height: 400vh; }
+.tl-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---- the Dock-like list ---- */
+.tl-list-wrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 58%;
+}
+.tl-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--page-margin);
+  width: 1px;
+  background: var(--border);
+}
+/* Marks the focal line the list is magnifying around. */
+.tl-focus {
+  position: absolute;
+  left: var(--page-margin);
+  width: 9px;
+  height: 9px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--text);
+}
+.tl-list {
+  list-style: none;
+  position: absolute;
+  inset: 0;
+}
+/* Fixed base size; timeline.js scales + positions each one every frame,
+   growing from the left edge so they all hang off the spine. */
+.tl-item {
+  position: absolute;
+  top: 0;
+  left: calc(var(--page-margin) + 18px);
+  width: 300px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transform-origin: 0 50%;
+  cursor: pointer;
+  outline: none;
+}
+.tl-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  /* --f (0–1) is how "hovered" this entry is; it fills in as it peaks. */
+  background: color-mix(in srgb, var(--text) calc(var(--f, 0) * 100%), var(--card));
+  color: color-mix(in srgb, var(--bg) calc(var(--f, 0) * 100%), var(--text-2));
+  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
+  font-weight: 500;
+  font-size: 16px;
+}
+.tl-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+.tl-year {
+  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.tl-role {
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--text);
+}
+.tl-company {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* ---- detail panel for the active entry ---- */
+.tl-detail-wrap {
+  position: absolute;
+  top: 50%;
+  right: var(--page-margin);
+  z-index: 2;
+  width: min(34%, 420px);
+  transform: translateY(-50%);
+  display: grid;
+}
+.tl-detail {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  pointer-events: none;
+}
+.tl-detail.is-active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.tl-detail-year {
+  margin-bottom: 16px;
+  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.tl-detail h2 {
+  margin-bottom: 4px;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 500;
+}
+.tl-detail-company {
+  margin-bottom: 20px;
+  color: var(--text-2);
+}
+.tl-detail-blurb {
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.tl-tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tl-tags li {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* ---- corner readouts ---- */
+.tl-hint,
+.tl-count {
+  position: absolute;
+  bottom: 24px;
+  z-index: 3;
+  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.tl-hint {
+  left: var(--page-margin);
+  transition: opacity 0.4s ease;
+}
+.tl-hint.is-hidden { opacity: 0; }
+.tl-count { right: var(--page-margin); }
+
+@media (max-width: 760px) {
+  .tl-list-wrap { width: 100%; }
+  .tl-spine { bottom: auto; height: 62%; }
+  /* The list takes the top of the screen; the detail sits below it, over
+     whatever entries would otherwise run down behind it. */
+  .tl-detail-wrap {
+    top: auto;
+    bottom: 56px;
+    left: var(--page-margin);
+    right: var(--page-margin);
+    width: auto;
+    transform: none;
+    background: var(--bg);
+    box-shadow: 0 -28px 28px 0 var(--bg);
+  }
+  .tl-detail h2 { font-size: 22px; }
+}
