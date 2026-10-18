@@ -547,6 +547,7 @@
     el.addEventListener("input", renderPreview);
   });
   fieldTitle.addEventListener("input", () => {
+    fieldTitle.setCustomValidity("");
     editorTopbarTitle.textContent = fieldTitle.value.trim() || "New project";
   });
 
@@ -710,7 +711,7 @@
   function commitEditor() {
     const title = fieldTitle.value.trim();
     const client = fieldClient.value.trim();
-    if (!title || !client) return false;
+    if (!title) return false;
 
     const existing = editingIndex >= 0 ? projects[editingIndex] : null;
     const project = {
@@ -768,7 +769,13 @@
   // Done saves the project's edits into projects[]; Back discards them —
   // distinct actions, matching what each button says.
   editorDoneBtn.addEventListener("click", () => {
-    commitEditor();
+    // A project without a title can't be committed — say so and keep the
+    // editor open instead of closing it and silently dropping the project.
+    if (!commitEditor()) {
+      fieldTitle.setCustomValidity("Add a project title first.");
+      fieldTitle.reportValidity();
+      return;
+    }
     renderAnimated();
     closeEditor();
   });

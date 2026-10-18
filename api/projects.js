@@ -114,7 +114,12 @@ function normalizeProject(project) {
 async function readProjects() {
   const { blobs } = await list({ prefix: BLOB_PATH, limit: 1 });
   if (blobs.length === 0) return null;
-  const res = await fetch(blobs[0].url, { cache: "no-store" });
+  // The blob keeps one stable URL (allowOverwrite), so Blob's CDN can keep
+  // serving the previous save from cache — `cache: "no-store"` only affects
+  // this fetch, not the edge. Keying the URL on uploadedAt makes every save
+  // a fresh cache entry.
+  const version = new Date(blobs[0].uploadedAt).getTime() || Date.now();
+  const res = await fetch(blobs[0].url + "?v=" + version, { cache: "no-store" });
   if (!res.ok) return null;
   return res.json();
 }
@@ -129,6 +134,7 @@ export default async function handler(req, res) {
     }
     if (!Array.isArray(projects)) projects = DEFAULT_PROJECTS;
     projects = projects.map(normalizeProject);
+    res.setHeader("Cache-Control", "no-store");
     res.status(200).json({ projects });
     return;
   }
@@ -151,6 +157,7 @@ export default async function handler(req, res) {
         contentType: "application/json",
         addRandomSuffix: false,
         allowOverwrite: true,
+        cacheControlMaxAge: 60,
       });
     } catch (err) {
       // Surfaced directly in the response so admin.js's error banner (and
