@@ -1,6 +1,7 @@
-/* Alt version of the portfolio: a career timeline whose entries magnify
-   like Dock icons — driven by scroll position instead of the cursor.
-   Colors/fonts come from styles.css tokens; layout is all here. */
+/* Alt version of the portfolio: a career timeline that sits along the
+   bottom as a row of images, magnifying like the macOS Dock — driven by
+   scroll position instead of the cursor. Colors/fonts come from styles.css
+   tokens; layout is all here. */
 
 .tl-bar {
   position: fixed;
@@ -42,100 +43,66 @@ body.dark .tl-logo img { filter: invert(1); }
   overflow: hidden;
 }
 
-/* ---- the Dock-like list ---- */
-.tl-list-wrap {
+/* ---- the Dock-like row of images ---- */
+/* A zero-height line the images stand on: they grow upward from it. */
+.tl-dock {
   position: absolute;
-  top: 0;
-  bottom: 0;
   left: 0;
-  width: 58%;
-}
-.tl-spine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--page-margin);
-  width: 1px;
-  background: var(--border);
-}
-/* Marks the focal line the list is magnifying around. */
-.tl-focus {
-  position: absolute;
-  left: var(--page-margin);
-  width: 9px;
-  height: 9px;
-  margin: -4px 0 0 -4px;
-  border-radius: 50%;
-  background: var(--text);
+  right: 0;
+  bottom: 72px;
+  height: 0;
 }
 .tl-list {
   list-style: none;
   position: absolute;
   inset: 0;
 }
-/* Fixed base size; timeline.js scales + positions each one every frame,
-   growing from the left edge so they all hang off the spine. */
+/* Fixed base size; timeline.js scales + slides each one every frame. */
 .tl-item {
   position: absolute;
-  top: 0;
-  left: calc(var(--page-margin) + 18px);
-  width: 300px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transform-origin: 0 50%;
+  left: 0;
+  bottom: 0;
+  width: 72px;
+  height: 72px;
+  transform-origin: 50% 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   outline: none;
 }
-.tl-icon {
-  flex: none;
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  /* --f (0–1) is how "hovered" this entry is; it fills in as it peaks. */
-  background: color-mix(in srgb, var(--text) calc(var(--f, 0) * 100%), var(--card));
-  color: color-mix(in srgb, var(--bg) calc(var(--f, 0) * 100%), var(--text-2));
-  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
-  font-weight: 500;
-  font-size: 16px;
+.tl-item:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.tl-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
 }
-.tl-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  white-space: nowrap;
-}
-.tl-year {
-  font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
-  font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-2);
-}
-.tl-role {
-  font-size: 15px;
-  line-height: 1.2;
-  color: var(--text);
-}
-.tl-company {
-  font-size: 13px;
-  color: var(--text-2);
+/* Marks the centre of the dock, under whichever image is in focus. */
+.tl-focus {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: var(--text);
 }
 
-/* ---- detail panel for the active entry ---- */
+/* ---- detail for the active entry ---- */
 .tl-detail-wrap {
   position: absolute;
-  top: 50%;
-  right: var(--page-margin);
+  top: 38%;
+  left: 50%;
   z-index: 2;
-  width: min(34%, 420px);
-  transform: translateY(-50%);
+  width: min(560px, calc(100% - 2 * var(--page-margin)));
+  transform: translate(-50%, -50%);
   display: grid;
+  text-align: center;
 }
 .tl-detail {
   grid-area: 1 / 1;
@@ -150,7 +117,7 @@ body.dark .tl-logo img { filter: invert(1); }
   pointer-events: auto;
 }
 .tl-detail-year {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   font-family: "GT Standard Mono Trial", "Lay Grotesk", monospace;
   font-weight: 500;
   font-size: 12px;
@@ -159,23 +126,26 @@ body.dark .tl-logo img { filter: invert(1); }
   color: var(--text-2);
 }
 .tl-detail h2 {
-  margin-bottom: 4px;
-  font-size: 28px;
-  line-height: 1.15;
+  margin-bottom: 6px;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.1;
   font-weight: 500;
+  letter-spacing: -0.01em;
 }
 .tl-detail-company {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   color: var(--text-2);
 }
 .tl-detail-blurb {
-  margin-bottom: 20px;
+  max-width: 460px;
+  margin: 0 auto 22px;
   line-height: 1.5;
 }
 .tl-tags {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
 }
 .tl-tags li {
@@ -211,19 +181,12 @@ body.dark .tl-logo img { filter: invert(1); }
 .tl-count { right: var(--page-margin); }
 
 @media (max-width: 760px) {
-  .tl-list-wrap { width: 100%; }
-  .tl-spine { bottom: auto; height: 62%; }
-  /* The list takes the top of the screen; the detail sits below it, over
-     whatever entries would otherwise run down behind it. */
-  .tl-detail-wrap {
-    top: auto;
-    bottom: 56px;
-    left: var(--page-margin);
-    right: var(--page-margin);
-    width: auto;
-    transform: none;
-    background: var(--bg);
-    box-shadow: 0 -28px 28px 0 var(--bg);
+  .tl-dock { bottom: 64px; }
+  .tl-item {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
   }
-  .tl-detail h2 { font-size: 22px; }
+  .tl-detail-wrap { top: 34%; }
+  .tl-detail h2 { font-size: 26px; }
 }
