@@ -565,6 +565,7 @@ label.check input { width: auto; }
 
 /* Fetch from URL */
 .fetch { padding: 14px; background: var(--tile); border-radius: 14px; display: grid; gap: 6px; }
+.fetch[hidden] { display: none; }
 .fetch-input { display: flex; gap: 8px; }
 .fetch-input input { background: var(--card); }
 .fetch-input .pill-btn { flex: none; }
@@ -867,3 +868,65 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 
 /* Delete: the card turns to dust (canvas drawn in app.js) */
 .dust { position: fixed; z-index: 25; pointer-events: none; }
+
+/* ---------- Linked items ("Buy first" / "Needed for") ---------- */
+.needs {
+  margin: 4px 0 0;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #9a5b00;
+}
+.needs svg { width: 14px; height: 14px; flex: none; }
+.needs span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.links { display: grid; gap: 14px; }
+.links[hidden] { display: none; }
+.links-group { display: grid; gap: 6px; }
+.links-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.links-head .notes-label { display: flex; align-items: center; gap: 6px; margin: 0 !important; }
+.links-head .notes-label svg { width: 13px; height: 13px; }
+.links-total { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.link-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 6px 12px 6px 6px;
+  border: 0; border-radius: 12px;
+  background: var(--tile);
+  font: inherit; color: var(--ink); text-align: left;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.link-row:hover { background: #efefef; }
+.link-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.link-thumb {
+  position: relative;
+  width: 44px; height: 44px; flex: none;
+  border-radius: 8px; overflow: hidden;
+  background: #fff;
+}
+.link-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.link-text { display: grid; min-width: 0; flex: 1 1 auto; }
+.link-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-meta { font-size: 12px; color: var(--muted); }
+.link-status { display: inline-flex; align-items: center; gap: 4px; flex: none; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.link-status svg { width: 14px; height: 14px; }
+.link-row.done .link-status { color: #1e7b3c; font-family: inherit; font-size: 12px; font-weight: 500; }
+
+/* The "needs something first" check shares the delete confirmation's layout */
+.delete-confirm.guard { background: #fdf3e1; }
+.delete-confirm.guard .delete-confirm-icon { color: #9a5b00; }
+.delete-confirm.guard[hidden] { display: none; }
+
+/* Editor: "Buy first" picker + chips */
+.needs-field { display: grid; gap: 8px; }
+.needs-field .hint { margin: -2px 0 0; font-size: 12px; color: var(--muted); }
+.needs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.needs-chips:empty { display: none; }
+.needs-chip { padding-right: 4px; }
+.needs-chip button {
+  width: 22px; height: 22px; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.needs-chip button:hover { background: rgba(0,0,0,.07); color: var(--ink); }
+.needs-chip button svg { width: 14px; height: 14px; }

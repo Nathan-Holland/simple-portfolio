@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/wishlist/styles.css?v=45" />
+  <link rel="stylesheet" href="/wishlist/styles.css?v=46" />
 </head>
 <body>
   <header class="top">
@@ -80,6 +80,7 @@
           <p class="price" id="dPrice"></p>
         </div>
         <div class="facts" id="dFacts"></div>
+        <section class="links" id="dLinks" hidden></section>
         <section class="saver" id="dSaver" aria-labelledby="saverTitle">
           <div class="saver-head">
             <p class="notes-label" id="saverTitle">Save up for it</p>
@@ -124,6 +125,17 @@
             <button class="pill-btn danger-fill" id="dConfirmDelete" type="button">Delete</button>
           </div>
         </div>
+        <!-- Shown when marking something bought before the items it needs -->
+        <div class="delete-confirm guard" id="dGuard" role="alertdialog" aria-labelledby="dGuardText" hidden>
+          <div class="delete-confirm-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1" /><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" /></svg>
+          </div>
+          <p id="dGuardText"></p>
+          <div class="delete-confirm-actions">
+            <button class="ghost" id="dGuardCancel" type="button">Not yet</button>
+            <button class="pill-btn dark" id="dGuardOk" type="button">Mark bought anyway</button>
+          </div>
+        </div>
       </div>
     </div>
   </dialog>
@@ -163,6 +175,13 @@
       </div>
       <label>Image URL<input name="image" type="url" placeholder="https://…" /></label>
       <label>Product link<input name="link" type="url" placeholder="https://…" /></label>
+      <div class="needs-field">
+        <label>Buy first
+          <select id="needsAdd" aria-describedby="needsHint"></select>
+        </label>
+        <p class="hint" id="needsHint">Items this one needs, like a console for a game.</p>
+        <div class="needs-chips" id="needsChips"></div>
+      </div>
       <label>Notes<textarea name="notes" rows="3"></textarea></label>
       <label class="check"><input name="bought" type="checkbox" /> Already bought</label>
       <datalist id="cats"></datalist>
@@ -192,6 +211,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
-  <script src="/wishlist/app.js?v=45"></script>
+  <script src="/wishlist/app.js?v=46"></script>
 </body>
 </html>

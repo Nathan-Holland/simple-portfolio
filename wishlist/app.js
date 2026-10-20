@@ -147,6 +147,22 @@
   }
   const ARROW = svg('<path d="M7 17 17 7M8.5 7H17v8.5"/>');
   const CHECK = svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>');
+  const ICON_LINK = svg('<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>');
+
+  // ---------- linked items ----------
+  // item.needs = ids of items to buy first (e.g. a game needs the console's disc drive).
+  // Ids of deleted items are simply ignored, so Undo brings links back intact.
+  const byId = (id) => items.find((x) => x.id === id);
+  const needsOf = (i) => (i.needs || []).map(byId).filter(Boolean);
+  const stillNeeded = (i) => needsOf(i).filter((n) => !n.bought);
+  const neededFor = (i) => items.filter((x) => (x.needs || []).includes(i.id));
+  // Does `item` need `id`, directly or through something it needs? (stops loops when linking)
+  function needsDeep(item, id, seen = new Set()) {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return needsOf(item).some((n) => n.id === id || needsDeep(n, id, seen));
+  }
+  const andList = (names) => names.length < 2 ? names.join("") : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
 
   // ---------- sorting ----------
   const SORTS = {
@@ -403,7 +419,8 @@
     const ids = new Set(items.map((i) => i.id));
     for (const [id, el] of cardEls) if (!ids.has(id)) { el.remove(); cardEls.delete(id); }
     for (const i of items) {
-      const sig = JSON.stringify(i);
+      const waiting = i.bought ? [] : stillNeeded(i);
+      const sig = JSON.stringify(i) + "|" + waiting.map((n) => n.id).join();
       const old = cardEls.get(i.id);
       if (old?.dataset.sig === sig) continue;
       const el = document.createElement("article");
@@ -423,6 +440,7 @@
           <p class="meta">${esc([i.brand, i.category].filter(Boolean).join(" · "))}</p>
           <p class="name">${esc(i.name)}</p>
           <p class="price">${money(i.price)}</p>
+          ${waiting.length ? `<p class="needs">${ICON_LINK}<span>Needs ${esc(andList(waiting.map((n) => n.name)))}</span></p>` : ""}
         </div>`;
       bindHover(el);
       if (old) old.replaceWith(el);
@@ -633,7 +651,7 @@
     if (openCard) openCard.style.visibility = "";
     openCard = null;
   }
-  detail.addEventListener("close", cleanupDetail);
+  detail.addEventListener("close", () => { if (!detail.open) cleanupDetail(); }); // async: skip if it's already reopened
 
   // ---------- savings calculator (detail modal) ----------
   // Pick 1/3/6/12 months; shows what to put aside per month and per week,
@@ -721,6 +739,7 @@
 
   function openDetail(id, card) {
     $("dConfirm").hidden = true;
+    $("dGuard").hidden = true;
     detail.querySelector(".detail-body").classList.remove("confirming");
     const i = items.find((x) => x.id === id);
     if (!i) return;
@@ -752,6 +771,7 @@
       ? `<dl class="facts-row">${facts.map(([k, v]) => `<div class="fact"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>`
       : "";
     $("dFacts").hidden = !facts.length;
+    renderLinks(i);
     $("dNotes").textContent = i.notes || "";
     $("dNotesWrap").hidden = !i.notes;
     renderSaver(i);
@@ -778,6 +798,77 @@
     if (!saver.hidden) placeSegIndicator(true);
   }
 
+  // "Buy first" / "Needed for" rows in the detail modal; each one opens that item.
+  function renderLinks(i) {
+    const row = (x) => {
+      const tile = cardEls.get(x.id)?.querySelector(".media");
+      const bg = tile ? getComputedStyle(tile).backgroundColor : "";
+      return `<button type="button" class="link-row${x.bought ? " done" : ""}" data-open="${esc(x.id)}">
+          <span class="link-thumb"${bg ? ` style="background-color:${bg}"` : ""}>${x.image ? `<img src="${esc(proxied(x.image))}" alt="" loading="lazy" onerror="this.remove()" />` : ""}</span>
+          <span class="link-text"><span class="link-name">${esc(x.name)}</span>${x.brand ? `<span class="link-meta">${esc(x.brand)}</span>` : ""}</span>
+          <span class="link-status">${x.bought ? `${CHECK}Bought` : esc(money(x.price))}</span>
+        </button>`;
+    };
+    const needs = needsOf(i), forItems = neededFor(i);
+    let html = "";
+    if (needs.length) {
+      const open = needs.filter((n) => !n.bought);
+      const total = [i, ...open].reduce((s, x) => s + (Number(x.price) || 0), 0);
+      const together = !i.bought && open.length && total ? `<span class="links-total">${esc(money(total))} all together</span>` : "";
+      html += `<div class="links-group"><div class="links-head"><p class="notes-label">${ICON_LINK}Buy first</p>${together}</div>${needs.map(row).join("")}</div>`;
+    }
+    if (forItems.length) {
+      html += `<div class="links-group"><div class="links-head"><p class="notes-label">${ICON_LINK}Needed for</p></div>${forItems.map(row).join("")}</div>`;
+    }
+    $("dLinks").innerHTML = html;
+    $("dLinks").hidden = !html;
+  }
+  $("dLinks").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-open]");
+    if (!b) return;
+    cleanupDetail();
+    detail.close();
+    const card = cardEls.get(b.dataset.open);
+    openDetail(b.dataset.open, card && !card.hidden ? card : null);
+  });
+
+  // ---------- "Buy first" field in the editor ----------
+  let formNeeds = [];
+  function renderNeedsField() {
+    const self = form.dataset.id;
+    $("needsChips").innerHTML = formNeeds
+      .map(byId)
+      .map((x) => `<span class="chip needs-chip">${ICON_LINK}<span>${esc(x.name)}</span><button type="button" data-remove="${esc(x.id)}" aria-label="Remove ${esc(x.name)}">${svg('<path d="M7 7l10 10M17 7 7 17"/>')}</button></span>`)
+      .join("");
+    // Anything except itself, what's already linked, and items that need this one (no loops).
+    const options = items
+      .filter((x) => x.id !== self && !formNeeds.includes(x.id) && !(self && needsDeep(x, self)))
+      .sort((a, b) => (a.category || "~").localeCompare(b.category || "~") || a.name.localeCompare(b.name));
+    const groups = new Map();
+    for (const x of options) {
+      const g = x.category || "Other";
+      if (!groups.has(g)) groups.set(g, []);
+      groups.get(g).push(x);
+    }
+    $("needsAdd").innerHTML =
+      `<option value="">${options.length ? "Link an item…" : "Nothing to link"}</option>` +
+      [...groups].map(([g, xs]) => `<optgroup label="${esc(g)}">${xs.map((x) => `<option value="${esc(x.id)}">${esc([x.brand, x.name].filter(Boolean).join(" · "))}</option>`).join("")}</optgroup>`).join("");
+    $("needsAdd").disabled = !options.length;
+  }
+  $("needsAdd").addEventListener("change", (e) => {
+    if (!e.target.value) return;
+    formNeeds.push(e.target.value);
+    renderNeedsField();
+    $("needsAdd").focus();
+  });
+  $("needsChips").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-remove]");
+    if (!b) return;
+    formNeeds = formNeeds.filter((id) => id !== b.dataset.remove);
+    renderNeedsField();
+    $("needsAdd").focus();
+  });
+
   function openEditor(item) {
     form.reset();
     form.dataset.id = item?.id || "";
@@ -785,6 +876,8 @@
     $("fetchRow").hidden = !!item;
     $("fetchUrl").value = "";
     setFetchStatus("");
+    formNeeds = (item?.needs || []).filter(byId);
+    renderNeedsField();
     if (item) {
       for (const [k, v] of Object.entries(item)) {
         const el = form.elements[k];
@@ -869,7 +962,23 @@
 
   $("dToggle").onclick = () => {
     const i = items.find((x) => x.id === current);
+    const waiting = stillNeeded(i);
+    // Buying a game before its disc drive? Check first (but don't block it).
+    if (!i.bought && waiting.length) return askGuard(i, waiting);
     setBought(i, !i.bought);
+    detail.close();
+    save();
+  };
+  function askGuard(i, waiting) {
+    $("dGuardText").innerHTML = `<strong>${esc(i.name)}</strong> needs <strong>${esc(andList(waiting.map((n) => n.name)))}</strong> first. Mark it as bought anyway?`;
+    $("dGuard").hidden = false;
+    detail.querySelector(".detail-body").classList.add("confirming");
+    $("dGuardCancel").focus();
+  }
+  $("dGuardCancel").onclick = () => cancelDelete();
+  $("dGuardOk").onclick = () => {
+    const i = items.find((x) => x.id === current);
+    setBought(i, true);
     detail.close();
     save();
   };
@@ -877,7 +986,7 @@
 // Delete: the action row turns into an inline "Remove …?" confirmation (no browser pop-up),
 // and after deleting there is an Undo in the toast.
 const detailBody = detail.querySelector(".detail-body");
-const confirming = () => !$("dConfirm").hidden;
+const confirming = () => !$("dConfirm").hidden || !$("dGuard").hidden;
 function askDelete() {
   const i = items.find((x) => x.id === current);
   if (!i) return;
@@ -887,9 +996,11 @@ function askDelete() {
   $("dConfirmCancel").focus();
 }
 function cancelDelete() {
+  const wasGuard = !$("dGuard").hidden;
   $("dConfirm").hidden = true;
+  $("dGuard").hidden = true;
   detailBody.classList.remove("confirming");
-  $("dDelete").focus();
+  $(wasGuard ? "dToggle" : "dDelete").focus();
 }
 $("dDelete").onclick = askDelete;
 $("dConfirmCancel").onclick = cancelDelete;
@@ -1078,7 +1189,8 @@ $("dConfirmDelete").onclick = () => {
   const index = items.findIndex((x) => x.id === current);
   if (index < 0) return;
   const [removed] = items.splice(index, 1);
-  detail.close(); // also puts the card back (it was hidden while the modal was open)
+  cleanupDetail(); // puts the card back (it was hidden while the modal was open) so it can be painted
+  detail.close();
   const card = cardEls.get(removed.id);
   if (card) dustCard(card);
   save();
@@ -1111,6 +1223,8 @@ $("dConfirmDelete").onclick = () => {
     let target = id && items.find((x) => x.id === id);
     if (target) Object.assign(target, fields);
     else items.unshift((target = { id: slug(data.name), added: new Date().toISOString(), ...fields, bought: false }));
+    if (formNeeds.length) target.needs = [...formNeeds];
+    else delete target.needs;
     setBought(target, bought);
     closeDialog(editor);
     save();
