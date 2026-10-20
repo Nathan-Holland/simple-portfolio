@@ -798,13 +798,18 @@
     if (!saver.hidden) placeSegIndicator(true);
   }
 
+  // Small photo tile, tinted like the item's card.
+  function thumbHTML(x) {
+    const tile = cardEls.get(x.id)?.querySelector(".media");
+    const bg = tile ? getComputedStyle(tile).backgroundColor : "";
+    return `<span class="link-thumb"${bg ? ` style="background-color:${bg}"` : ""}>${x.image ? `<img src="${esc(proxied(x.image))}" alt="" loading="lazy" onerror="this.remove()" />` : ""}</span>`;
+  }
+
   // "Buy first" / "Needed for" rows in the detail modal; each one opens that item.
   function renderLinks(i) {
     const row = (x) => {
-      const tile = cardEls.get(x.id)?.querySelector(".media");
-      const bg = tile ? getComputedStyle(tile).backgroundColor : "";
       return `<button type="button" class="link-row${x.bought ? " done" : ""}" data-open="${esc(x.id)}">
-          <span class="link-thumb"${bg ? ` style="background-color:${bg}"` : ""}>${x.image ? `<img src="${esc(proxied(x.image))}" alt="" loading="lazy" onerror="this.remove()" />` : ""}</span>
+          ${thumbHTML(x)}
           <span class="link-text"><span class="link-name">${esc(x.name)}</span>${x.brand ? `<span class="link-meta">${esc(x.brand)}</span>` : ""}</span>
           <span class="link-status">${x.bought ? `${CHECK}Bought` : esc(money(x.price))}</span>
         </button>`;
@@ -833,41 +838,230 @@
   });
 
   // ---------- "Buy first" field in the editor ----------
+  // A visual picker (photos, prices, grouped by category) instead of a native <select>.
   let formNeeds = [];
-  function renderNeedsField() {
+  const needsPanel = $("needsPanel"), needsBtn = $("needsBtn"), needsSearch = $("needsSearch"), needsList = $("needsList");
+  const XMARK = svg('<path d="M7 7l10 10M17 7 7 17"/>');
+  const itemText = (x) => `<span class="link-text"><span class="link-name">${esc(x.name)}</span>${x.brand ? `<span class="link-meta">${esc(x.brand)}</span>` : ""}</span>`;
+  // Anything except the item itself and things that need it (so links can't loop).
+  function linkable() {
     const self = form.dataset.id;
+    return items
+      .filter((x) => x.id !== self && !(self && needsDeep(x, self)))
+      .sort((a, b) => (a.category || "~").localeCompare(b.category || "~") || a.name.localeCompare(b.name));
+  }
+  function renderNeedsField() {
     $("needsChips").innerHTML = formNeeds
       .map(byId)
-      .map((x) => `<span class="chip needs-chip">${ICON_LINK}<span>${esc(x.name)}</span><button type="button" data-remove="${esc(x.id)}" aria-label="Remove ${esc(x.name)}">${svg('<path d="M7 7l10 10M17 7 7 17"/>')}</button></span>`)
+      .map((x) => `<div class="pick-row chosen">${thumbHTML(x)}${itemText(x)}<span class="link-status">${esc(money(x.price))}</span>
+          <button type="button" class="pick-remove" data-remove="${esc(x.id)}" aria-label="Unlink ${esc(x.name)}">${XMARK}</button></div>`)
       .join("");
-    // Anything except itself, what's already linked, and items that need this one (no loops).
-    const options = items
-      .filter((x) => x.id !== self && !formNeeds.includes(x.id) && !(self && needsDeep(x, self)))
-      .sort((a, b) => (a.category || "~").localeCompare(b.category || "~") || a.name.localeCompare(b.name));
+    needsBtn.querySelector("span").textContent = formNeeds.length ? "Link another item" : "Link an item";
+    if (!needsPanel.hidden) renderNeedsList();
+  }
+  function renderNeedsList() {
+    const q = needsSearch.value.trim().toLowerCase();
+    const opts = linkable().filter((x) => !q || [x.name, x.brand, x.category].join(" ").toLowerCase().includes(q));
     const groups = new Map();
-    for (const x of options) {
+    for (const x of opts) {
       const g = x.category || "Other";
       if (!groups.has(g)) groups.set(g, []);
       groups.get(g).push(x);
     }
-    $("needsAdd").innerHTML =
-      `<option value="">${options.length ? "Link an item…" : "Nothing to link"}</option>` +
-      [...groups].map(([g, xs]) => `<optgroup label="${esc(g)}">${xs.map((x) => `<option value="${esc(x.id)}">${esc([x.brand, x.name].filter(Boolean).join(" · "))}</option>`).join("")}</optgroup>`).join("");
-    $("needsAdd").disabled = !options.length;
+    needsList.innerHTML = opts.length
+      ? [...groups].map(([g, xs]) => `<div class="picker-group" role="group" aria-label="${esc(g)}">
+            <p class="picker-group-label">${iconFor(g)}${esc(g)}</p>
+            ${xs.map((x) => `<button type="button" role="option" class="pick-row" data-pick="${esc(x.id)}" aria-selected="${formNeeds.includes(x.id)}">
+                ${thumbHTML(x)}${itemText(x)}<span class="link-status">${esc(money(x.price))}</span><span class="pick-check">${CHECK}</span>
+              </button>`).join("")}
+          </div>`).join("")
+      : `<p class="picker-empty">${q ? `Nothing matches “${esc(needsSearch.value.trim())}”` : "Nothing to link yet"}</p>`;
   }
-  $("needsAdd").addEventListener("change", (e) => {
-    if (!e.target.value) return;
-    formNeeds.push(e.target.value);
+  function toggleNeedsPanel(open = needsPanel.hidden) {
+    needsPanel.hidden = !open;
+    needsBtn.setAttribute("aria-expanded", open);
+    if (!open) return;
+    needsSearch.value = "";
+    renderNeedsList();
+    needsSearch.focus({ preventScroll: true });
+    needsPanel.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  const pickOptions = () => [...needsList.querySelectorAll("[data-pick]")];
+  needsBtn.onclick = () => toggleNeedsPanel();
+  needsSearch.addEventListener("input", renderNeedsList);
+  needsSearch.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); pickOptions()[0]?.focus(); }
+    if (e.key === "Enter") { e.preventDefault(); pickOptions()[0]?.click(); } // don't submit the form
+  });
+  needsList.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pick]");
+    if (!b) return;
+    const id = b.dataset.pick;
+    formNeeds = formNeeds.includes(id) ? formNeeds.filter((x) => x !== id) : [...formNeeds, id];
     renderNeedsField();
-    $("needsAdd").focus();
+    needsList.querySelector(`[data-pick="${CSS.escape(id)}"]`)?.focus();
+  });
+  needsList.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const opts = pickOptions(), n = opts.indexOf(document.activeElement);
+    if (e.key === "ArrowUp" && n <= 0) return needsSearch.focus();
+    opts[Math.min(opts.length - 1, n + (e.key === "ArrowDown" ? 1 : -1))]?.focus();
   });
   $("needsChips").addEventListener("click", (e) => {
     const b = e.target.closest("[data-remove]");
     if (!b) return;
     formNeeds = formNeeds.filter((id) => id !== b.dataset.remove);
     renderNeedsField();
-    $("needsAdd").focus();
+    needsBtn.focus();
   });
+
+  // ---------- custom dropdowns in the editor (styled like the sort menu) ----------
+  // Desire: the real <select> stays (hidden) so the form still reads its value; this is just the face.
+  const openMenus = new Set(); // { close() } for whatever menu is open, so Escape / clicks outside can close it
+  function closeMenus() {
+    if (!openMenus.size) return false;
+    [...openMenus].forEach((m) => m.close());
+    return true;
+  }
+  document.addEventListener("pointerdown", (e) => {
+    for (const m of openMenus) if (!m.root.contains(e.target)) m.close();
+  });
+
+  function customSelect(sel, decorate = () => "") {
+    const root = document.createElement("div");
+    root.className = "cselect";
+    root.innerHTML = `<button type="button" class="cselect-btn" aria-haspopup="listbox" aria-expanded="false"><span class="cselect-value"></span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
+      <ul class="sort-menu cselect-menu" role="listbox" hidden></ul>`;
+    sel.before(root);
+    sel.classList.add("native-hidden");
+    sel.tabIndex = -1;
+    const btn = root.querySelector("button"), menu = root.querySelector("ul");
+    const opts = () => [...menu.children];
+    const sync = () => {
+      const o = sel.options[sel.selectedIndex];
+      root.querySelector(".cselect-value").innerHTML = o ? decorate(o.value) + `<span>${esc(o.text)}</span>` : "";
+    };
+    const api = {
+      root,
+      close(focus) {
+        const inside = menu.contains(document.activeElement);
+        menu.hidden = true;
+        btn.setAttribute("aria-expanded", "false");
+        openMenus.delete(api);
+        if (focus || inside) btn.focus();
+      },
+    };
+    function open() {
+      closeMenus();
+      menu.innerHTML = [...sel.options]
+        .map((o) => `<li role="option" tabindex="-1" data-value="${esc(o.value)}" aria-selected="${o.selected}">${decorate(o.value)}<span>${esc(o.text)}</span>${CHECK}</li>`)
+        .join("");
+      menu.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      openMenus.add(api);
+      (menu.querySelector('[aria-selected="true"]') || opts()[0])?.focus();
+    }
+    function choose(li) {
+      sel.value = li.dataset.value;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+      api.close(true);
+    }
+    btn.onclick = () => (menu.hidden ? open() : api.close());
+    btn.addEventListener("keydown", (e) => { if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); open(); } });
+    menu.addEventListener("click", (e) => { const li = e.target.closest("li"); if (li) choose(li); });
+    menu.addEventListener("keydown", (e) => {
+      const list = opts(), n = list.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); list[Math.max(0, Math.min(list.length - 1, n + (e.key === "ArrowDown" ? 1 : -1)))]?.focus(); }
+      else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (list[n]) choose(list[n]); }
+      else if (e.key === "Tab") api.close();
+    });
+    sel.addEventListener("change", sync);
+    sync();
+    return sync;
+  }
+
+  // Category: free text with a suggestion menu (replaces the browser's <datalist> popup).
+  function categoryCombo(input) {
+    input.removeAttribute("list");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-expanded", "false");
+    const root = document.createElement("div");
+    root.className = "cselect combo";
+    input.before(root);
+    root.appendChild(input);
+    const menu = document.createElement("ul");
+    menu.className = "sort-menu cselect-menu";
+    menu.id = "catMenu";
+    menu.setAttribute("role", "listbox");
+    menu.hidden = true;
+    root.appendChild(menu);
+    input.setAttribute("aria-controls", menu.id);
+    let active = -1;
+    const api = {
+      root,
+      close() {
+        menu.hidden = true;
+        input.setAttribute("aria-expanded", "false");
+        input.removeAttribute("aria-activedescendant");
+        openMenus.delete(api);
+      },
+    };
+    const lis = () => [...menu.children].filter((li) => li.dataset.value != null);
+    function highlight(n) {
+      const list = lis();
+      active = n;
+      list.forEach((li, k) => li.classList.toggle("active", k === n));
+      if (list[n]) { input.setAttribute("aria-activedescendant", list[n].id); list[n].scrollIntoView({ block: "nearest" }); }
+      else input.removeAttribute("aria-activedescendant");
+    }
+    function show() {
+      const q = input.value.trim().toLowerCase();
+      const cats = categories();
+      const matches = cats.filter((c) => !q || c.toLowerCase().includes(q));
+      const exact = cats.some((c) => c.toLowerCase() === q);
+      if (!matches.length && !q) return api.close();
+      menu.innerHTML =
+        matches.map((c, k) => `<li role="option" id="cat-opt-${k}" data-value="${esc(c)}" aria-selected="${c.toLowerCase() === q}">${iconFor(c)}<span>${esc(c)}</span>${CHECK}</li>`).join("") +
+        (q && !exact ? `<li class="combo-new" role="presentation">${svg('<path d="M12 5v14M5 12h14"/>')}<span>New category “${esc(input.value.trim())}”</span></li>` : "");
+      if (!menu.children.length) return api.close();
+      closeMenus();
+      menu.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      openMenus.add(api);
+      highlight(-1);
+    }
+    function choose(li) {
+      input.value = li.dataset.value;
+      api.close();
+      input.focus();
+    }
+    input.addEventListener("focus", show);
+    input.addEventListener("input", show);
+    input.addEventListener("keydown", (e) => {
+      const list = lis();
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (menu.hidden) return show();
+        highlight(Math.max(0, Math.min(list.length - 1, active + (e.key === "ArrowDown" ? 1 : -1))));
+      } else if (e.key === "Enter" && !menu.hidden && list[active]) {
+        e.preventDefault();
+        choose(list[active]);
+      } else if (e.key === "Tab") api.close();
+    });
+    menu.addEventListener("pointerdown", (e) => e.preventDefault()); // keep focus in the input
+    menu.addEventListener("click", (e) => {
+      const li = e.target.closest("[data-value]");
+      if (li) choose(li);
+      else if (e.target.closest(".combo-new")) api.close();
+    });
+  }
+
+  const syncDesire = customSelect(form.elements.priority, (v) => prioDot(Number(v)));
+  categoryCombo(form.elements.category);
 
   function openEditor(item) {
     form.reset();
@@ -877,6 +1071,8 @@
     $("fetchUrl").value = "";
     setFetchStatus("");
     formNeeds = (item?.needs || []).filter(byId);
+    closeMenus();
+    toggleNeedsPanel(false);
     renderNeedsField();
     if (item) {
       for (const [k, v] of Object.entries(item)) {
@@ -888,6 +1084,7 @@
     } else if (active !== ALL && active !== BOUGHT) {
       form.elements.category.value = active;
     }
+    syncDesire();
     showDialog(editor);
     (item ? form.elements.name : $("fetchUrl")).focus();
   }
@@ -1256,6 +1453,8 @@ $("dConfirmDelete").onclick = () => {
     d.addEventListener("cancel", (e) => { // Escape key
       e.preventDefault();
       if (d === detail && confirming()) return cancelDelete();
+      if (d === editor && closeMenus()) return;
+      if (d === editor && !needsPanel.hidden) { toggleNeedsPanel(false); return needsBtn.focus(); }
       closeDialog(d);
     });
   });

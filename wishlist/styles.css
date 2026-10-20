@@ -916,17 +916,125 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 .delete-confirm.guard .delete-confirm-icon { color: #9a5b00; }
 .delete-confirm.guard[hidden] { display: none; }
 
-/* Editor: "Buy first" picker + chips */
+/* Editor: "Buy first" — linked items + visual picker */
+.field-label { margin: 0; color: var(--muted); font-size: 13px; }
 .needs-field { display: grid; gap: 8px; }
-.needs-field .hint { margin: -2px 0 0; font-size: 12px; color: var(--muted); }
-.needs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.needs-chips:empty { display: none; }
-.needs-chip { padding-right: 4px; }
-.needs-chip button {
-  width: 22px; height: 22px; padding: 0;
+.needs-field .hint { margin: 0; font-size: 12px; color: var(--muted); }
+.needs-chosen { display: grid; gap: 6px; }
+.needs-chosen:empty { display: none; }
+.pick-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 6px 10px 6px 6px;
+  border: 0; border-radius: 12px;
+  background: var(--tile);
+  font: inherit; font-size: 14px; color: var(--ink); text-align: left;
+  animation: confirm-in .3s cubic-bezier(.2,.7,.2,1);
+}
+.pick-row .link-thumb { width: 40px; height: 40px; }
+.pick-remove {
+  width: 28px; height: 28px; flex: none; padding: 0;
   display: grid; place-items: center;
   border: 0; border-radius: 50%;
   background: transparent; color: var(--muted); cursor: pointer;
 }
-.needs-chip button:hover { background: rgba(0,0,0,.07); color: var(--ink); }
-.needs-chip button svg { width: 14px; height: 14px; }
+.pick-remove:hover, .pick-remove:focus-visible { background: rgba(0,0,0,.07); color: var(--ink); outline: none; }
+.pick-remove svg { width: 15px; height: 15px; }
+
+.picker-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px dashed #d4d4d4; border-radius: 12px;
+  background: transparent;
+  font: inherit; font-size: 14px; color: var(--ink);
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.picker-btn:hover { background: var(--tile); border-color: #c4c4c4; }
+.picker-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; }
+.picker-btn svg { width: 16px; height: 16px; color: var(--muted); }
+.picker-btn span { flex: 1; text-align: left; }
+.picker-btn .chev { transition: rotate .3s cubic-bezier(.2,.7,.2,1); }
+.picker-btn[aria-expanded="true"] .chev { rotate: 180deg; }
+
+.picker-panel {
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--line), 0 16px 40px -18px rgba(0,0,0,.25);
+  overflow: hidden;
+  animation: menu-in .25s cubic-bezier(.2,.7,.2,1);
+  transform-origin: top center;
+}
+.picker-panel[hidden] { display: none; }
+.picker-search {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+.picker-search svg { width: 16px; height: 16px; color: var(--muted); flex: none; }
+.picker-search input { border: 0; background: transparent; padding: 12px 0; border-radius: 0; }
+.picker-search input:focus { outline: none; }
+.picker-list { max-height: 320px; overflow-y: auto; padding: 6px; display: grid; gap: 4px; overscroll-behavior: contain; }
+.picker-group { display: grid; gap: 2px; }
+.picker-group + .picker-group { margin-top: 6px; }
+.picker-group-label {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0; padding: 6px 8px 4px;
+  font-size: 12px; color: var(--muted);
+}
+.picker-group-label svg { width: 14px; height: 14px; }
+.picker-list .pick-row { background: transparent; cursor: pointer; animation: none; transition: background-color .15s ease; }
+.picker-list .pick-row:hover, .picker-list .pick-row:focus-visible { background: var(--tile); outline: none; }
+.pick-check {
+  width: 22px; height: 22px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px #d4d4d4;
+  color: #fff;
+  transition: background-color .2s ease, box-shadow .2s ease;
+}
+.pick-check svg { width: 13px; height: 13px; stroke-width: 2.4; scale: 0; transition: scale .25s cubic-bezier(.34,1.56,.64,1); }
+.pick-row[aria-selected="true"] .pick-check { background: var(--ink); box-shadow: none; }
+.pick-row[aria-selected="true"] .pick-check svg { scale: 1; }
+.picker-empty { margin: 0; padding: 18px 10px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Custom dropdowns (Desire, Category) — same look as the sort menu */
+.native-hidden { position: absolute !important; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.cselect { position: relative; }
+.cselect:has(> .cselect-menu:not([hidden])) { z-index: 30; } /* open menu sits above the next field */
+/* Each drawer row animates in (its own stacking context), so lift the row whose menu is open. */
+.drawer-body > :has(.cselect-menu:not([hidden])) { position: relative; z-index: 30; }
+.cselect-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--tile);
+  font: inherit; font-size: 14px; color: var(--ink); text-align: left;
+  cursor: pointer;
+}
+.cselect-btn:focus-visible, .cselect-btn[aria-expanded="true"] { outline: 2px solid var(--ink); outline-offset: -1px; }
+.cselect-value { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; }
+.cselect-value span { overflow: hidden; text-overflow: ellipsis; }
+.cselect-btn .chev { width: 16px; height: 16px; color: var(--muted); flex: none; transition: rotate .3s cubic-bezier(.2,.7,.2,1); }
+.cselect-btn[aria-expanded="true"] .chev { rotate: 180deg; }
+.cselect .prio { position: relative; top: auto; left: auto; flex: none; width: 8px; height: 8px; box-shadow: none; }
+.cselect .prio::after { display: none; }
+.cselect-menu {
+  left: 0; right: auto; min-width: 100%;
+  max-height: 260px; overflow-y: auto;
+  transform-origin: top left;
+  animation: menu-in .22s cubic-bezier(.2,.7,.2,1);
+  color: var(--ink);
+}
+.cselect-menu li { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.cselect-menu li > span { flex: 1; }
+.cselect-menu li > svg:first-child { width: 15px; height: 15px; color: var(--muted); visibility: visible; stroke-width: 1.6; }
+.cselect-menu li.active { background: var(--tile); }
+.cselect-menu .combo-new { color: var(--muted); cursor: default; }
+.cselect-menu .combo-new:hover { background: transparent; }
+@keyframes menu-in { from { opacity: 0; translate: 0 -6px; scale: .97; } }
+@media (prefers-reduced-motion: reduce) {
+  .picker-panel, .cselect-menu, .pick-row { animation: none; }
+}
