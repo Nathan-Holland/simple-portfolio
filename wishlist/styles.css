@@ -870,13 +870,30 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 .dust { position: fixed; z-index: 25; pointer-events: none; }
 
 /* ---------- Linked items ("Buy first" / "Needed for") ---------- */
-.needs {
-  margin: 4px 0 0;
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: #9a5b00;
+.needs-badge {
+  position: absolute; left: 10px; bottom: 10px; z-index: 2;
+  max-width: calc(100% - 20px);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 3px 10px 3px 3px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.82);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 4px 14px -6px rgba(0,0,0,.18);
+  font-size: 12px; color: var(--ink); line-height: 1;
 }
-.needs svg { width: 14px; height: 14px; flex: none; }
-.needs span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nb-thumbs { display: flex; flex: none; }
+.nb-thumb {
+  position: relative;
+  width: 22px; height: 22px;
+  border-radius: 50%; overflow: hidden;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px #fff;
+}
+.nb-thumb + .nb-thumb { margin-left: -8px; }
+.nb-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; scale: 1.35; } /* product shots have lots of white space */
+.nb-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.nb-pre { color: var(--muted); font-weight: 400; }
 
 .links { display: grid; gap: 14px; }
 .links[hidden] { display: none; }

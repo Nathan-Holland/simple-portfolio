@@ -410,6 +410,17 @@
     }
   }
 
+  // Frosted pill on the photo: what this item still needs, with tiny thumbnails.
+  function needsBadge(waiting) {
+    const thumbs = waiting.slice(0, 3)
+      .map((n) => `<span class="nb-thumb">${n.image ? `<img src="${esc(proxied(n.image))}" alt="" loading="lazy" onerror="this.remove()" />` : ""}</span>`)
+      .join("");
+    const label = waiting.length === 1 ? waiting[0].name : `${waiting.length} items`;
+    return `<span class="needs-badge" title="Buy first: ${esc(andList(waiting.map((n) => n.name)))}">
+        <span class="nb-thumbs">${thumbs}</span><span class="nb-text"><span class="nb-pre">Needs</span> ${esc(label)}</span>
+      </span>`;
+  }
+
   // One element per item, rebuilt only when that item's data changes.
   const cardEls = new Map();
   const visible = () => [...cardEls.values()].filter((el) => !el.hidden);
@@ -435,12 +446,12 @@
           ${i.bought ? "" : prioDot(i.priority)}
           ${i.link ? `<a class="ext" href="${esc(i.link)}" target="_blank" rel="noopener" aria-label="Open ${esc(i.name)} on the store site">${ARROW}</a>` : ""}
           ${media(i)}
+          ${waiting.length ? needsBadge(waiting) : ""}
         </div>
         <div class="info">
           <p class="meta">${esc([i.brand, i.category].filter(Boolean).join(" · "))}</p>
           <p class="name">${esc(i.name)}</p>
           <p class="price">${money(i.price)}</p>
-          ${waiting.length ? `<p class="needs">${ICON_LINK}<span>Needs ${esc(andList(waiting.map((n) => n.name)))}</span></p>` : ""}
         </div>`;
       bindHover(el);
       if (old) old.replaceWith(el);
