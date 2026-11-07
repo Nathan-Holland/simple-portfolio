@@ -10,7 +10,7 @@
 // that Fetch-style signature is Edge-runtime-only and is silently ignored
 // by the Node.js runtime, leaving requests hanging until they time out.
 import { put, list } from "@vercel/blob";
-import { isSignedIn } from "./_site-auth.js";
+import { isPrivate } from "./_site-auth.js";
 
 const BLOB_PATH = "data/projects.json";
 
@@ -136,7 +136,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "POST") {
-    if (!(await isSignedIn(req))) {
+    if (!(await isPrivate(req))) {
       res.status(401).json({ ok: false, error: "unauthorized" });
       return;
     }

@@ -2,14 +2,18 @@
 // to the browser. Without a valid session cookie (set only by /api/login
 // after the right password is POSTed), the request is redirected to
 // login.html instead — so there is no real content to view-source, unlike
-// a client-side-only password check. See api/_site-auth.js.
-import { isSignedIn } from "./api/_site-auth.js";
+// a client-side-only password check.
+//
+// Two areas (see api/_site-auth.js): the portfolio pages take the portfolio
+// password you give recruiters; /home, the tools and admin take only the
+// private password.
+import { allowed, realmForPath } from "./api/_site-auth.js";
 
 export const config = {
   runtime: "nodejs",
   matcher: [
     "/", "/index.html", "/profile.html", "/admin.html", "/timeline.html",
-    // Personal tools + browser start page
+    // Private: start page, personal tools, admin
     "/home", "/home/:path*",
     "/weight", "/weight/:path*",
     "/budget", "/budget/:path*",
@@ -19,12 +23,13 @@ export const config = {
 };
 
 export default async function middleware(request) {
-  if (await isSignedIn(request)) {
+  const url = new URL(request.url);
+  const realm = realmForPath(url.pathname);
+  if (await allowed(request, realm)) {
     return;
   }
-  const url = new URL(request.url);
   const next = url.pathname + url.search;
   url.pathname = "/login.html";
-  url.search = "?next=" + encodeURIComponent(next);
+  url.search = "?next=" + encodeURIComponent(next) + (realm === "private" ? "&area=private" : "");
   return Response.redirect(url, 302);
 }

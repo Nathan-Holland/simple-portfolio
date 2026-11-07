@@ -2,7 +2,7 @@
 // Reads Google News RSS searches server-side (browsers can't, because of CORS) and
 // returns a few recent items per topic. Vercel's CDN caches the response for
 // 30 minutes so the feeds aren't hit on every page load.
-import { isSignedIn } from "./_site-auth.js";
+import { isPrivate } from "./_site-auth.js";
 
 const GN = "https://news.google.com/rss";
 const LOCALE = "hl=en-GB&gl=GB&ceid=GB:en";
@@ -98,9 +98,9 @@ async function fetchTopic(t) {
 }
 
 export default async function handler(req, res) {
-  if (!(await isSignedIn(req))) {
+  if (!(await isPrivate(req))) {
     res.setHeader("Cache-Control", "no-store");
-    res.status(401).json({ error: "Sign in to nate-holland.com first" });
+    res.status(401).json({ error: "Sign in with your private password first" });
     return;
   }
   const topics = await Promise.all(TOPICS.map(fetchTopic));

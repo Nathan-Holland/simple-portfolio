@@ -10,7 +10,7 @@
 // Vercel's automatic parser is built for json/text/urlencoded, not
 // arbitrary binary uploads.
 import { put } from "@vercel/blob";
-import { isSignedIn } from "./_site-auth.js";
+import { isPrivate } from "./_site-auth.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     res.status(405).send("Method not allowed");
     return;
   }
-  if (!(await isSignedIn(req))) {
+  if (!(await isPrivate(req))) {
     res.status(401).json({ ok: false, error: "unauthorized" });
     return;
   }

@@ -2,6 +2,8 @@
 // into a password field. The password itself is never checked here — it's
 // POSTed to /api/login, which is the only place the real value lives.
 (function () {
+  // ?area=private when the page asked for is one of Nate's private pages (see middleware.js)
+  const AREA = new URLSearchParams(window.location.search).get("area") === "private" ? "private" : "portfolio";
   const loader = document.getElementById("loader");
   const loaderBarRow = document.getElementById("loaderBarRow");
   const loaderPct = document.getElementById("loaderPct");
@@ -48,7 +50,7 @@
       const input = document.createElement("input");
       input.type = "password";
       input.className = "loader-password-input";
-      input.placeholder = "Password";
+      input.placeholder = AREA === "private" ? "Private password" : "Password";
       input.autocomplete = "off";
       input.spellcheck = false;
       input.setAttribute("aria-label", "Password");
@@ -97,7 +99,7 @@
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ password: input.value }),
+        body: JSON.stringify({ password: input.value, realm: AREA }),
       });
       if (res.ok) {
         succeed();
@@ -106,7 +108,7 @@
       if (res.status === 503) {
         // SITE_PASSWORD isn't set for this deployment: no password can work, so say so
         fail(form, input);
-        input.placeholder = "Site password isn’t set up yet";
+        input.placeholder = AREA === "private" ? "Private password isn’t set up yet" : "Site password isn’t set up yet";
         return;
       }
     } catch (err) {
@@ -118,7 +120,9 @@
   function succeed() {
     loaderBarRow.classList.add("success");
     const params = new URLSearchParams(window.location.search);
-    const next = params.get("next") || "/";
+    // Only ever return to a page on this site (never another domain)
+    const raw = params.get("next") || "/";
+    const next = raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : "/";
     setTimeout(() => { window.location.href = next; }, 300);
   }
 

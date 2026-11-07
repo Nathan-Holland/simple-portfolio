@@ -6,7 +6,7 @@
 // function (which has the store token) can list it. Older copies are deleted
 // after every save.
 import { put, list, del } from "@vercel/blob";
-import { isSignedIn } from "./_site-auth.js";
+import { isPrivate } from "./_site-auth.js";
 
 const PREFIX = "private/weightwise/data";
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -31,8 +31,8 @@ function cleanCheckins(raw) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
-  if (!(await isSignedIn(req))) {
-    res.status(401).json({ error: "Sign in to nate-holland.com first" });
+  if (!(await isPrivate(req))) {
+    res.status(401).json({ error: "Sign in with your private password first" });
     return;
   }
 
