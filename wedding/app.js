@@ -1,8 +1,10 @@
 // Wedding guest list.
 //
-// Guests: { id, first, last, side: "groom"|"bride", priority: "1"|"2"|"3", relation, email, address,
+// Guests: { id, household, first, last, side: "groom"|"bride", priority: "1"|"2"|"3", relation, email, address,
 //          plusOnes: [{ id, first, last, relation, email, address, sameAddress }], children, childrenNote }
 // A +1 has the same details as a guest; their side and priority follow the guest who brings them.
+// `household` is an optional invitation name for couples and groups ("Grandma & Grandpa Holland").
+// Separate guests can be combined into one invitation, and split back out.
 // Saved to /api/store?doc=wedding (Vercel Blob, behind the private login) and kept in
 // this browser too (localStorage "weddingGuests", the same key the old planner used,
 // so guests added there carry over). Whichever copy is newer wins when the page loads.
@@ -36,6 +38,7 @@
     people: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9.5" r="2.5"/><path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5"/></svg>',
     minus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>',
     x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>',
+    split: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v6a4 4 0 0 0 4 4h0a4 4 0 0 1 4 4v2M16 4v6M4 8l4-4 4 4"/></svg>',
     down: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
   };
 
@@ -44,6 +47,7 @@
     return (Array.isArray(list) ? list : []).filter(function (g) { return g && g.first; }).map(function (g, i) {
       return {
         id: +g.id || Date.now() + i,
+        household: String(g.household || "").trim(),
         first: String(g.first || "").trim(),
         last: String(g.last || "").trim(),
         side: g.side === "bride" ? "bride" : "groom",
@@ -142,13 +146,16 @@
 
   // ---------- helpers ----------
   function fullName(g) { return (g.first + " " + g.last).trim(); }
+  function displayName(g) { return g.household || fullName(g); }
+  function andList(names) { return names.length < 2 ? names.join("") : names.slice(0, -1).join(", ") + " & " + names[names.length - 1]; }
   function initials(g) { return ((g.first[0] || "") + (g.last[0] || "")).toUpperCase(); }
   function personMissing(p) { return !p.email || (!p.address && !p.sameAddress); }
   function missing(g) { return personMissing(g) || g.plusOnes.some(personMissing); }
   function adults(g) { return 1 + g.plusOnes.length; }
   function partyLabel(g) {
     var bits = [];
-    if (g.plusOnes.length === 1) bits.push("+1 " + fullName(g.plusOnes[0]));
+    if (g.household && g.plusOnes.length) bits.push(andList([g.first].concat(g.plusOnes.map(function (p) { return p.first; }))));
+    else if (g.plusOnes.length === 1) bits.push("+1 " + fullName(g.plusOnes[0]));
     else if (g.plusOnes.length > 1) bits.push("+" + g.plusOnes.length + " (" + g.plusOnes.map(function (p) { return p.first; }).join(", ") + ")");
     if (g.children) bits.push(g.children + (g.children === 1 ? " child" : " children"));
     return bits.join(" · ");
@@ -158,12 +165,12 @@
     if (["1", "2", "3"].indexOf(filter) >= 0 && g.priority !== filter) return false;
     if (!query) return true;
     var q = query.toLowerCase();
-    return [fullName(g), g.relation, g.email, g.address, g.childrenNote].concat(g.plusOnes.map(function (p) {
+    return [g.household, fullName(g), g.relation, g.email, g.address, g.childrenNote].concat(g.plusOnes.map(function (p) {
       return [fullName(p), p.relation, p.email, p.address].join(" ");
     })).join(" ").toLowerCase().indexOf(q) >= 0;
   }
   function sortGuests(a, b) {
-    return a.priority !== b.priority ? +a.priority - +b.priority : fullName(a).localeCompare(fullName(b));
+    return a.priority !== b.priority ? +a.priority - +b.priority : displayName(a).localeCompare(displayName(b));
   }
 
   // ---------- render ----------
@@ -173,10 +180,10 @@
     var sum = function (fn, list) { return (list || guests).reduce(function (n, g) { return n + fn(g); }, 0); };
     var people = function (g) { return adults(g) + g.children; };
     var stats = [
-      ["People", sum(people), null, guests.length + (guests.length === 1 ? " invitation" : " invitations")],
+      ["People", sum(people), null, (function (a, k) { return a + (a === 1 ? " adult" : " adults") + " · " + k + (k === 1 ? " child" : " children"); })(sum(adults), sum(function (g) { return g.children; }))],
       [SIDES[0][1], sum(people, guests.filter(function (g) { return g.side === "groom"; })), "var(--groom)", "people"],
       [SIDES[1][1], sum(people, guests.filter(function (g) { return g.side === "bride"; })), "var(--bride)", "people"],
-      ["+1s", sum(function (g) { return g.plusOnes.length; }), null, "bringing a partner or friend"],
+      ["Invitations", guests.length, null, count(function (g) { return adults(g) > 1; }) + " for couples & groups"],
       ["Children", sum(function (g) { return g.children; }), null, (function (n) { return n + (n === 1 ? " family" : " families"); })(count(function (g) { return g.children > 0; }))],
       ["Missing details", count(missing), null, "invitations"],
     ];
@@ -219,15 +226,15 @@
 
   function guestRow(g) {
     var city = g.address ? g.address.split(/\n|,/).map(function (s) { return s.trim(); }).filter(Boolean).slice(-2).join(", ") : "";
-    return '<li><button class="guest" type="button" data-act="edit" data-id="' + g.id + '" aria-label="Edit ' + esc(fullName(g)) + '">' +
-      '<span class="avatar" aria-hidden="true">' + esc(initials(g)) + "</span>" +
-      '<span class="who"><span class="name">' + esc(fullName(g)) + "</span>" +
+    return '<li><button class="guest" type="button" data-act="edit" data-id="' + g.id + '" aria-label="Edit ' + esc(displayName(g)) + '">' +
+      '<span class="avatar' + (adults(g) > 1 ? " group" : "") + '" aria-hidden="true">' + esc(adults(g) > 1 && g.household ? String(adults(g)) : initials(g)) + "</span>" +
+      '<span class="who"><span class="name">' + esc(displayName(g)) + "</span>" +
         (g.relation ? '<span class="rel">' + esc(g.relation) + "</span>" : "") +
         (partyLabel(g) ? '<span class="party">' + ICON.people + "<em>" + esc(partyLabel(g)) + "</em></span>" : "") +
         '<span class="contact">' +
           (g.email ? "<span>" + ICON.mail + "<em>" + esc(g.email) + "</em></span>" : '<span class="missing">' + ICON.mail + "<em>No email</em></span>") +
           (g.address ? "<span>" + ICON.pin + "<em>" + esc(city) + "</em></span>" : '<span class="missing">' + ICON.pin + "<em>No address</em></span>") +
-          (g.plusOnes.some(personMissing) ? '<span class="missing">' + ICON.people + "<em>+1 details missing</em></span>" : "") +
+          (g.plusOnes.some(personMissing) ? '<span class="missing">' + ICON.people + "<em>Others’ details missing</em></span>" : "") +
         "</span></span>" +
       '<span class="pri p' + g.priority + '">' + PRI[g.priority] + "</span></button></li>";
   }
@@ -244,10 +251,18 @@
         '<input id="g-' + k + '" data-k="' + k + '" type="' + type + '" value="' + esc(g[k]) + '" placeholder="' + esc(ph) + '" autocomplete="off">' +
         (err ? '<span class="err">' + err + "</span>" : "") + "</div>";
     };
-    return '<form class="card editor" id="editor" novalidate><div class="editor-head"><div><p class="eyebrow">' + (adding ? "New guest" : "Edit guest") + "</p><h2>" +
-      (adding ? "Add a guest" : esc(fullName(g))) + "</h2></div>" +
+    var merged = guests.filter(function (x) { return (g.mergeIds || []).indexOf(x.id) >= 0; });
+    var notes = [];
+    if (merged.length) notes.push("Combined into this invitation when you save: " + andList(merged.map(displayName)) + ".");
+    if ((g.splitOut || []).length) notes.push("Listed as separate guests when you save: " + andList(g.splitOut.map(fullName)) + ".");
+    return '<form class="card editor" id="editor" novalidate><div class="editor-head"><div><p class="eyebrow">' + (adding ? "New guest" : "Edit invitation") + "</p><h2>" +
+      (adding ? "Add a guest" : esc(displayName(g))) + "</h2></div>" +
       '<button class="btn ghost" type="button" data-act="close">Close</button></div>' +
+      (notes.length ? '<p class="pending">' + esc(notes.join(" ")) + "</p>" : "") +
       '<div class="fields">' +
+        '<div class="field full" data-f="household"><label for="g-household">Invitation name <span class="muted">(optional)</span></label>' +
+          '<input id="g-household" data-k="household" type="text" value="' + esc(g.household) + '" placeholder="e.g. Grandma &amp; Grandpa Holland, Auntie Sue &amp; Uncle Bob" autocomplete="off">' +
+          '<span class="hint">How the invitation is addressed. Leave blank to use ' + esc(g.first || "the guest") + "’s name.</span></div>" +
         input("first", "First name", "text", "e.g. James", "", "A first name is needed.") +
         input("last", "Last name", "text", "e.g. Smith") +
         '<div class="field"><span class="label">Side</span>' + seg("side", SIDES) + "</div>" +
@@ -274,8 +289,9 @@
           '<input id="p' + i + "-" + k + '" data-p="' + i + '" data-k="' + k + '" type="' + type + '" value="' + esc(p[k]) + '" placeholder="' + esc(ph) + '" autocomplete="off">' +
           (err ? '<span class="err">' + err + "</span>" : "") + "</div>";
       };
-      return '<div class="plus" data-p="' + i + '"><div class="plus-head"><h4>' + (p.first ? esc(fullName(p)) : "+1" + (g.plusOnes.length > 1 ? " #" + (i + 1) : "")) + "</h4>" +
-        '<button class="btn ghost small" type="button" data-act="remove-plus" data-p="' + i + '">' + ICON.x + "Remove</button></div>" +
+      return '<div class="plus" data-p="' + i + '"><div class="plus-head"><h4>' + (p.first ? esc(fullName(p)) : "New person") + "</h4>" +
+        '<span class="plus-acts"><button class="btn ghost small" type="button" data-act="split" data-p="' + i + '" title="List them as their own guest">' + ICON.split + "Separate guest</button>" +
+        '<button class="btn ghost small" type="button" data-act="remove-plus" data-p="' + i + '">' + ICON.x + "Remove</button></span></div>" +
         '<div class="fields">' +
           inp("first", "First name", "text", "e.g. Laura", "", "A first name is needed.") +
           inp("last", "Last name", "text", "e.g. Smith") +
@@ -287,8 +303,14 @@
           "</div>" +
         "</div></div>";
     };
-    return '<div class="sub-section"><div class="sub-head"><div><h3>+1s</h3><p class="muted">Partners or friends coming with ' + esc(who) + ".</p></div>" +
-      '<button class="btn small" type="button" data-act="add-plus">' + ICON.plus + "Add a +1</button></div>" +
+    // Anyone else already on the list can be combined into this invitation
+    var others = guests.filter(function (x) { return x.id !== g.id && (g.mergeIds || []).indexOf(x.id) < 0; }).sort(function (a, b) { return displayName(a).localeCompare(displayName(b)); });
+    var picker = others.length
+      ? '<label class="merge"><span class="visually-hidden">Add someone already on the list</span><select id="mergePick"><option value="">Add someone from the list…</option>' +
+        others.map(function (x) { return '<option value="' + x.id + '">' + esc(displayName(x)) + (adults(x) > 1 ? " (" + adults(x) + " people)" : "") + "</option>"; }).join("") + "</select></label>"
+      : "";
+    return '<div class="sub-section"><div class="sub-head"><div><h3>Others on this invitation</h3><p class="muted">A +1, or family invited together, like grandparents or an aunt and uncle.</p></div>' +
+      '<div class="sub-acts">' + picker + '<button class="btn small" type="button" data-act="add-plus">' + ICON.plus + "Add a person</button></div></div>" +
       g.plusOnes.map(block).join("") + "</div>";
   }
 
@@ -315,8 +337,8 @@
   // ---------- actions ----------
   function openEditor(g) {
     editing = g
-      ? Object.assign({}, g, { plusOnes: g.plusOnes.map(function (p) { return Object.assign({}, p); }) })
-      : { id: null, first: "", last: "", side: "groom", priority: "1", relation: "", email: "", address: "", plusOnes: [], children: 0, childrenNote: "" };
+      ? Object.assign({}, g, { plusOnes: g.plusOnes.map(function (p) { return Object.assign({}, p); }), mergeIds: [], splitOut: [] })
+      : { id: null, household: "", mergeIds: [], splitOut: [], first: "", last: "", side: "groom", priority: "1", relation: "", email: "", address: "", plusOnes: [], children: 0, childrenNote: "" };
     render();
     var f = $("editor");
     if (f) { f.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(function () { $("g-first").focus({ preventScroll: true }); }, 250); }
@@ -325,7 +347,7 @@
   function submitEditor(e) {
     e.preventDefault();
     var g = editing, ok = true;
-    g.first = g.first.trim(); g.last = g.last.trim(); g.email = g.email.trim(); g.relation = g.relation.trim(); g.address = g.address.trim();
+    g.household = g.household.trim(); g.first = g.first.trim(); g.last = g.last.trim(); g.email = g.email.trim(); g.relation = g.relation.trim(); g.address = g.address.trim();
     var mark = function (k, bad) { var f = document.querySelector('.field[data-f="' + k + '"]'); if (f) f.classList.toggle("error", bad); if (bad) ok = false; };
     mark("first", !g.first);
     var emailOk = function (e) { return !e || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); };
@@ -344,23 +366,32 @@
     if (!ok) { var bad = document.querySelector(".field.error"); if (bad) bad.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
     g.plusOnes = g.plusOnes.filter(function (p) { return !blank(p); });
     var adding = g.id == null;
+    var mergeIds = g.mergeIds || [], splitOut = g.splitOut || [];
+    delete g.mergeIds; delete g.splitOut;
+    // Guests combined into this invitation stop being listed on their own
+    if (mergeIds.length) guests = guests.filter(function (x) { return mergeIds.indexOf(x.id) < 0; });
     if (adding) { g.id = Date.now(); guests.push(g); }
     else guests = guests.map(function (x) { return x.id === g.id ? g : x; });
+    // People split out become their own guests, on the same side and priority
+    splitOut.forEach(function (p, k) {
+      guests.push({ id: Date.now() + 1 + k, household: "", first: p.first, last: p.last, side: g.side, priority: g.priority, relation: p.relation,
+        email: p.email, address: p.sameAddress ? g.address : p.address, plusOnes: [], children: 0, childrenNote: "" });
+    });
     editing = null;
     save();
     render();
-    toast(adding ? fullName(g) + " added" : "Saved");
+    toast(adding ? displayName(g) + " added" : mergeIds.length ? "Invitation combined" : splitOut.length ? "Saved, " + splitOut.length + " listed separately" : "Saved");
   }
 
   function exportCsv() {
     var cell = function (v) { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
     // One row per adult; +1s list who they're coming with and share the guest's address when ticked
-    var rows = [["First name", "Last name", "Type", "Coming with", "Side", "Priority", "Relationship", "Email", "Address", "Children", "Children names"]];
+    var rows = [["Invitation", "First name", "Last name", "Type", "Coming with", "Side", "Priority", "Relationship", "Email", "Address", "Children", "Children names"]];
     guests.slice().sort(sortGuests).forEach(function (g) {
       var side = g.side === "groom" ? "Nate" : "Dilan";
-      rows.push([g.first, g.last, "Guest", "", side, PRI[g.priority], g.relation, g.email, g.address, g.children || "", g.childrenNote]);
+      rows.push([displayName(g), g.first, g.last, "Guest", "", side, PRI[g.priority], g.relation, g.email, g.address, g.children || "", g.childrenNote]);
       g.plusOnes.forEach(function (p) {
-        rows.push([p.first, p.last, "+1", fullName(g), side, PRI[g.priority], p.relation, p.email, p.sameAddress ? g.address : p.address, "", ""]);
+        rows.push([displayName(g), p.first, p.last, "+1", fullName(g), side, PRI[g.priority], p.relation, p.email, p.sameAddress ? g.address : p.address, "", ""]);
       });
     });
     var csv = "﻿" + rows.map(function (r) { return r.map(cell).join(","); }).join("\r\n");
@@ -384,8 +415,8 @@
       return;
     }
     if (act === "delete") {
-      if (!confirm("Remove " + fullName(editing) + " from the guest list?")) return;
-      var name = fullName(editing);
+      if (!confirm("Remove " + displayName(editing) + (adults(editing) > 1 ? " (everyone on this invitation)" : "") + " from the guest list?")) return;
+      var name = displayName(editing);
       guests = guests.filter(function (g) { return g.id !== editing.id; });
       editing = null; save(); render(); return toast(name + " removed");
     }
@@ -394,6 +425,11 @@
       return rerenderEditor("p" + (editing.plusOnes.length - 1) + "-first");
     }
     if (act === "remove-plus") { editing.plusOnes.splice(+b.dataset.p, 1); return rerenderEditor(); }
+    if (act === "split") {
+      var sp = editing.plusOnes.splice(+b.dataset.p, 1)[0];
+      if (sp.first.trim()) editing.splitOut.push(sp);
+      return rerenderEditor();
+    }
     if (act === "same") {
       var p = editing.plusOnes[+b.dataset.p];
       p.sameAddress = b.checked;
@@ -425,6 +461,23 @@
       render();
       var q = $("q"); q.focus(); q.setSelectionRange(pos, pos);
     }
+  });
+  // Combining: the picked guest (and their own +1s and children) join this invitation
+  app.addEventListener("change", function (e) {
+    if (e.target.id !== "mergePick" || !editing || !e.target.value) return;
+    var o = guests.filter(function (x) { return x.id === +e.target.value; })[0];
+    if (!o) return;
+    if (!editing.address && o.address) editing.address = o.address; // take their address if this invitation has none yet
+    var same = function (addr) { return !addr || addr === editing.address; };
+    editing.plusOnes.push({ id: o.id, first: o.first, last: o.last, relation: o.relation, email: o.email, address: same(o.address) ? "" : o.address, sameAddress: same(o.address) });
+    o.plusOnes.forEach(function (p) {
+      var addr = p.sameAddress ? o.address : p.address;
+      editing.plusOnes.push({ id: p.id, first: p.first, last: p.last, relation: p.relation, email: p.email, address: same(addr) ? "" : addr, sameAddress: same(addr) });
+    });
+    editing.children += o.children;
+    editing.childrenNote = [editing.childrenNote, o.childrenNote].filter(Boolean).join(", ");
+    editing.mergeIds.push(o.id);
+    rerenderEditor();
   });
   app.addEventListener("submit", function (e) { if (e.target.id === "editor") submitEditor(e); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && editing) { editing = null; render(); } });

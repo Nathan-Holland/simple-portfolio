@@ -27,7 +27,7 @@ export const DOCS = {
       return { profile, checkins: [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)) };
     },
   },
-  // Wedding guest list: { guests: [{ id, first, last, side, priority, relation, email, address,
+  // Wedding guest list: { guests: [{ id, household, first, last, side, priority, relation, email, address,
   //   plusOnes: [{ id, first, last, relation, email, address, sameAddress }], children, childrenNote }] }
   wedding: {
     prefix: "private/wedding/data",
@@ -40,6 +40,7 @@ export const DOCS = {
         if (!first) return "Every guest needs a first name";
         guests.push({
           id: Number.isFinite(+g.id) ? +g.id : Date.now() + guests.length,
+          household: str(g.household, 120), // optional invitation name, e.g. "Grandma & Grandpa Holland"
           first,
           last: str(g.last, 80),
           side: g.side === "bride" ? "bride" : "groom",
