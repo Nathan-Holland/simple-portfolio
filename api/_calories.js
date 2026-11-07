@@ -1,4 +1,6 @@
-// POST /api/calories — daily calories from Apple Health, sent by an iPhone Shortcut.
+// Daily calories from Apple Health, sent by an iPhone Shortcut as  POST /api/weight
+// (handled by api/weight.js — a separate /api/calories function would go over the
+// Hobby plan's 12-function limit). Files starting with "_" aren't deployed as routes.
 //
 // Auth: header  Authorization: Bearer <CALORIES_KEY>
 // (CALORIES_KEY is a Vercel environment variable, Secret type, Production and
@@ -35,12 +37,7 @@ function toKcal(value, unit) {
   return kj ? n / 4.184 : n;
 }
 
-export default async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Use POST" });
-    return;
-  }
+export async function handleCalories(req, res) {
   if (!keyOk(req) && !(await isPrivate(req))) {
     res.status(401).json({ error: process.env.CALORIES_KEY ? "Wrong or missing key" : "CALORIES_KEY isn't set for this deployment" });
     return;

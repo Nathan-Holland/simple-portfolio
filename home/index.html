@@ -95,6 +95,35 @@
     .search-box button svg { width: 16px; height: 16px; stroke-width: 2; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+    /* ---------- Spanish: phrase of the day + today's task ---------- */
+    .es { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; }
+    .es .card { padding: 22px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+    .phrase .es-text { margin: 4px 0 0; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; letter-spacing: -0.03em; }
+    .phrase .en { margin: 0; font-size: 15px; }
+    .phrase .note { margin: 0; color: var(--nh-muted); line-height: 1.5; }
+    .phrase .row { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .pill-btn {
+      border: 0; border-radius: 999px; padding: 7px 13px; cursor: pointer; font-weight: 500; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--nh-ink);
+      background: var(--nh-tile); transition: background .2s, opacity .2s;
+    }
+    .pill-btn:hover { background: var(--nh-line); }
+    .pill-btn.dark { background: var(--nh-ink); color: #fff; }
+    .pill-btn.dark:hover { opacity: .88; }
+    .pill-btn svg { width: 15px; height: 15px; stroke-width: 1.9; }
+    .pill-btn[aria-pressed="true"] { background: var(--nh-ink); color: #fff; }
+    .task .what { margin: 2px 0 0; font-size: 17px; line-height: 1.35; letter-spacing: -0.015em; }
+    .task .what small { display: block; margin-top: 4px; font-size: 13px; letter-spacing: 0; color: var(--nh-muted); }
+    .task .checks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; }
+    .task .checks a { display: flex; align-items: center; gap: 10px; padding: 7px 8px; margin: 0 -8px; border-radius: 10px; color: inherit; text-decoration: none; transition: background .2s; }
+    .task .checks a:hover { background: var(--nh-tile); }
+    .task .checks .box { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #c9c9c9; display: grid; place-items: center; }
+    .task .checks .done .box { background: var(--nh-good); border-color: var(--nh-good); color: #fff; }
+    .task .checks .box svg { width: 11px; height: 11px; stroke-width: 2.6; }
+    .task .checks .done .lbl { color: var(--nh-muted); text-decoration: line-through; }
+    .task .checks .meta { margin-left: auto; font-size: 12px; color: var(--nh-muted); }
+    .task .go { margin-top: 6px; justify-self: start; }
+
     /* ---------- news ---------- */
     .news-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
     .news-head .label { margin: 0; }
@@ -212,11 +241,12 @@
       .side { position: static; }
       /* On phones the summary and links come before the news */
       .main { display: contents; }
-      .greet { order: 1; } .search-wrap { order: 2; } .side { order: 3; } .news-wrap { order: 4; }
+      .greet { order: 1; } .search-wrap { order: 2; } .es-wrap { order: 3; } .side { order: 4; } .news-wrap { order: 5; }
       .page { display: flex; flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 520px) {
       .news-head { flex-direction: column; align-items: flex-start; }
+      .es { grid-template-columns: 1fr; }
       .story.lead { grid-template-columns: 1fr; gap: 12px; }
       .story.lead .body { padding: 0 6px 6px; }
       .story.lead .t { font-size: 19px; }
@@ -254,6 +284,14 @@
           </button>
         </label>
       </form>
+
+      <section class="es-wrap" aria-labelledby="esLabel">
+        <p class="label" id="esLabel">Español</p>
+        <div class="es">
+          <div class="card phrase" id="phrase"></div>
+          <div class="card task" id="esTask"><p class="eyebrow-s muted">Loading your Spanish…</p></div>
+        </div>
+      </section>
 
       <section class="news-wrap" aria-labelledby="newsLabel">
         <div class="news-head">
@@ -303,6 +341,7 @@
     </aside>
   </div>
 
+  <script src="/home/phrases.js"></script>
   <script src="/shared/nh.js"></script>
   <script>
   (function () {
@@ -399,6 +438,113 @@
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) { renderWeight(j.data || localWeight()); })
       .catch(function () { renderWeight(localWeight()); });
+
+    // ---------- Spanish: phrase of the day ----------
+    (function () {
+      var list = window.NH_PHRASES || [];
+      if (!list.length) { document.querySelector(".es-wrap").hidden = true; return; }
+      var now = new Date();
+      var dayNo = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+      var ph = list[dayNo % list.length];
+      var canSpeak = "speechSynthesis" in window;
+      $("phrase").innerHTML =
+        '<p class="label" style="margin:0">Frase del día</p>' +
+        '<p class="es-text" lang="es">' + esc(ph[0]) + "</p>" +
+        '<p class="en">' + esc(ph[1]) + "</p>" +
+        '<p class="note">' + esc(ph[2]) + "</p>" +
+        '<div class="row">' +
+          (canSpeak ? '<button class="pill-btn" type="button" id="say" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>Hear it</button>' : "") +
+          '<button class="pill-btn" type="button" id="copyPhrase"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copy</button>' +
+        "</div>";
+      if (canSpeak) {
+        $("say").addEventListener("click", function () {
+          var b = this;
+          speechSynthesis.cancel();
+          var u = new SpeechSynthesisUtterance(ph[0].replace(/…/g, ""));
+          u.lang = "es-ES";
+          u.rate = 0.9;
+          var v = speechSynthesis.getVoices().filter(function (x) { return x.lang === "es-ES"; })[0];
+          if (v) u.voice = v;
+          b.setAttribute("aria-pressed", "true");
+          u.onend = u.onerror = function () { b.setAttribute("aria-pressed", "false"); };
+          speechSynthesis.speak(u);
+        });
+      }
+      $("copyPhrase").addEventListener("click", function () {
+        var b = this;
+        if (navigator.clipboard) navigator.clipboard.writeText(ph[0]).then(function () {
+          b.lastChild.textContent = "Copied";
+          setTimeout(function () { b.lastChild.textContent = "Copy"; }, 1500);
+        }, function () {});
+      });
+    })();
+
+    // ---------- Spanish: today's task, read from Cuaderno (same site, so same browser database) ----------
+    var TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>';
+    function todayISO() { return iso(new Date()); }
+    function openCuaderno() {
+      // Opens the existing database read-only; never creates it if Cuaderno hasn't been used here
+      return new Promise(function (resolve) {
+        var req;
+        try { req = indexedDB.open("cuaderno"); } catch (e) { return resolve(null); }
+        req.onupgradeneeded = function () { req.transaction.abort(); };
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { resolve(null); };
+        req.onblocked = function () { resolve(null); };
+      });
+    }
+    function getAll(db, store) {
+      return new Promise(function (resolve) {
+        if (!db.objectStoreNames.contains(store)) return resolve([]);
+        var r = db.transaction(store, "readonly").objectStore(store).getAll();
+        r.onsuccess = function () { resolve(r.result || []); };
+        r.onerror = function () { resolve([]); };
+      });
+    }
+    async function loadSpanish() {
+      var box = $("esTask");
+      var db = await openCuaderno();
+      if (!db) {
+        box.innerHTML = '<p class="label" style="margin:0">Today’s Spanish</p><p class="what">Add your first lesson in Cuaderno<small>Your homework and daily practice will show up here.</small></p>' +
+          '<a class="pill-btn dark go" href="/spanish/#/lessons/new">Open Cuaderno</a>';
+        return;
+      }
+      var res = await Promise.all([getAll(db, "homework"), getAll(db, "sessions"), getAll(db, "journal"), getAll(db, "lessons")]);
+      db.close();
+      var homework = res[0].filter(function (h) { return h.status === "open"; });
+      var start = new Date(); start.setHours(0, 0, 0, 0);
+      var practised = res[1].some(function (s) { return s.finishedAt && s.startedAt >= start.getTime(); });
+      var journaled = res[2].some(function (j) { return j.date === todayISO() && j.checkedAt; });
+      var lessons = res[3].length;
+
+      // The one thing to do next: homework first, then practice, then the journal
+      var next;
+      if (homework.length) {
+        var hw = homework[0];
+        next = { what: hw.task, sub: "Homework" + (homework.length > 1 ? " · " + (homework.length - 1) + " more waiting" : ""), href: "/spanish/#/homework/" + hw.id, cta: "Do it now" };
+      } else if (!practised) {
+        next = { what: "5-minute practice", sub: "Quick review of what you’re weakest on", href: "/spanish/#/practice/session?mode=quick5", cta: "Start" };
+      } else if (!journaled) {
+        next = { what: "Write today’s journal", sub: "A few sentences about your day, checked for mistakes", href: "/spanish/#/journal", cta: "Write" };
+      } else {
+        next = { what: "All done for today", sub: "¡Buen trabajo! See you tomorrow.", href: "/spanish/", cta: "Open Cuaderno" };
+      }
+      var check = function (done, label, meta, href) {
+        return '<li><a href="' + href + '" class="' + (done ? "done" : "") + '"><span class="box">' + (done ? TICK : "") + '</span><span class="lbl">' + label + "</span>" +
+          (meta ? '<span class="meta">' + meta + "</span>" : "") + "</a></li>";
+      };
+      box.innerHTML = '<p class="label" style="margin:0">Today’s Spanish</p>' +
+        '<p class="what">' + esc(next.what.length > 120 ? next.what.slice(0, 117) + "…" : next.what) + "<small>" + esc(next.sub) + "</small></p>" +
+        '<a class="pill-btn dark go" href="' + next.href + '">' + next.cta + "</a>" +
+        '<ul class="checks">' +
+          check(lessons > 0 && !homework.length, "Homework", homework.length ? homework.length + " open" : (lessons ? "Nothing due" : "No lessons yet"), homework.length ? "/spanish/#/homework/" + homework[0].id : "/spanish/#/lessons") +
+          check(practised, "Practice", practised ? "Done today" : "", "/spanish/#/practice/session?mode=quick5") +
+          check(journaled, "Journal", journaled ? "Written today" : "", "/spanish/#/journal") +
+        "</ul>";
+    }
+    loadSpanish();
+    // Refresh when you come back to this tab after doing the task
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) loadSpanish(); });
 
     // ---------- news ----------
     var NEWS_KEY = "home-news-topic";

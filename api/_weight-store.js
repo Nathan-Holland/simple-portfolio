@@ -1,5 +1,6 @@
-// WeightWise storage, shared by /api/weight (the app) and /api/calories (the
-// Apple Health shortcut). Files starting with "_" aren't deployed as routes.
+// WeightWise storage, shared by /api/weight's app requests (GET/PUT) and the Apple
+// Health Shortcut's calories (POST, in _calories.js). Files starting with "_"
+// aren't deployed as routes.
 //
 // One JSON document in Vercel Blob (same store as the wishlist):
 //   { profile, checkins: [{ date, kg }], calories: { "YYYY-MM-DD": kcal }, updated }

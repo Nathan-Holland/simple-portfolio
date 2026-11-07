@@ -1,11 +1,13 @@
-// GET /api/weight — WeightWise profile, weekly check-ins and daily calories (private login required)
-// PUT /api/weight — replace the profile and check-ins
+// GET  /api/weight — WeightWise profile, weekly check-ins and daily calories (private login required)
+// PUT  /api/weight — replace the profile and check-ins (private login required)
+// POST /api/weight — daily calories from the Apple Health Shortcut (Bearer CALORIES_KEY); see _calories.js
 //
-// Calories are written only by /api/calories (the Apple Health shortcut), so a
+// Calories are written only by POST (the Apple Health shortcut), so a
 // PUT from the app keeps whatever calories are already saved — an open tab with
 // older data can never wipe out a day the shortcut sent in the meantime.
 import { isPrivate } from "./_site-auth.js";
 import { readData, writeData, DATE_RE } from "./_weight-store.js";
+import { handleCalories } from "./_calories.js";
 
 function cleanCheckins(raw) {
   if (!Array.isArray(raw)) return null;
@@ -24,6 +26,9 @@ const failed = (res, verb, err) =>
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+
+  // The Shortcut authenticates with its own key, so this comes before the login check
+  if (req.method === "POST") return handleCalories(req, res);
 
   if (!(await isPrivate(req))) {
     res.status(401).json({ error: "Sign in with your private password first" });

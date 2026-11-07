@@ -186,7 +186,7 @@
       if (c && /^\d{4}-\d{2}-\d{2}$/.test(c.date) && isFinite(c.kg)) by[c.date] = { date: c.date, kg: +c.kg };
     });
     out.checkins = Object.keys(by).sort().map(function (k) { return by[k]; });
-    // Daily calories ({ "YYYY-MM-DD": kcal }) arrive from the Apple Health shortcut via /api/calories
+    // Daily calories ({ "YYYY-MM-DD": kcal }) arrive from the Apple Health shortcut (POST /api/weight)
     out.calories = {};
     if (d.calories && typeof d.calories === "object") Object.keys(d.calories).forEach(function (k) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(k) && isFinite(d.calories[k])) out.calories[k] = Math.round(+d.calories[k]);
@@ -673,7 +673,7 @@
 
   // Setup guide for the iPhone Shortcut (You tab)
   function healthCard() {
-    var url = location.origin + "/api/calories";
+    var url = location.origin + "/api/weight";
     var last = Object.keys(store.calories).sort().pop();
     var preview = /\.vercel\.app$/.test(location.hostname);
     var step = function (n, html) { return '<li><span class="n">' + n + "</span><div>" + html + "</div></li>"; };
