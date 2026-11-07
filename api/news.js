@@ -1,84 +1,121 @@
-// GET /api/news — headlines for the start page (site login required).
-// Reads Google News RSS searches server-side (browsers can't, because of CORS) and
-// returns a few recent items per topic. Vercel's CDN caches the response for
-// 30 minutes so the feeds aren't hit on every page load.
+// GET /api/news — headlines for the start page (private login required).
+// Reads publishers' own RSS/Atom feeds server-side (browsers can't, because of
+// CORS) and returns the newest few per topic, each with an image, a short
+// summary, the source and a direct link. The signed-in browser caches the
+// response for 30 minutes so the feeds aren't hit on every page load.
 import { isPrivate } from "./_site-auth.js";
 
-const GN = "https://news.google.com/rss";
-const LOCALE = "hl=en-GB&gl=GB&ceid=GB:en";
+const PER_TOPIC = 5;
+const MAX_AGE_DAYS = 10;
 
-// Finance chatter (share purchases, earnings calls) swamps company names like Figma or Nvidia,
-// …and shopping deals swamp the design and gadget outlets
-const NOISE = '-shares -stock -stocks -earnings -investor -investors -"price target" -acquires -NASDAQ -NYSE -deal -deals -"Black Friday" -sale -discount -coupon';
-const search = (q) => `${GN}/search?q=${encodeURIComponent(q + " " + NOISE)}&${LOCALE}`;
-
-// Each topic merges a few searches: broad keywords plus the outlets that cover it best
+// Each topic round-robins across a few outlets so no single one dominates
 export const TOPICS = [
   {
     id: "design",
     label: "Design & UX",
-    urls: [
-      search('("UX design" OR "UI design" OR "product design" OR "design system" OR "interaction design") when:7d'),
-      search("(site:creativebloq.com OR site:itsnicethat.com OR site:dezeen.com OR site:smashingmagazine.com OR site:fastcompany.com/co-design) when:7d"),
-      search('(Figma OR Framer OR "Adobe XD" OR Sketch app) (design OR designers OR feature OR launch) when:7d'),
+    feeds: [
+      { source: "UX Collective", url: "https://uxdesign.cc/feed" },
+      { source: "Smashing Magazine", url: "https://www.smashingmagazine.com/feed/" },
+      { source: "Creative Bloq", url: "https://www.creativebloq.com/feeds.xml" },
     ],
   },
   {
     id: "tech",
     label: "AI & tech",
-    urls: [
-      search('("artificial intelligence" OR OpenAI OR Anthropic OR Claude OR ChatGPT OR Gemini OR "Google DeepMind") when:2d'),
-      search("(Apple OR iPhone OR Mac OR Google OR Microsoft) -game -games -Xbox -PlayStation when:2d"),
-      search("(site:theverge.com OR site:techcrunch.com OR site:arstechnica.com OR site:wired.com) (AI OR software OR startup OR app OR chip) when:2d"),
+    feeds: [
+      { source: "The Verge", url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml" },
+      { source: "Wired", url: "https://www.wired.com/feed/tag/ai/latest/rss" },
+      { source: "Ars Technica", url: "https://feeds.arstechnica.com/arstechnica/technology-lab" },
     ],
   },
 ];
 
-const PER_TOPIC = 5;
+// Shopping posts (deals, price drops) swamp some of these outlets
+const NOISE = /\b(deals?|discount|price (drop|cut)|cheapest|lowest price|black friday|cyber monday|prime day|sale|save \$|save £|coupon|promo code|best .{0,30} (to buy|right now))\b/i;
 
 function decode(s) {
   return String(s || "")
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+    .replace(/&nbsp;/g, " ").replace(/&hellip;/g, "…").replace(/&[lr]squo;/g, "’").replace(/&[lr]dquo;/g, '"').replace(/&mdash;/g, "—").replace(/&ndash;/g, "–")
     .replace(/&amp;/g, "&")
     .trim();
 }
 function tag(xml, name) {
-  const m = xml.match(new RegExp("<" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + name + ">"));
+  const m = xml.match(new RegExp("<" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + name + ">", "i"));
   return m ? decode(m[1]) : "";
 }
-
-export function parseRss(xml) {
-  const items = [];
-  const seen = new Set();
-  for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
-    const it = m[1];
-    const source = tag(it, "source");
-    let title = tag(it, "title");
-    // Google News titles end with " - Source"; drop it, the source is shown separately
-    if (source && title.endsWith(" - " + source)) title = title.slice(0, -(source.length + 3));
-    const link = tag(it, "link");
-    const date = new Date(tag(it, "pubDate"));
-    if (!title || !/^https?:\/\//.test(link)) continue;
-    const key = title.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    items.push({ title, link, source, published: isNaN(date) ? null : date.toISOString() });
+function attr(xml, tagName, attrName, where) {
+  const re = new RegExp("<" + tagName + "\\b[^>]*?" + (where || "") + "[^>]*>", "gi");
+  for (const m of xml.matchAll(re)) {
+    const a = m[0].match(new RegExp("\\s" + attrName + '\\s*=\\s*["\']([^"\']+)["\']', "i"));
+    if (a) return decode(a[1]);
   }
-  items.sort((a, b) => (b.published || "").localeCompare(a.published || ""));
+  return "";
+}
+function textOf(html) {
+  return decode(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+function clip(s, n) {
+  if (s.length <= n) return s;
+  const cut = s.slice(0, n);
+  return cut.slice(0, cut.lastIndexOf(" ") > n * 0.6 ? cut.lastIndexOf(" ") : n).replace(/[\s,;:.–—-]+$/, "") + "…";
+}
+function httpsUrl(u) {
+  if (!u) return "";
+  u = u.replace(/^\/\//, "https://").replace(/^http:\/\//, "https://");
+  return /^https:\/\//.test(u) ? u : "";
+}
+
+function imageOf(it) {
+  // Feed-declared images first, then the first <img> in the article body
+  const direct =
+    attr(it, "media:thumbnail", "url") ||
+    attr(it, "media:content", "url", 'medium=["\']image|type=["\']image') ||
+    attr(it, "media:content", "url") ||
+    attr(it, "enclosure", "url", 'type=["\']image');
+  if (direct) return httpsUrl(direct);
+  const body = decode(tag(it, "content:encoded") || tag(it, "content") || tag(it, "description") || tag(it, "summary"));
+  const m = body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i);
+  return m ? httpsUrl(decode(m[1])) : "";
+}
+
+export function parseFeed(xml, source) {
+  const items = [];
+  const blocks = [...xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)].map((m) => m[1]);
+  const atom = !blocks.length;
+  if (atom) for (const m of xml.matchAll(/<entry\b[^>]*>([\s\S]*?)<\/entry>/gi)) blocks.push(m[1]);
+  for (const it of blocks) {
+    const title = textOf(tag(it, "title"));
+    const link = atom ? attr(it, "link", "href", 'rel=["\']alternate') || attr(it, "link", "href") : tag(it, "link") || attr(it, "link", "href");
+    const when = new Date(tag(it, "pubDate") || tag(it, "published") || tag(it, "updated") || tag(it, "dc:date"));
+    const summary = clip(textOf(tag(it, "description") || tag(it, "summary") || tag(it, "content:encoded") || tag(it, "content")), 180);
+    if (!title || !/^https?:\/\//.test(link) || NOISE.test(title)) continue;
+    items.push({
+      title,
+      link: link.replace(/\?source=rss[^#]*$/, ""),
+      source,
+      summary,
+      image: imageOf(it),
+      published: isNaN(when) ? null : when.toISOString(),
+    });
+  }
   return items;
 }
 
-async function fetchFeed(url) {
-  const r = await fetch(url, { headers: { "User-Agent": "nate-holland.com start page" } });
+async function fetchFeed(f) {
+  const r = await fetch(f.url, { headers: { "User-Agent": "Mozilla/5.0 (nate-holland.com start page)" } });
   if (!r.ok) throw new Error(String(r.status));
-  return parseRss(await r.text());
+  const cutoff = Date.now() - MAX_AGE_DAYS * 86400000;
+  return parseFeed(await r.text(), f.source)
+    .filter((i) => !i.published || new Date(i.published).getTime() >= cutoff)
+    .sort((a, b) => (b.published || "").localeCompare(a.published || ""));
 }
 
-// Round-robin across a topic's searches so no single one dominates, newest first within each
 async function fetchTopic(t) {
-  const results = await Promise.allSettled(t.urls.map(fetchFeed));
+  const results = await Promise.allSettled(t.feeds.map(fetchFeed));
   const lists = results.filter((r) => r.status === "fulfilled").map((r) => r.value);
   if (!lists.length) return { id: t.id, label: t.label, items: [], error: "Couldn’t load this feed" };
   const out = [];
@@ -93,7 +130,10 @@ async function fetchTopic(t) {
       out.push(it);
     }
   }
+  // Newest first, but lead with a story that has an image so the top slot looks right
   out.sort((a, b) => (b.published || "").localeCompare(a.published || ""));
+  const lead = out.findIndex((i) => i.image);
+  if (lead > 0) out.unshift(out.splice(lead, 1)[0]);
   return { id: t.id, label: t.label, items: out };
 }
 
@@ -104,7 +144,6 @@ export default async function handler(req, res) {
     return;
   }
   const topics = await Promise.all(TOPICS.map(fetchTopic));
-  // Private: only cached in the signed-in browser, for 30 minutes
   res.setHeader("Cache-Control", "private, max-age=1800");
   res.status(200).json({ topics, fetched: new Date().toISOString() });
 }
