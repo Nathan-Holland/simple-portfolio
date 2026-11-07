@@ -351,3 +351,32 @@ input[type="number"] { -moz-appearance: textfield; }
   .view, .toast, .savebar { animation: none; }
   .due.now::before { animation: none; }
 }
+
+/* ---------- calories (Apple Health) ---------- */
+.cal-empty { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.cal-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+.cal-tiles .t.good { color: var(--good); }
+.cal-tiles .t.bad { color: var(--bad); }
+.legend i.bar-in, .legend i.bar-over { width: 10px; height: 10px; border: 0; border-radius: 3px; background: var(--nh-ink); }
+.legend i.bar-over { background: var(--nh-p1); }
+.chart .bar-in { fill: var(--nh-ink); stroke: none; }
+.chart .bar-over { fill: var(--nh-p1); stroke: none; }
+.chart .bar-none { fill: var(--nh-line); stroke: none; }
+
+.health .guide summary { cursor: pointer; color: var(--nh-muted); }
+.health .guide summary:hover { color: var(--nh-ink); }
+.steps-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
+.steps-list > li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; line-height: 1.55; }
+.steps-list .n { width: 22px; height: 22px; border-radius: 50%; background: var(--nh-tile); display: grid; place-items: center; font-family: var(--nh-mono); font-size: 11px; }
+.steps-list b { font-weight: 500; }
+.sub-steps { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; color: var(--nh-ink); }
+.health code { font-family: var(--nh-mono); font-size: 12px; background: var(--nh-tile); padding: 1px 6px; border-radius: 5px; word-break: break-all; }
+.health code.copy { cursor: pointer; }
+.health code.copy:hover { background: var(--nh-line); }
+.health #calKey:empty { display: none; }
+.health .chip-btn { margin: 4px 0; }
+
+@media (max-width: 560px) {
+  .cal-tiles { grid-template-columns: 1fr 1fr; }
+  .cal-tiles .snap:last-child { grid-column: 1 / -1; }
+}

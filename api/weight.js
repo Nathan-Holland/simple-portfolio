@@ -1,20 +1,11 @@
-// GET /api/weight — WeightWise profile + weekly check-ins (site login required)
-// PUT /api/weight — replace them
+// GET /api/weight — WeightWise profile, weekly check-ins and daily calories (private login required)
+// PUT /api/weight — replace the profile and check-ins
 //
-// Stored in Vercel Blob (same store as the wishlist). Blob URLs are public, so
-// each save gets a random suffix: the address can't be guessed, and only this
-// function (which has the store token) can list it. Older copies are deleted
-// after every save.
-import { put, list, del } from "@vercel/blob";
+// Calories are written only by /api/calories (the Apple Health shortcut), so a
+// PUT from the app keeps whatever calories are already saved — an open tab with
+// older data can never wipe out a day the shortcut sent in the meantime.
 import { isPrivate } from "./_site-auth.js";
-
-const PREFIX = "private/weightwise/data";
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-async function savedBlobs() {
-  const { blobs } = await list({ prefix: PREFIX });
-  return blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-}
+import { readData, writeData, DATE_RE } from "./_weight-store.js";
 
 function cleanCheckins(raw) {
   if (!Array.isArray(raw)) return null;
@@ -28,6 +19,9 @@ function cleanCheckins(raw) {
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+const failed = (res, verb, err) =>
+  res.status((err && err.status) || 500).json({ error: verb + " failed: " + (err && err.message ? err.message : "unknown error") });
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -38,16 +32,9 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     try {
-      const blobs = await savedBlobs();
-      if (!blobs.length) {
-        res.status(200).json({ data: null });
-        return;
-      }
-      const r = await fetch(blobs[0].url, { cache: "no-store" });
-      if (!r.ok) throw new Error("Blob read failed (" + r.status + ")");
-      res.status(200).json({ data: await r.json() });
+      res.status(200).json({ data: await readData() });
     } catch (err) {
-      res.status(500).json({ error: "Load failed: " + (err && err.message ? err.message : "unknown error") });
+      failed(res, "Load", err);
     }
     return;
   }
@@ -60,23 +47,14 @@ export default async function handler(req, res) {
       res.status(400).json({ error: "Expected { profile, checkins: [{ date: 'YYYY-MM-DD', kg }] }" });
       return;
     }
-    const json = JSON.stringify({ profile, checkins, updated: new Date().toISOString() });
-    if (json.length > 200_000) {
-      res.status(413).json({ error: "Too much data" });
-      return;
-    }
     try {
-      const saved = await put(PREFIX + ".json", json, {
-        access: "public",
-        contentType: "application/json",
-        addRandomSuffix: true,
-        cacheControlMaxAge: 60,
-      });
-      const old = (await savedBlobs()).filter((b) => b.url !== saved.url).map((b) => b.url);
-      if (old.length) await del(old);
-      res.status(200).json({ ok: true, updated: JSON.parse(json).updated });
+      const existing = await readData();
+      // "Delete all data" sends no profile and no check-ins: clear calories too
+      const calories = !profile && !checkins.length ? {} : (existing && existing.calories) || {};
+      const updated = await writeData({ profile, checkins, calories });
+      res.status(200).json({ ok: true, updated, calories });
     } catch (err) {
-      res.status(500).json({ error: "Save failed: " + (err && err.message ? err.message : "unknown error") });
+      failed(res, "Save", err);
     }
     return;
   }
