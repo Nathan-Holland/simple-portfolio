@@ -31,7 +31,7 @@ function cleanCheckins(raw) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
-  if (!isSignedIn(req)) {
+  if (!(await isSignedIn(req))) {
     res.status(401).json({ error: "Sign in to nate-holland.com first" });
     return;
   }

@@ -10,13 +10,12 @@
 // Vercel's automatic parser is built for json/text/urlencoded, not
 // arbitrary binary uploads.
 import { put } from "@vercel/blob";
+import { isSignedIn } from "./_site-auth.js";
 
 export const config = {
   api: { bodyParser: false },
 };
 
-const COOKIE_NAME = "site_auth";
-const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
 // Vercel's Node.js Functions cap the request body around ~4.5MB on the
 // Hobby plan regardless of what's configured here — this just fails fast
 // with a clear message instead of letting the platform reject it first.
@@ -24,9 +23,6 @@ const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
 // direct-to-Blob client upload instead, which this project doesn't use.
 const MAX_BYTES = 4 * 1024 * 1024;
 
-function isAuthed(req) {
-  return !!(req.cookies && req.cookies[COOKIE_NAME] === COOKIE_VALUE);
-}
 
 function readRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -42,7 +38,7 @@ export default async function handler(req, res) {
     res.status(405).send("Method not allowed");
     return;
   }
-  if (!isAuthed(req)) {
+  if (!(await isSignedIn(req))) {
     res.status(401).json({ ok: false, error: "unauthorized" });
     return;
   }

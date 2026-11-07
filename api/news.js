@@ -34,7 +34,7 @@ export const TOPICS = [
   },
 ];
 
-const PER_TOPIC = 8;
+const PER_TOPIC = 5;
 
 function decode(s) {
   return String(s || "")
@@ -98,7 +98,7 @@ async function fetchTopic(t) {
 }
 
 export default async function handler(req, res) {
-  if (!isSignedIn(req)) {
+  if (!(await isSignedIn(req))) {
     res.setHeader("Cache-Control", "no-store");
     res.status(401).json({ error: "Sign in to nate-holland.com first" });
     return;

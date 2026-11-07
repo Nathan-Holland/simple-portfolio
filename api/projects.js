@@ -10,9 +10,8 @@
 // that Fetch-style signature is Edge-runtime-only and is silently ignored
 // by the Node.js runtime, leaving requests hanging until they time out.
 import { put, list } from "@vercel/blob";
+import { isSignedIn } from "./_site-auth.js";
 
-const COOKIE_NAME = "site_auth";
-const COOKIE_VALUE = "3f9a7d2c-nate-portfolio-2026";
 const BLOB_PATH = "data/projects.json";
 
 // media[0] is the homepage tile / case-study hero — {type: 'image'|'video',
@@ -67,9 +66,6 @@ const DEFAULT_PROJECTS = [
   },
 ];
 
-function isAuthed(req) {
-  return !!(req.cookies && req.cookies[COOKIE_NAME] === COOKIE_VALUE);
-}
 
 function escapeHtml(text) {
   return String(text)
@@ -140,7 +136,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "POST") {
-    if (!isAuthed(req)) {
+    if (!(await isSignedIn(req))) {
       res.status(401).json({ ok: false, error: "unauthorized" });
       return;
     }
