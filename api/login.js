@@ -11,9 +11,23 @@
 // that Fetch-style signature is Edge-runtime-only. Returning a Response
 // object here (as an earlier version did) is silently ignored by the
 // Node.js runtime, so the request just hangs until it times out.
-import { checkPassword, passwordConfigured, sessionCookie } from "./_site-auth.js";
+import { checkPassword, passwordConfigured, sessionCookie, isSignedIn } from "./_site-auth.js";
 
 export default async function handler(req, res) {
+  // GET /api/login: a status check for troubleshooting. Says whether this
+  // deployment can see SITE_PASSWORD and whether this browser is signed in —
+  // never the password itself.
+  if (req.method === "GET") {
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json({
+      passwordSet: passwordConfigured(),
+      signedIn: await isSignedIn(req),
+      hasCookie: /(?:^|;\s*)site_auth=/.test(req.headers.cookie || ""),
+      environment: process.env.VERCEL_ENV || "unknown",
+    });
+    return;
+  }
+
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
     return;

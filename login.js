@@ -103,6 +103,12 @@
         succeed();
         return;
       }
+      if (res.status === 503) {
+        // SITE_PASSWORD isn't set for this deployment: no password can work, so say so
+        fail(form, input);
+        input.placeholder = "Site password isn’t set up yet";
+        return;
+      }
     } catch (err) {
       // network error — falls through to the same "wrong password" feedback
     }
