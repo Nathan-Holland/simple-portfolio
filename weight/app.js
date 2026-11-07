@@ -61,7 +61,7 @@
   var MACRO_COLORS = { protein: "#141414", carbs: "#ff5a36", fat: "#f5a700" };
 
   // ---------- state ----------
-  var store = { profile: null, checkins: [], calories: {}, updated: null };
+  var store = { profile: null, checkins: [], updated: null };
   var sync = "loading";
   var reachable = false;
   var tab = "progress";
@@ -177,7 +177,7 @@
 
   // ---------- storage + sync ----------
   function normalize(d) {
-    var out = { profile: null, checkins: [], calories: {}, updated: null };
+    var out = { profile: null, checkins: [], updated: null };
     if (!d || typeof d !== "object") return out;
     out.profile = d.profile && typeof d.profile === "object" && d.profile.height_cm ? d.profile : null;
     out.updated = d.updated || null;
@@ -186,11 +186,6 @@
       if (c && /^\d{4}-\d{2}-\d{2}$/.test(c.date) && isFinite(c.kg)) by[c.date] = { date: c.date, kg: +c.kg };
     });
     out.checkins = Object.keys(by).sort().map(function (k) { return by[k]; });
-    // Daily calories ({ "YYYY-MM-DD": kcal }) arrive from the Apple Health shortcut (POST /api/weight)
-    out.calories = {};
-    if (d.calories && typeof d.calories === "object") Object.keys(d.calories).forEach(function (k) {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(k) && isFinite(d.calories[k])) out.calories[k] = Math.round(+d.calories[k]);
-    });
     return out;
   }
   function readLocal() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); } catch (e) { return null; } }
@@ -206,7 +201,7 @@
     if (reachable) {
       sync = "synced";
       var localNewer = local && local.updated && (!remote || !remote.updated || local.updated > remote.updated);
-      if (localNewer) { store = normalize(local); if (remote) store.calories = normalize(remote).calories; push(); }
+      if (localNewer) { store = normalize(local); push(); }
       else if (remote) store = normalize(remote);
       else if (local) store = normalize(local);
     } else {
@@ -225,7 +220,6 @@
       if (!r.ok) throw new Error(r.status);
       var j = await r.json();
       store.updated = j.updated || store.updated;
-      if (j.calories) store.calories = normalize({ calories: j.calories }).calories; // the server owns calories
       writeLocal();
       sync = "synced";
     } catch (e) { sync = "error"; }
@@ -591,107 +585,14 @@
       '<div class="card"><div class="head"><div><p class="eyebrow">Progress</p><h2>Weight over time</h2></div>' +
         '<div class="legend"><span><i></i>Weight</span><span><i class="plan"></i>Plan</span><span><i class="goal"></i>Goal</span></div></div>' +
         '<div class="chart" id="chart"></div></div>' +
-      caloriesCard(c.cal) +
       '<div class="card"><p class="eyebrow">History</p><h2>Check-ins</h2><ul class="list" id="history"></ul><button class="link" type="button" id="moreBtn" hidden></button></div>' +
       "</div>";
     app.innerHTML = html;
     renderChart();
-    renderCalChart(c.cal);
     renderHistory();
     requestAnimationFrame(function () { requestAnimationFrame(function () {
       app.querySelectorAll("[data-w]").forEach(function (el) { el.style.width = el.dataset.w; });
     }); });
-  }
-
-  // ---------- calories (from Apple Health via the iPhone Shortcut) ----------
-  function calDays(n) {
-    var out = [], t = today();
-    for (var i = n - 1; i >= 0; i--) { var d = addDays(t, -i); out.push({ date: d, kcal: store.calories[d] != null ? store.calories[d] : null }); }
-    return out;
-  }
-  function caloriesCard(target) {
-    var days = calDays(14), logged = days.filter(function (d) { return d.kcal != null; });
-    if (!Object.keys(store.calories).length) {
-      return '<div class="card cal-empty"><div><p class="eyebrow">Calories</p><h2>Connect Apple Health</h2>' +
-        '<p class="sub">Send each day’s calories from MyFitnessPal to WeightWise automatically, with an iPhone Shortcut.</p></div>' +
-        '<button class="btn dark" type="button" data-act="tab" data-v="you">Set it up</button></div>';
-    }
-    var latestDay = Object.keys(store.calories).sort().pop();
-    var latestKcal = store.calories[latestDay];
-    var week = calDays(7).filter(function (d) { return d.kcal != null; });
-    var avg = week.length ? Math.round(week.reduce(function (s, d) { return s + d.kcal; }, 0) / week.length) : null;
-    var onTarget = logged.filter(function (d) { return d.kcal <= target; }).length;
-    var diff = latestKcal - target;
-    return '<div class="card"><div class="head"><div><p class="eyebrow">Calories</p><h2>Eaten vs your ' + target.toLocaleString() + ' kcal target</h2></div>' +
-      '<div class="legend"><span><i class="bar-in"></i>At or under target</span><span><i class="bar-over"></i>Over target</span><span><i class="goal"></i>Target</span></div></div>' +
-      '<div class="cal-tiles">' +
-        '<div class="snap"><span class="l">' + (latestDay === today() ? "Today so far" : fmtDate(latestDay)) + '</span><span class="v">' + latestKcal.toLocaleString() + '<small>kcal</small></span>' +
-          '<span class="t ' + (diff > 0 ? "bad" : "good") + '">' + (diff > 0 ? diff.toLocaleString() + " over" : Math.abs(diff).toLocaleString() + " under") + "</span></div>" +
-        '<div class="snap"><span class="l">7-day average</span><span class="v">' + (avg == null ? "—" : avg.toLocaleString() + "<small>kcal</small>") + '</span>' +
-          '<span class="t">' + (avg == null ? "No days this week" : week.length + " of 7 days logged") + "</span></div>" +
-        '<div class="snap"><span class="l">On target</span><span class="v">' + onTarget + "<small>of " + logged.length + '</small></span><span class="t">days in the last 2 weeks</span></div>' +
-      "</div>" +
-      '<div class="chart" id="calChart"></div></div>';
-  }
-  function renderCalChart(target) {
-    var box = $("calChart");
-    if (!box) return;
-    var days = calDays(14);
-    var W = Math.max(300, Math.round(box.clientWidth) || 720), H = W < 500 ? 170 : 190, L = 44, R = 10, T = 12, B = 26;
-    var mx = Math.max(target * 1.25, Math.max.apply(null, days.map(function (d) { return d.kcal || 0; })) * 1.08);
-    var step = mx > 2000 ? 1000 : 500, hi = Math.ceil(mx / step) * step;
-    var y = function (v) { return T + (1 - v / hi) * (H - T - B); };
-    var slot = (W - L - R) / days.length, bw = Math.min(24, slot * 0.62);
-    var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Calories for the last 14 days"><g class="grid axis">';
-    for (var v = 0; v <= hi; v += step) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (L - 8) + '" y="' + (y(v) + 3.5) + '" text-anchor="end">' + (v >= 1000 ? v / 1000 + "k" : v) + "</text>";
-    days.forEach(function (d, i) {
-      if (i % (W < 500 ? 3 : 2) === (days.length - 1) % (W < 500 ? 3 : 2)) s += '<text x="' + (L + slot * i + slot / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + (d.date === today() ? "Today" : shortDate(d.date)) + "</text>";
-    });
-    s += "</g>";
-    days.forEach(function (d, i) {
-      var x = L + slot * i + (slot - bw) / 2;
-      if (d.kcal == null) { s += '<rect class="bar-none" x="' + x + '" y="' + (y(0) - 3) + '" width="' + bw + '" height="3" rx="1.5"/>'; return; }
-      var top = y(d.kcal), h = Math.max(2, y(0) - top), r = Math.min(4, h / 2);
-      // 4px rounded data end, square at the baseline
-      s += '<path class="' + (d.kcal > target ? "bar-over" : "bar-in") + '" d="M' + x + " " + y(0) + "V" + (top + r) + "Q" + x + " " + top + " " + (x + r) + " " + top + "H" + (x + bw - r) + "Q" + (x + bw) + " " + top + " " + (x + bw) + " " + (top + r) + "V" + y(0) + 'Z"/>';
-      s += '<rect class="hit" data-i="' + i + '" x="' + (L + slot * i) + '" y="' + T + '" width="' + slot + '" height="' + (H - T - B) + '"/>';
-    });
-    s += '<line class="goal" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(target) + '" y2="' + y(target) + '"/>';
-    box.innerHTML = s + '</svg><div class="tip" hidden></div>';
-    var tip = box.querySelector(".tip");
-    box.querySelectorAll(".hit").forEach(function (h) {
-      h.addEventListener("mouseenter", function () {
-        var d = days[+h.dataset.i], diff = d.kcal - target;
-        tip.textContent = fmtDate(d.date) + " · " + d.kcal.toLocaleString() + " kcal (" + (diff > 0 ? "+" + diff.toLocaleString() : "−" + Math.abs(diff).toLocaleString()) + ")";
-        tip.style.left = ((+h.getAttribute("x") + slot / 2) / W * 100) + "%";
-        tip.style.top = (y(d.kcal) / H * 100) + "%";
-        tip.hidden = false;
-      });
-      h.addEventListener("mouseleave", function () { tip.hidden = true; });
-    });
-  }
-
-  // Setup guide for the iPhone Shortcut (You tab)
-  function healthCard() {
-    var url = location.origin + "/api/weight";
-    var last = Object.keys(store.calories).sort().pop();
-    var preview = /\.vercel\.app$/.test(location.hostname);
-    var step = function (n, html) { return '<li><span class="n">' + n + "</span><div>" + html + "</div></li>"; };
-    return '<div class="card health"><div class="head" style="margin-bottom:12px"><div><p class="eyebrow">Apple Health</p><h2>Daily calories</h2>' +
-      '<p class="sub">' + (last ? "Last received for " + longDate(last) + ": " + store.calories[last].toLocaleString() + " kcal." : "Not connected yet. Set it up once on your iPhone; it then runs every night.") + "</p></div></div>" +
-      '<details class="guide"' + (last ? "" : " open") + "><summary>" + (last ? "Setup steps" : "How to set it up") + '</summary><ol class="steps-list">' +
-        step(1, "<b>MyFitnessPal → Apple Health.</b> In MyFitnessPal: More → Settings → Sharing &amp; Privacy → Apple Health, and allow it to write <i>Dietary Energy</i>.") +
-        step(2, '<b>Make a key.</b> <button class="chip-btn" type="button" data-act="gen-key">Generate one</button> <code id="calKey" class="mono"></code><br>In Vercel (simple-portfolio → Settings → Environment Variables) add a <b>Secret</b> called <code>CALORIES_KEY</code> with this value, for Production and Preview, then redeploy.') +
-        (preview ? step(3, "<b>Let the Shortcut past Vercel’s sign-in.</b> This preview address needs a Vercel login, which a Shortcut can’t do. In Vercel: Settings → Deployment Protection → <i>Protection Bypass for Automation</i> → add a secret and copy it.") : "") +
-        step(preview ? 4 : 3, "<b>Build the Shortcut.</b> Shortcuts app → Automation → + → <i>Time of Day</i>, 23:30, Daily, <i>Run Immediately</i>. Then add these actions:" +
-          '<ol class="sub-steps">' +
-            "<li><i>Find Health Samples</i>: Type <b>Dietary Energy</b>, Start Date <b>is today</b>.</li>" +
-            "<li><i>Calculate Statistics</i>: <b>Sum</b> of Health Samples.</li>" +
-            '<li><i>Get Contents of URL</i>: <code class="mono copy" data-act="copy" data-v="' + esc(url) + '" title="Copy">' + esc(url) + "</code><br>Method <b>POST</b>. Headers: <code>Authorization</code> = <code>Bearer your-key</code>" +
-              (preview ? ", and <code>x-vercel-protection-bypass</code> = your bypass secret" : "") + ". Request Body <b>JSON</b>: <code>kcal</code> = <i>Statistics Result</i>.</li>" +
-          "</ol>") +
-        step(preview ? 5 : 4, "<b>Test it.</b> Tap the automation’s play button once. Today’s calories appear on the Progress tab.") +
-      "</ol></details></div>";
   }
 
   function stat(l, v, u, t, cls, link) {
@@ -909,7 +810,6 @@
         '<div class="stack">' +
           '<div class="card"><p class="eyebrow">Goal</p><h2>Where you’re heading</h2><p class="sub">Changing your goal starts a new plan from today, at ' + w(kg, d.units) + " " + unit(d.units) + ".</p><div style=\"height:20px\"></div>" +
             goalFields(d, c.idealMid) + '<div id="goalPreview"></div></div>' +
-          healthCard() +
           '<div class="card danger-zone"><div><p class="eyebrow">Your data</p><h3>' + {
             synced: "Synced to your account", device: "Saved in this browser only", error: "Not synced right now", signedout: "Signed out — not syncing",
           }[sync] + '</h3><p class="sub">' + store.checkins.length + " check-ins since " + (store.checkins[0] ? longDate(store.checkins[0].date) : "—") + ".</p></div>" +
@@ -972,21 +872,10 @@
     var act = b.dataset.act, v = b.dataset.v;
     if (act.indexOf("h-") === 0) return historyAction(act, b.closest(".row"));
     if (act === "tab") return setTab(v);
-    if (act === "gen-key") {
-      var bytes = new Uint8Array(24); crypto.getRandomValues(bytes);
-      var key = Array.from(bytes, function (x) { return x.toString(16).padStart(2, "0"); }).join("");
-      $("calKey").textContent = key;
-      if (navigator.clipboard) navigator.clipboard.writeText(key).then(function () { toast("Key copied. Paste it into Vercel and your Shortcut"); }, function () {});
-      return;
-    }
-    if (act === "copy") {
-      if (navigator.clipboard) navigator.clipboard.writeText(v).then(function () { toast("Copied"); }, function () {});
-      return;
-    }
     if (act === "shop-clear") { try { localStorage.removeItem(SHOP_KEY); } catch (err) { /* ignore */ } return renderFood(); }
     if (act === "wipe") {
       if (!confirm("Delete your stats, goal and every check-in? This can’t be undone.")) return;
-      store = { profile: null, checkins: [], calories: {}, updated: null };
+      store = { profile: null, checkins: [], updated: null };
       save(); draft = null; youDirty = false; step = 1; tab = "progress"; history.replaceState(null, "", location.pathname);
       toast("All data deleted"); return render();
     }
@@ -1022,7 +911,7 @@
   window.addEventListener("resize", function () {
     moveIndicator();
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { if (store.profile && tab === "progress") { renderChart(); renderCalChart(compute(store.profile, latestKg()).cal); } }, 150);
+    resizeTimer = setTimeout(function () { if (store.profile && tab === "progress") renderChart(); }, 150);
   });
   window.addEventListener("beforeunload", function (e) { if (youDirty) { e.preventDefault(); e.returnValue = ""; } });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveIndicator);
