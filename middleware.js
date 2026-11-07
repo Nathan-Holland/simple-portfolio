@@ -5,7 +5,15 @@
 // a client-side-only password check.
 export const config = {
   runtime: "nodejs",
-  matcher: ["/", "/index.html", "/profile.html", "/admin.html", "/timeline.html"],
+  matcher: [
+    "/", "/index.html", "/profile.html", "/admin.html", "/timeline.html",
+    // Personal tools + browser start page
+    "/home", "/home/:path*",
+    "/weight", "/weight/:path*",
+    "/budget", "/budget/:path*",
+    "/wedding", "/wedding/:path*",
+    "/spanish", "/spanish/:path*",
+  ],
 };
 
 const COOKIE_NAME = "site_auth";

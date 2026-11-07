@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Nate Holland | Home</title>
+  <link rel="icon" href="/wishlist/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nh.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      overflow-x: clip;
+      background: var(--nh-bg);
+      color: var(--nh-ink);
+      font-family: var(--nh-sans);
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    button, input { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+
+    .clock { font-family: var(--nh-mono); font-size: 13px; color: var(--nh-muted); font-variant-numeric: tabular-nums; }
+
+    /* ---------- layout: main column + "Today" sidebar ---------- */
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 16px 64px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      grid-template-areas: "main side";
+      gap: 40px;
+      align-items: start;
+    }
+    .main { grid-area: main; min-width: 0; display: grid; gap: 28px; }
+    .side { grid-area: side; display: grid; gap: 16px; position: sticky; top: 16px; }
+
+    .greet .nh-eyebrow { margin-bottom: 14px; }
+    .greet h1 {
+      margin: 0;
+      font-weight: 400;
+      font-size: clamp(40px, 5.6vw, 68px);
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+    }
+
+    .card { background: var(--nh-card); border-radius: var(--nh-radius); }
+    .label {
+      margin: 0 0 10px;
+      font-family: var(--nh-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--nh-muted);
+    }
+
+    /* ---------- search ---------- */
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 54px;
+      padding: 0 8px 0 18px;
+      background: var(--nh-card);
+      border-radius: 999px;
+      transition: box-shadow .25s;
+    }
+    .search-box:focus-within { box-shadow: 0 0 0 2px var(--nh-ink), 0 18px 40px -20px rgba(0,0,0,.28); }
+    .search-box > svg { width: 18px; height: 18px; color: var(--nh-muted); flex: none; }
+    .search-box input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 15px; outline: none; }
+    .search-box input::placeholder { color: var(--nh-muted); }
+    .search-box input::-webkit-search-cancel-button { display: none; }
+    .search-box button {
+      flex: none;
+      width: 38px; height: 38px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--nh-ink);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: opacity .2s, scale .2s;
+    }
+    .search-box button:hover { opacity: .88; }
+    .search-box button:active { scale: .92; }
+    .search-box button svg { width: 16px; height: 16px; stroke-width: 2; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ---------- news ---------- */
+    .news-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .news-head .label { margin: 0; }
+    .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--nh-line); gap: 2px; }
+    .seg button {
+      border: 0; background: transparent; padding: 6px 12px; border-radius: 999px;
+      color: var(--nh-muted); cursor: pointer; font-size: 13px; white-space: nowrap;
+      transition: color .2s, background .2s, box-shadow .2s;
+    }
+    .seg button:hover { color: var(--nh-ink); }
+    .seg button[aria-selected="true"] { background: var(--nh-card); color: var(--nh-ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .seg button:focus-visible { outline: 2px solid var(--nh-ink); outline-offset: 1px; }
+    .news { list-style: none; margin: 0; padding: 6px; }
+    .news li + li a::before {
+      content: ""; position: absolute; top: -0.5px; left: 12px; right: 12px; height: 1px; background: var(--nh-line);
+    }
+    .news a {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 16px;
+      padding: 13px 12px;
+      border-radius: 12px;
+      color: inherit;
+      text-decoration: none;
+      outline: none;
+      transition: background .2s;
+    }
+    .news a:hover, .news a:focus-visible { background: var(--nh-tile); }
+    .news a:hover::before, .news li:has(a:hover) + li a::before { opacity: 0; }
+    .news a:focus-visible { box-shadow: 0 0 0 2px var(--nh-ink); }
+    .news .t {
+      font-size: 15px; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .news .m { grid-column: 1; font-size: 12px; color: var(--nh-muted); }
+    .news .ext { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: 16px; height: 16px; color: var(--nh-muted); stroke-width: 1.9; transition: color .2s, translate .3s cubic-bezier(.2,.7,.2,1); }
+    .news a:hover .ext { color: var(--nh-ink); translate: 2px -2px; }
+    .news-msg { margin: 0; padding: 28px 18px; color: var(--nh-muted); text-align: center; }
+    .skeleton { height: 14px; border-radius: 6px; background: linear-gradient(90deg, var(--nh-tile), var(--nh-line), var(--nh-tile)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ---------- today (sidebar) ---------- */
+    .today { padding: 20px; display: grid; gap: 18px; }
+    .weather { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: center; }
+    .weather .wi { grid-row: 1 / span 2; width: 48px; height: 48px; border-radius: 14px; background: var(--nh-tile); display: grid; place-items: center; }
+    .weather .wi svg { width: 26px; height: 26px; }
+    .weather .temp { font-size: 34px; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+    .weather .temp small { font-size: 14px; letter-spacing: 0; color: var(--nh-muted); margin-left: 6px; }
+    .weather .desc { color: var(--nh-muted); font-size: 13px; }
+    .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .fact { background: var(--nh-tile); border-radius: 10px; padding: 8px 10px; display: grid; gap: 1px; min-width: 0; }
+    .fact .l { font-size: 11px; color: var(--nh-muted); }
+    .fact .v { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .divider { height: 1px; background: var(--nh-line); margin: 0 -20px; }
+    .ww { display: grid; gap: 10px; color: inherit; text-decoration: none; border-radius: 12px; margin: -8px; padding: 8px; transition: background .2s; }
+    .ww:hover, .ww:focus-visible { background: var(--nh-tile); outline: none; }
+    .ww-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .ww .kg { font-size: 26px; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; }
+    .ww .kg small { font-size: 13px; letter-spacing: 0; color: var(--nh-muted); margin-left: 3px; }
+    .ww .togo { font-size: 13px; color: var(--nh-muted); font-variant-numeric: tabular-nums; }
+    .ww .bar { height: 6px; border-radius: 999px; background: var(--nh-tile); overflow: hidden; }
+    .ww:hover .bar { background: var(--nh-card); }
+    .ww .bar span { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--nh-ink); transition: width .9s cubic-bezier(.2,.7,.2,1); }
+    .due { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+    .due::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--nh-muted); }
+    .due:empty { display: none; }
+    .due.now { color: #b23a1b; }
+    .due.now::before { background: var(--nh-p1); animation: ping 1.6s cubic-bezier(.2,.6,.3,1) infinite; }
+    .due.done { color: var(--nh-good); }
+    .due.done::before { background: var(--nh-good); }
+    @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(255,90,54,.5); } 80%, 100% { box-shadow: 0 0 0 6px rgba(255,90,54,0); } }
+    .muted { color: var(--nh-muted); }
+
+    /* ---------- project list ---------- */
+    .links { list-style: none; margin: 0; padding: 6px; }
+    .links a {
+      position: relative;
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 10px 8px 8px;
+      border-radius: 12px;
+      color: inherit; text-decoration: none; outline: none;
+      transition: background .2s;
+    }
+    .links li + li a::before { content: ""; position: absolute; top: -0.5px; left: 54px; right: 10px; height: 1px; background: var(--nh-line); }
+    .links a:hover, .links a:focus-visible { background: var(--nh-tile); }
+    .links a:hover::before, .links li:has(a:hover) + li a::before { opacity: 0; }
+    .links a:focus-visible { box-shadow: 0 0 0 2px var(--nh-ink); }
+    .links .ico { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--nh-tile); display: grid; place-items: center; transition: background .2s; }
+    .links a:hover .ico { background: var(--nh-card); }
+    .links .ico svg { width: 17px; height: 17px; }
+    .links .ico svg.logo { width: 14px; height: 14px; fill: var(--nh-ink); stroke: none; }
+    .links .name { flex: 1; min-width: 0; font-weight: 500; }
+    .links .arrow { flex: none; width: 17px; height: 17px; color: var(--nh-muted); stroke-width: 1.9; transition: color .2s, translate .3s cubic-bezier(.2,.7,.2,1); }
+    .links a:hover .arrow, .links a:focus-visible .arrow { color: var(--nh-ink); translate: 3px 0; }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 900px) {
+      .page { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "side"; gap: 28px; padding-top: 24px; }
+      .side { position: static; }
+      /* On phones the summary and links come before the news */
+      .main { display: contents; }
+      .greet { order: 1; } .search-wrap { order: 2; } .side { order: 3; } .news-wrap { order: 4; }
+      .page { display: flex; flex-direction: column; align-items: stretch; }
+    }
+    @media (max-width: 520px) {
+      .news-head { flex-direction: column; align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton, .due.now::before { animation: none; }
+      .links .arrow, .news .ext { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nh-top" data-nh-header>
+    <span class="clock" id="clock"></span>
+  </header>
+
+  <div class="page">
+    <div class="main">
+      <section class="greet">
+        <p class="nh-eyebrow">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
+          <span id="date">Today</span>
+        </p>
+        <h1 id="greeting">Hello, Nate</h1>
+      </section>
+
+      <form class="search-wrap" action="https://www.google.com/search" method="get" role="search">
+        <label class="search-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></svg>
+          <span class="visually-hidden">Search Google</span>
+          <input type="search" name="q" placeholder="Search Google" autocomplete="off" autofocus />
+          <button type="submit" aria-label="Search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </button>
+        </label>
+      </form>
+
+      <section class="news-wrap" aria-labelledby="newsLabel">
+        <div class="news-head">
+          <p class="label" id="newsLabel">News</p>
+          <div class="seg" role="tablist" id="newsTabs" aria-label="News topics"></div>
+        </div>
+        <div class="card"><ul class="news" id="news">
+          <li style="padding:14px 12px;display:grid;gap:10px"><div class="skeleton" style="width:85%"></div><div class="skeleton" style="width:40%"></div></li>
+          <li style="padding:14px 12px;display:grid;gap:10px"><div class="skeleton" style="width:70%"></div><div class="skeleton" style="width:35%"></div></li>
+          <li style="padding:14px 12px;display:grid;gap:10px"><div class="skeleton" style="width:78%"></div><div class="skeleton" style="width:30%"></div></li>
+        </ul></div>
+      </section>
+    </div>
+
+    <aside class="side" aria-label="Today">
+      <div>
+        <p class="label">Today</p>
+        <div class="card today">
+          <div class="weather" id="weather">
+            <span class="wi" aria-hidden="true"></span>
+            <span class="temp muted">—</span>
+            <span class="desc">Barcelona</span>
+          </div>
+          <div class="facts" id="weatherFacts" hidden></div>
+          <div class="divider"></div>
+          <a class="ww" href="/weight" id="ww">
+            <div class="ww-top"><span class="muted">WeightWise</span><span class="due" id="wwDue"></span></div>
+            <div class="ww-top"><span class="kg" id="wwKg">—</span><span class="togo" id="wwTogo"></span></div>
+            <div class="bar"><span id="wwBar"></span></div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <p class="label">Projects</p>
+        <div class="card"><ul class="links">
+          <li><a href="/wishlist"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></svg></span><span class="name">Wishlist</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
+          <li><a href="/weight"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg></span><span class="name">WeightWise</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
+          <li><a href="/budget"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 3.5V12l6 6" /></svg></span><span class="name">Budget</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
+          <li><a href="/spanish"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" /><path d="M5 17a3 3 0 0 1 3-3h9" /></svg></span><span class="name">Spanish</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
+          <li><a href="/wedding"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5" /><circle cx="15" cy="14" r="5" /><path d="m10 5 2-2 2 2" /></svg></span><span class="name">Wedding</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
+          <li><a href="/"><span class="ico"><svg class="logo" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 0L0 4V8L4 12H0V24L4 28H12V20L20 28H24L28 24V20L24 16H28V4L24 0H16V8L8 0H4Z" /></svg></span><span class="name">Portfolio</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
+        </ul></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/shared/nh.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var $ = function (id) { return document.getElementById(id); };
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+    // ---------- greeting + clock ----------
+    function tick() {
+      var now = new Date(), h = now.getHours();
+      $("greeting").textContent = h < 5 ? "Late one, Nate" : h < 12 ? "Good morning, Nate" : h < 18 ? "Good afternoon, Nate" : "Good evening, Nate";
+      $("date").textContent = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+      $("clock").textContent = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    }
+    tick();
+    setInterval(tick, 10000);
+
+    // ---------- weather (Open-Meteo, Barcelona) ----------
+    var ICONS = {
+      sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+      moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+      partly: '<path d="M8 3.5v1.5M3.5 8H5M4.8 4.8l1 1M11.2 4.8l-1 1"/><path d="M5.3 10.5A3.5 3.5 0 0 1 11.5 7"/><path d="M8 19.5h9.5a3.5 3.5 0 0 0 .2-7 5 5 0 0 0-9.6 1.2A3 3 0 0 0 8 19.5z"/>',
+      cloud: '<path d="M7 18.5h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 18.5z"/>',
+      fog: '<path d="M4 10h16M6 14h12M8 18h8"/><path d="M7 6.5a5 5 0 0 1 9.5 0"/>',
+      rain: '<path d="M7 15.5h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 15.5z"/><path d="m9 18-1 2.5M13 18l-1 2.5M17 18l-1 2.5"/>',
+      snow: '<path d="M7 15h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 15z"/><path d="M9 18.5h.01M12 20h.01M15 18.5h.01"/>',
+      storm: '<path d="M7 15h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 15z"/><path d="m12.5 15-2 3.5h3l-2 3"/>',
+    };
+    function wmo(code, day) {
+      if (code === 0) return [day ? "sun" : "moon", "Clear"];
+      if (code <= 2) return [day ? "partly" : "cloud", code === 1 ? "Mostly clear" : "Partly cloudy"];
+      if (code === 3) return ["cloud", "Cloudy"];
+      if (code <= 48) return ["fog", "Fog"];
+      if (code <= 57) return ["rain", "Drizzle"];
+      if (code <= 67) return ["rain", "Rain"];
+      if (code <= 77) return ["snow", "Snow"];
+      if (code <= 82) return ["rain", "Showers"];
+      if (code <= 86) return ["snow", "Snow showers"];
+      return ["storm", "Thunderstorms"];
+    }
+    function hhmm(isoLocal) { return isoLocal ? isoLocal.slice(11, 16) : "—"; }
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=41.39&longitude=2.17&timezone=Europe%2FMadrid&forecast_days=1" +
+      "&current=temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m" +
+      "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset")
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) {
+        var c = d.current, dy = d.daily, w = wmo(c.weather_code, c.is_day === 1);
+        var hi = Math.round(dy.temperature_2m_max[0]), lo = Math.round(dy.temperature_2m_min[0]);
+        $("weather").innerHTML =
+          '<span class="wi" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICONS[w[0]] + "</svg></span>" +
+          '<span class="temp">' + Math.round(c.temperature_2m) + "°<small>" + hi + "° / " + lo + "°</small></span>" +
+          '<span class="desc">' + w[1] + " in Barcelona · feels " + Math.round(c.apparent_temperature) + "°</span>";
+        $("weatherFacts").innerHTML =
+          '<div class="fact"><span class="l">Rain</span><span class="v">' + (dy.precipitation_probability_max[0] ?? "—") + "%</span></div>" +
+          '<div class="fact"><span class="l">Wind</span><span class="v">' + Math.round(c.wind_speed_10m) + " km/h</span></div>" +
+          '<div class="fact"><span class="l">Sunset</span><span class="v">' + hhmm(dy.sunset[0]) + "</span></div>";
+        $("weatherFacts").hidden = false;
+      })
+      .catch(function () {
+        $("weather").innerHTML = '<span class="wi" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICONS.cloud + '</svg></span><span class="temp muted">—</span><span class="desc">Weather unavailable right now</span>';
+      });
+
+    // ---------- WeightWise ----------
+    var DAY = 86400000;
+    function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+    function parse(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2], 12); }
+    function shortDate(s) { return parse(s).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+    function renderWeight(data) {
+      var p = data && data.profile, ck = (data && data.checkins) || [];
+      if (!p || !ck.length) {
+        $("wwDue").className = "due";
+        $("wwDue").textContent = "";
+        $("wwKg").innerHTML = '<span style="font-size:15px;letter-spacing:0">Set up WeightWise</span>';
+        $("wwTogo").textContent = "→";
+        return;
+      }
+      ck = ck.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+      var imp = p.units === "imperial", f = imp ? 2.20462 : 1, u = imp ? "lbs" : "kg";
+      var L = ck[ck.length - 1], F = ck[0], t = iso(new Date());
+      var next = iso(new Date(parse(L.date).getTime() + 7 * DAY));
+      var due = L.date === t ? ["done", "Logged today"] : next <= t ? ["now", "Check-in due"] : ["", "Next " + shortDate(next)];
+      $("wwDue").className = "due " + due[0];
+      $("wwDue").textContent = due[1];
+      $("wwKg").innerHTML = (L.kg * f).toFixed(1) + "<small>" + u + "</small>";
+      var losing = (p.start_weight_kg != null ? p.start_weight_kg : F.kg) >= p.target_weight_kg;
+      var left = Math.abs(L.kg - p.target_weight_kg), span = Math.abs(F.kg - p.target_weight_kg);
+      var reached = losing ? L.kg <= p.target_weight_kg + 0.05 : L.kg >= p.target_weight_kg - 0.05;
+      $("wwTogo").textContent = reached ? "Goal reached" : (left * f).toFixed(1) + " " + u + " to go";
+      var pct = reached ? 100 : span > 0 ? Math.max(0, Math.min(100, (span - left) / span * 100)) : 0;
+      requestAnimationFrame(function () { requestAnimationFrame(function () { $("wwBar").style.width = pct + "%"; }); });
+    }
+    function localWeight() { try { return JSON.parse(localStorage.getItem("weightwise-v1") || "null"); } catch (e) { return null; } }
+    fetch("/api/weight", { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) { renderWeight(j.data || localWeight()); })
+      .catch(function () { renderWeight(localWeight()); });
+
+    // ---------- news ----------
+    var NEWS_KEY = "home-news-topic";
+    var topics = [], current = null;
+    try { current = localStorage.getItem(NEWS_KEY); } catch (e) { /* ignore */ }
+    function ago(isoStr) {
+      if (!isoStr) return "";
+      var m = Math.round((Date.now() - new Date(isoStr)) / 60000);
+      if (m < 60) return Math.max(1, m) + "m ago";
+      var h = Math.round(m / 60);
+      if (h < 24) return h + "h ago";
+      var d = Math.round(h / 24);
+      return d === 1 ? "yesterday" : d + "d ago";
+    }
+    var EXT = '<svg class="ext" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16 16 8M9 8h7v7"/></svg>';
+    function renderNews() {
+      var t = topics.filter(function (x) { return x.id === current; })[0] || topics[0];
+      if (!t) return;
+      current = t.id;
+      $("newsTabs").innerHTML = topics.map(function (x) {
+        return '<button type="button" role="tab" data-topic="' + esc(x.id) + '" aria-selected="' + (x.id === current) + '">' + esc(x.label) + "</button>";
+      }).join("");
+      $("news").innerHTML = t.items.length ? t.items.map(function (i) {
+        return '<li><a href="' + esc(i.link) + '" target="_blank" rel="noopener noreferrer"><span class="t">' + esc(i.title) + "</span>" +
+          '<span class="m">' + esc(i.source) + (i.published ? " · " + ago(i.published) : "") + "</span>" + EXT + "</a></li>";
+      }).join("") : '<li><p class="news-msg">' + esc(t.error || "No headlines right now.") + "</p></li>";
+    }
+    $("newsTabs").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-topic]");
+      if (!b) return;
+      current = b.dataset.topic;
+      try { localStorage.setItem(NEWS_KEY, current); } catch (err) { /* ignore */ }
+      renderNews();
+    });
+    fetch("/api/news", { credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) { topics = j.topics || []; renderNews(); })
+      .catch(function () {
+        $("news").innerHTML = '<li><p class="news-msg">Headlines load on nate-holland.com.</p></li>';
+      });
+
+    // For local previews/tests: window.NH_HOME.showNews(data)
+    window.NH_HOME = { showNews: function (j) { topics = j.topics || []; renderNews(); } };
+  })();
+  </script>
+</body>
+</html>

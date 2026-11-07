@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Nate Holland | WeightWise</title>
+  <link rel="icon" href="/wishlist/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nh.css" />
+  <link rel="stylesheet" href="/weight/app.css?v=3" />
+</head>
+<body>
+  <header class="nh-top" data-nh-header>
+    <span class="sync" id="sync" hidden></span>
+  </header>
+
+  <section class="nh-hero hero">
+    <p class="nh-eyebrow">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg>
+      <span id="eyebrow">Personal health plan</span>
+    </p>
+    <h1>WeightWise</h1>
+  </section>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="WeightWise sections" hidden>
+    <span class="tab-indicator" aria-hidden="true"></span>
+    <button role="tab" data-tab="progress" type="button">Progress</button>
+    <button role="tab" data-tab="plan" type="button">Plan</button>
+    <button role="tab" data-tab="food" type="button">Food</button>
+    <button role="tab" data-tab="you" type="button">You</button>
+  </nav>
+
+  <main class="app" id="app">
+    <p class="loading">Loading your progress…</p>
+  </main>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="/weight/app.js?v=3"></script>
+  <script src="/shared/nh.js"></script>
+</body>
+</html>

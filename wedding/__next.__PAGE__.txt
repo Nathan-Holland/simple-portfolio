@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[94382,["/wedding/_next/static/chunks/00u0ioyfw32c3.js","/wedding/_next/static/chunks/0dbhjjzl8qfwv.js","/wedding/_next/static/chunks/0yn9fmxnhlk.x.js"],"WeddingApp"]
+3:I[97367,["/wedding/_next/static/chunks/00u0ioyfw32c3.js","/wedding/_next/static/chunks/0dbhjjzl8qfwv.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{}],[["$","script","script-0",{"src":"/wedding/_next/static/chunks/0yn9fmxnhlk.x.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"um4cABWwIf9D8CJQFg-gB"}
+5:null

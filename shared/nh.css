@@ -1,0 +1,118 @@
+/* Shared look for the tools on nate-holland.com, taken from /wishlist.
+   Pages load this, then call NH.header() from nh.js to get the top bar + site menu. */
+:root {
+  --nh-bg: #f2f2f2;
+  --nh-card: #ffffff;
+  --nh-tile: #f7f7f7;
+  --nh-ink: #141414;
+  --nh-muted: #737373;
+  --nh-line: #e6e6e6;
+  --nh-radius: 16px;
+  --nh-p1: #ff5a36;
+  --nh-p2: #f5a700;
+  --nh-good: #1e7b3c;
+  --nh-good-bg: #e8f5ec;
+  --nh-bad: #c62828;
+  --nh-bad-bg: #fdecea;
+  --nh-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --nh-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+/* Top bar */
+.nh-top {
+  position: relative;
+  z-index: 200;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  font-family: var(--nh-sans);
+  font-size: 14px;
+  color: var(--nh-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.nh-top svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.nh-top-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+.nh-menu { position: relative; }
+.nh-mark-btn {
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  margin: -11px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background .2s;
+}
+.nh-mark-btn:hover, .nh-mark-btn:focus-visible, .nh-mark-btn[aria-expanded="true"] { background: var(--nh-card); outline: none; }
+.nh-mark {
+  display: block;
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  background: var(--nh-ink);
+  transition: rotate .45s cubic-bezier(.34,1.56,.64,1), scale .3s cubic-bezier(.2,.7,.2,1), border-radius .3s;
+}
+.nh-mark-btn:hover .nh-mark { scale: 1.12; }
+.nh-mark-btn[aria-expanded="true"] .nh-mark { rotate: 45deg; border-radius: 3px; scale: .9; }
+
+.nh-menu-list {
+  position: absolute;
+  left: -11px;
+  top: calc(100% + 14px);
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  min-width: 200px;
+  background: var(--nh-card);
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--nh-line), 0 16px 40px -12px rgba(0,0,0,.2);
+  transform-origin: top left;
+  animation: nh-pop .25s cubic-bezier(.2,.7,.2,1);
+}
+.nh-menu-list[hidden] { display: none; }
+.nh-menu-list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--nh-ink);
+  text-decoration: none;
+}
+.nh-menu-list a:hover, .nh-menu-list a:focus-visible { background: var(--nh-tile); outline: none; }
+.nh-menu-list a svg { width: 16px; height: 16px; color: var(--nh-muted); flex: none; }
+.nh-menu-list a[aria-current="page"] svg { color: var(--nh-ink); }
+.nh-menu-list .nh-tick { margin-left: auto; width: 14px; height: 14px; stroke-width: 2; color: var(--nh-ink); }
+.nh-menu-list .nh-sep { height: 1px; margin: 6px 4px; background: var(--nh-line); }
+@keyframes nh-pop { from { opacity: 0; scale: .96; } to { opacity: 1; scale: 1; } }
+
+/* Page hero, same as the wishlist's */
+.nh-hero {
+  max-width: 1600px;
+  margin: 56px auto 40px;
+  padding: 0 16px;
+  font-family: var(--nh-sans);
+  color: var(--nh-ink);
+}
+.nh-eyebrow { margin: 0 0 16px; color: var(--nh-muted); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.nh-eyebrow svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.nh-hero h1 {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(40px, 6.5vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+.nh-hero .nh-sub { margin: 16px 0 0; max-width: 560px; color: var(--nh-muted); font-size: 15px; line-height: 1.5; }
+
+@media (max-width: 520px) {
+  .nh-top { padding: 18px 16px 18px 20px; }
+  .nh-hero { margin: 36px auto 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nh-menu-list { animation: none; }
+}
