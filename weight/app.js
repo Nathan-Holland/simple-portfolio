@@ -1,7 +1,7 @@
 // WeightWise — set up once (about you + goal), then log your weight weekly.
 //
 // Data: { profile, checkins: [{ date: 'YYYY-MM-DD', kg }], updated }
-// Synced through /api/weight (Vercel Blob, behind the site login) and cached in
+// Synced through /api/store?doc=weight (Vercel Blob, behind the private login) and cached in
 // this browser. If the API can't be reached (e.g. running locally) the browser
 // copy is used on its own.
 //
@@ -194,7 +194,7 @@
   async function load() {
     var local = readLocal(), remote = null;
     try {
-      var r = await fetch("/api/weight", { cache: "no-store", credentials: "same-origin" });
+      var r = await fetch("/api/store?doc=weight", { cache: "no-store", credentials: "same-origin" });
       if (r.ok) { reachable = true; remote = (await r.json()).data; }
       else if (r.status === 401) sync = "signedout";
     } catch (e) { /* offline or no API */ }
@@ -213,7 +213,7 @@
   async function push() {
     if (!reachable) return renderSync();
     try {
-      var r = await fetch("/api/weight", {
+      var r = await fetch("/api/store?doc=weight", {
         method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile: store.profile, checkins: store.checkins }),
       });

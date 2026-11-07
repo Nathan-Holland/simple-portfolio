@@ -434,7 +434,7 @@
       requestAnimationFrame(function () { requestAnimationFrame(function () { $("wwBar").style.width = pct + "%"; }); });
     }
     function localWeight() { try { return JSON.parse(localStorage.getItem("weightwise-v1") || "null"); } catch (e) { return null; } }
-    fetch("/api/weight", { cache: "no-store", credentials: "same-origin" })
+    fetch("/api/store?doc=weight", { cache: "no-store", credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) { renderWeight(j.data || localWeight()); })
       .catch(function () { renderWeight(localWeight()); });
