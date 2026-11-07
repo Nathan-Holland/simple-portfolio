@@ -27,7 +27,8 @@ export const DOCS = {
       return { profile, checkins: [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)) };
     },
   },
-  // Wedding guest list: { guests: [{ id, first, last, side, priority, relation, email, address }] }
+  // Wedding guest list: { guests: [{ id, first, last, side, priority, relation, email, address,
+  //   plusOnes: [{ id, first, last, relation, email, address, sameAddress }], children, childrenNote }] }
   wedding: {
     prefix: "private/wedding/data",
     clean(body) {
@@ -46,6 +47,18 @@ export const DOCS = {
           relation: str(g.relation, 120),
           email: str(g.email, 200),
           address: str(g.address, 500),
+          // +1s get the same details as a guest; side and priority follow the guest who brings them
+          plusOnes: (Array.isArray(g.plusOnes) ? g.plusOnes : []).slice(0, 10).filter((p) => p && str(p.first, 80)).map((p, i) => ({
+            id: Number.isFinite(+p.id) ? +p.id : Date.now() + i,
+            first: str(p.first, 80),
+            last: str(p.last, 80),
+            relation: str(p.relation, 120),
+            email: str(p.email, 200),
+            address: p.sameAddress ? "" : str(p.address, 500),
+            sameAddress: !!p.sameAddress,
+          })),
+          children: Math.max(0, Math.min(20, Math.round(+g.children) || 0)),
+          childrenNote: str(g.childrenNote, 300),
         });
       }
       return { guests };

@@ -149,3 +149,26 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round
 @media (prefers-reduced-motion: reduce) {
   .editor, .toast { animation: none; }
 }
+
+/* ---------- +1s and children ---------- */
+.stat .t { font-size: 12px; color: var(--nh-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who .party { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--nh-ink); min-width: 0; }
+.who .party svg { width: 13px; height: 13px; flex: none; color: var(--nh-muted); }
+.who .party em { font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn.small { padding: 7px 12px; font-size: 13px; }
+.btn.small svg { width: 14px; height: 14px; }
+.sub-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--nh-line); display: grid; gap: 12px; }
+.sub-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sub-head h3 { margin: 0; font-size: 15px; font-weight: 500; }
+.sub-head p { margin: 2px 0 0; font-size: 13px; }
+.plus { background: var(--nh-tile); border-radius: 14px; padding: 14px 16px 16px; }
+.plus .field input, .plus .field textarea { background: var(--nh-card); }
+.plus-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+.plus-head h4 { margin: 0; font-size: 14px; font-weight: 500; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--nh-ink); cursor: pointer; padding: 4px 0; }
+.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--nh-ink); }
+.stepper { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; background: var(--nh-line); }
+.stepper .kids-n { min-width: 28px; text-align: center; font-size: 16px; font-variant-numeric: tabular-nums; }
+.icon-btn { width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--nh-card); display: grid; place-items: center; cursor: pointer; transition: opacity .2s; }
+.icon-btn:disabled { opacity: .4; cursor: default; }
+.icon-btn svg { width: 15px; height: 15px; stroke-width: 2; }
