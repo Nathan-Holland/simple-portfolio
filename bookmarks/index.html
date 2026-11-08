@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Nate Holland | Bookmarks</title>
+  <link rel="icon" href="/wishlist/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nh.css" />
+  <link rel="stylesheet" href="/bookmarks/app.css?v=2" />
+</head>
+<body>
+  <header class="nh-top" data-nh-header>
+    <span class="sync" id="sync" hidden></span>
+  </header>
+
+  <section class="nh-hero hero">
+    <p class="nh-eyebrow">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-4-6 4V5.5a1 1 0 0 1 1-1z" /></svg>
+      <span id="eyebrow">Websites &amp; inspiration</span>
+    </p>
+    <h1>Bookmarks</h1>
+  </section>
+
+  <main id="app">
+    <p class="loading">Loading your bookmarks…</p>
+  </main>
+
+  <dialog class="sheet" id="sheet" aria-labelledby="sheetTitle"></dialog>
+  <input type="file" id="importFile" accept=".json,.html,.htm,application/json,text/html" hidden />
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="/bookmarks/app.js?v=3"></script>
+  <script src="/shared/nh.js"></script>
+</body>
+</html>

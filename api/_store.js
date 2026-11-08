@@ -65,6 +65,32 @@ export const DOCS = {
       return { guests };
     },
   },
+  // Bookmarks: { items: [{ id, url, title, description, image, icon, category, note, added }], categories: [name, …] }
+  bookmarks: {
+    prefix: "private/bookmarks/data",
+    clean(body) {
+      if (!Array.isArray(body.items) || body.items.length > 5000) return "Expected { items: [...], categories: [...] }";
+      const httpUrl = (v) => (typeof v === "string" && /^https?:\/\//i.test(v.trim()) ? v.trim().slice(0, 2000) : "");
+      const items = [];
+      for (const b of body.items) {
+        const url = httpUrl(b && b.url);
+        if (!url) return "Every bookmark needs a web address";
+        items.push({
+          id: Number.isFinite(+b.id) ? +b.id : Date.now() + items.length,
+          url,
+          title: str(b.title, 200),
+          description: str(b.description, 300),
+          image: httpUrl(b.image),
+          icon: httpUrl(b.icon),
+          category: str(b.category, 60),
+          note: str(b.note, 1000),
+          added: typeof b.added === "string" && !isNaN(Date.parse(b.added)) ? b.added : new Date().toISOString(),
+        });
+      }
+      const categories = [...new Set((Array.isArray(body.categories) ? body.categories : []).map((c) => str(c, 60)).filter(Boolean))].slice(0, 100);
+      return { items, categories };
+    },
+  },
 };
 
 async function savedBlobs(prefix) {

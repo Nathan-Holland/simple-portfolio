@@ -1,10 +1,12 @@
-// GET /api/store?doc=weight|wedding — load a private document (private login required)
-// PUT /api/store?doc=weight|wedding — replace it
+// GET /api/store?doc=weight|wedding|bookmarks — load a private document (private login required)
+// PUT /api/store?doc=weight|wedding|bookmarks — replace it
+// GET /api/store?preview=<url> — a link's title, description, image and icon (for bookmarks)
 //
 // One function for every tool's saved data, so the deployment stays within the
 // Vercel Hobby plan's 12-function limit. Documents and their checks: api/_store.js.
 import { isPrivate } from "./_site-auth.js";
 import { DOCS, readDoc, writeDoc } from "./_store.js";
+import { preview } from "./_preview.js";
 
 const failed = (res, verb, err) =>
   res.status((err && err.status) || 500).json({ error: verb + " failed: " + (err && err.message ? err.message : "unknown error") });
@@ -17,7 +19,19 @@ export default async function handler(req, res) {
     return;
   }
 
-  const name = String((req.query && req.query.doc) || new URL(req.url, "http://x").searchParams.get("doc") || "");
+  const params = new URL(req.url || "/", "http://x").searchParams;
+  const q = (k) => String((req.query && req.query[k]) || params.get(k) || "");
+
+  if (req.method === "GET" && q("preview")) {
+    try {
+      res.status(200).json(await preview(q("preview")));
+    } catch (err) {
+      res.status((err && err.status) || 502).json({ error: (err && err.status) ? err.message : "Couldn’t read that page" });
+    }
+    return;
+  }
+
+  const name = q("doc");
   if (!Object.prototype.hasOwnProperty.call(DOCS, name)) {
     res.status(404).json({ error: "Unknown document. Use ?doc=" + Object.keys(DOCS).join(" or ?doc=") });
     return;

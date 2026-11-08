@@ -23,7 +23,7 @@ export const REALMS = {
 };
 
 // Paths that need the private password (everything else in the middleware matcher is portfolio)
-export const PRIVATE_PREFIXES = ["/home", "/weight", "/budget", "/spanish", "/wedding", "/admin.html"];
+export const PRIVATE_PREFIXES = ["/home", "/weight", "/budget", "/spanish", "/wedding", "/bookmarks", "/admin.html"];
 
 export function realmForPath(pathname) {
   return PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/")) ? "private" : "portfolio";

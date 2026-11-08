@@ -7,6 +7,7 @@
     wishlist: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
     weight: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9.5a4.5 4.5 0 0 1 6 0L13 12"/>',
     budget: '<circle cx="12" cy="12" r="8"/><path d="M12 4v8l5.7 5.7"/>',
+    bookmarks: '<path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-4-6 4V5.5a1 1 0 0 1 1-1z"/>',
     spanish: '<path d="M5 4.5h9a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h9"/>',
     wedding: '<circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="m10 5 2-2 2 2"/>',
     tick: '<path d="m5 12 5 5L20 7"/>'
@@ -15,6 +16,7 @@
     { href: "/home", label: "Home", icon: "home" },
     "sep",
     { href: "/wishlist", label: "Wishlist", icon: "wishlist" },
+    { href: "/bookmarks", label: "Bookmarks", icon: "bookmarks" },
     { href: "/weight", label: "WeightWise", icon: "weight" },
     { href: "/budget", label: "Budget", icon: "budget" },
     { href: "/spanish", label: "Spanish", icon: "spanish" },

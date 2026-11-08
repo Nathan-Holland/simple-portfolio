@@ -19,6 +19,7 @@ export const config = {
     "/budget", "/budget/:path*",
     "/wedding", "/wedding/:path*",
     "/spanish", "/spanish/:path*",
+    "/bookmarks", "/bookmarks/:path*",
   ],
 };
 
