@@ -150,7 +150,6 @@
   function iconFor(tab) {
     if (tab === ALL) return ICON_ALL;
     if (tab === BOUGHT) return ICON_BOUGHT;
-    if (tab === SAVINGS) return ICON_SAVINGS;
     return CATEGORY_ICONS.find(([re]) => re.test(tab))?.[1] || ICON_OTHER;
   }
   const ARROW = svg('<path d="M7 17 17 7M8.5 7H17v8.5"/>');
@@ -340,8 +339,7 @@
   // the first month logged. The plan walks your wishlist in priority order (cheapest first within a
   // priority, anything an item needs pulled in just before it) and says what fits now and roughly
   // when the rest will, at your recent monthly average. Stored privately: never sent to visitors.
-  const SAVINGS = "Savings";
-  const ICON_SAVINGS = svg('<path d="M5 11.5a6.5 6 0 0 1 11.6-3.7l2.4-.8-.5 3a6 6 0 0 1 .5 1.5H20v3h-1.6a6.5 6 0 0 1-2.4 2.6V20h-2.5v-1.8a7.5 7.5 0 0 1-3 0V20H8v-2.8A6 6 0 0 1 5 11.5Z"/><path d="M15.5 10.5h.01M9.5 7.5h3"/>');
+  const SAVINGS = "\u0000savings"; // not a tab, so it can never clash with a category name
   const planner = $("planner");
   let savings = null; // { entries: [{ month: "YYYY-MM", amount }] } once loaded
   let savingsState = "idle"; // idle | loading | ready | error
@@ -503,6 +501,16 @@
       </section>`;
   }
 
+  // Top-nav button: opens the savings plan, and again goes back to the list you were on.
+  let beforeSavings = ALL;
+  $("savingsBtn").onclick = () => {
+    if (active === SAVINGS) active = beforeSavings;
+    else { beforeSavings = active; active = SAVINGS; }
+    editingMonth = null;
+    render();
+    scrollTo({ top: 0, behavior: motion ? "smooth" : "auto" });
+  };
+
   planner.addEventListener("click", (e) => {
     const open = e.target.closest("[data-open]");
     if (open) return openDetail(open.dataset.open, null);
@@ -553,24 +561,26 @@
       : "Personal wishlist";
 
     // filters (keep the sliding indicator element, replace the buttons)
-    const tabs = [ALL, ...categories(), BOUGHT, ...(canEdit ? [SAVINGS] : [])];
-    if (!tabs.includes(active)) active = ALL;
+    const tabs = [ALL, ...categories(), BOUGHT];
+    if (!tabs.includes(active) && active !== SAVINGS) active = ALL;
     filters.querySelectorAll("button").forEach((b) => b.remove());
     filters.insertAdjacentHTML(
       "beforeend",
       tabs
         .map((t) => {
-          const n = t === SAVINGS ? null : t === ALL ? wanted.length : t === BOUGHT ? items.length - wanted.length : wanted.filter((i) => i.category === t).length;
-          return `<button role="tab" aria-selected="${t === active}" data-tab="${esc(t)}"${t === SAVINGS ? ' class="tab-savings"' : ""}>${iconFor(t)}<span>${esc(t)}</span>${n === null ? "" : `<span class="count">${n}</span>`}</button>`;
+          const n = t === ALL ? wanted.length : t === BOUGHT ? items.length - wanted.length : wanted.filter((i) => i.category === t).length;
+          return `<button role="tab" aria-selected="${t === active}" data-tab="${esc(t)}">${iconFor(t)}<span>${esc(t)}</span><span class="count">${n}</span></button>`;
         })
         .join("")
     );
+    // Savings is opened from the top nav; the category toolbar steps aside while it's showing.
+    document.querySelector(".toolbar").hidden = active === SAVINGS;
+    $("savingsBtn").setAttribute("aria-pressed", active === SAVINGS);
     moveIndicator(firstRender);
     $("cats").innerHTML = categories().map((c) => `<option value="${esc(c)}">`).join("");
     renderSortMenu();
     renderBoughtSummary();
     renderPlanner();
-    $("sort").hidden = active === SAVINGS;
 
     // cards — persistent elements; filtering hides them, sorting reorders them, Flip animates the move.
     // Cards that are leaving fade out first; then the rest move into place.

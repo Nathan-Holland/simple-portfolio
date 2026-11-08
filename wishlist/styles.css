@@ -1057,7 +1057,13 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 }
 
 /* ---- Savings tab (editors only) ---- */
-.sort[hidden] { display: none; }
+.toolbar[hidden] { display: none; }
+.savings-btn svg { width: 16px; height: 16px; }
+.savings-btn[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: none; }
+@media (max-width: 520px) {
+  .savings-btn { padding: 8px 10px; }
+  .savings-btn span { display: none; }
+}
 .planner {
   max-width: 1600px;
   margin: 0 auto;
