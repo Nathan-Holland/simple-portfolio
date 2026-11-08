@@ -65,6 +65,21 @@ export const DOCS = {
       return { guests };
     },
   },
+  // Wishlist savings log: { entries: [{ month: 'YYYY-MM', amount }] }. Read and written through
+  // /api/wishlist/items?savings (wishlist editors only), so it never shows to visitors.
+  wishlistSavings: {
+    prefix: "private/wishlist/savings",
+    clean(body) {
+      if (!Array.isArray(body.entries) || body.entries.length > 600) return "Expected { entries: [{ month: 'YYYY-MM', amount }] }";
+      const byMonth = new Map();
+      for (const e of body.entries) {
+        const amount = Number(e && e.amount);
+        if (!e || !/^\d{4}-(0[1-9]|1[0-2])$/.test(e.month) || !Number.isFinite(amount) || Math.abs(amount) > 1e7) return "Bad month: " + JSON.stringify(e);
+        byMonth.set(e.month, { month: e.month, amount: Math.round(amount * 100) / 100 });
+      }
+      return { entries: [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month)) };
+    },
+  },
   // Bookmarks: { items: [{ id, url, title, description, image, icon, category, note, added }], categories: [name, …] }
   bookmarks: {
     prefix: "private/bookmarks/data",

@@ -1055,3 +1055,100 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 @media (prefers-reduced-motion: reduce) {
   .picker-panel, .cselect-menu, .pick-row { animation: none; }
 }
+
+/* ---- Savings tab (editors only) ---- */
+.sort[hidden] { display: none; }
+.planner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.planner[hidden] { display: none; }
+.sv-card { background: var(--card); border-radius: var(--radius); padding: 24px 26px; min-width: 0; }
+.sv-wide { grid-column: 1 / -1; }
+.sv-msg { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); }
+.sv-msg p { margin: 0; }
+.sv-hero { display: flex; flex-direction: column; justify-content: flex-end; min-height: 236px; align-self: stretch; }
+.sv-hero .bs-total.neg { color: #c2361b; }
+.sv-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sv-facts span { display: grid; gap: 2px; min-width: 0; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-facts small { font-size: 12px; color: var(--muted); }
+
+.sv-log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.sv-log-head .bs-label { margin: 0; }
+.sv-cancel { padding: 4px 10px; background: transparent; color: var(--muted); }
+.sv-cancel:hover { background: var(--tile); color: var(--ink); }
+.sv-inputs { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; margin-top: 10px; }
+.sv-inputs label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0; }
+.sv-inputs input {
+  width: 100%; min-width: 0; height: 40px;
+  border: 0; border-radius: 10px; padding: 0 12px;
+  background: var(--tile); color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.sv-inputs input:focus { outline: none; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.sv-inputs .pill-btn { height: 40px; padding: 0 18px; justify-content: center; }
+.sv-hint { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
+.sv-months { list-style: none; margin: 16px 0 0; padding: 0; max-height: 236px; overflow-y: auto; }
+.sv-months li { display: flex; align-items: center; gap: 4px; border-top: 1px solid var(--line); }
+.sv-months li:first-child { border-top: 0; }
+.sv-month {
+  flex: 1; display: flex; justify-content: space-between; gap: 12px;
+  border: 0; background: none; padding: 10px 8px; border-radius: 8px; cursor: pointer; text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.sv-month:hover, .sv-months li.on .sv-month { background: var(--tile); }
+.sv-month span:last-child { font-family: var(--mono); font-size: 13px; }
+.sv-del { flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; display: grid; place-items: center; opacity: .5; transition: opacity .2s, background .2s; }
+.sv-del svg { width: 15px; height: 15px; }
+.sv-months li:hover .sv-del, .sv-del:focus-visible { opacity: 1; }
+.sv-del:hover { background: var(--tile); color: #c2361b; }
+
+.sv-plan-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.sv-plan-head .bs-label { margin: 0; }
+.sv-plan-note { margin: 0; font-size: 12px; color: var(--muted); }
+.sv-group { margin: 18px 0 6px; font-size: 12px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: .04em; }
+.sv-row {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  border: 0; background: none; padding: 10px; margin: 0 -10px; width: calc(100% + 20px);
+  border-radius: 12px; cursor: pointer; text-align: left;
+  transition: background-color .2s;
+}
+.sv-row:hover { background: var(--tile); }
+.sv-row:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.sv-row .link-thumb { background: var(--tile); }
+.sv-row:hover .link-thumb { background: #fff; }
+.sv-row-main { display: grid; gap: 3px; flex: 1; min-width: 0; }
+.sv-row-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-row-meta { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sv-row-meta .prio { position: relative; top: auto; left: auto; flex: none; width: 8px; height: 8px; box-shadow: none; }
+.sv-row-meta .prio::after { display: none; }
+.sv-progress { display: block; height: 4px; border-radius: 999px; background: var(--tile); overflow: hidden; max-width: 240px; margin-top: 3px; }
+.sv-row:hover .sv-progress { background: #e8e8e8; }
+.sv-progress span { display: block; height: 100%; width: var(--w); border-radius: inherit; background: var(--ink); }
+.sv-row-end { display: grid; justify-items: end; gap: 3px; flex: none; text-align: right; }
+.sv-row-price { font-variant-numeric: tabular-nums; font-weight: 500; }
+.sv-row-when { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sv-row-when svg { width: 14px; height: 14px; }
+.sv-row.ready .sv-row-when { color: #1e7b3c; font-weight: 500; }
+.sv-unpriced { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.sv-link { border: 0; background: none; padding: 0; color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.sv-link:hover { text-decoration-color: var(--ink); }
+
+@media (max-width: 760px) {
+  .planner { grid-template-columns: 1fr; }
+  .sv-card { padding: 20px; }
+  .sv-hero { min-height: 0; }
+  .sv-facts { grid-template-columns: 1fr 1fr; }
+  .sv-facts span:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 420px) {
+  .sv-inputs { grid-template-columns: 1fr 1fr; }
+  .sv-inputs .pill-btn { grid-column: 1 / -1; }
+  .sv-plan-note { display: none; }
+  .sv-row { gap: 10px; }
+}

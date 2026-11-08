@@ -27,10 +27,16 @@
   // Visitors can browse; editing controls (.edit-only) appear once the wishlist password
   // has been entered. The server checks the session cookie on every write regardless.
   let canEdit = false;
+  let loaded = false;
   function setEditor(on, local = false) {
+    const changed = canEdit !== !!on;
     canEdit = !!on;
     document.body.classList.toggle("can-edit", canEdit);
     document.body.classList.toggle("local", !!local);
+    if (!changed) return;
+    // The Savings tab only exists for editors; drop its data on sign-out.
+    if (!canEdit) { savings = null; savingsState = "idle"; if (active === SAVINGS) active = ALL; }
+    if (loaded) render();
   }
   async function checkSession() {
     try {
@@ -53,6 +59,7 @@
     } catch {
       toast("Couldn't load the wishlist", true);
     }
+    loaded = true;
     render();
   }
   async function save() {
@@ -143,6 +150,7 @@
   function iconFor(tab) {
     if (tab === ALL) return ICON_ALL;
     if (tab === BOUGHT) return ICON_BOUGHT;
+    if (tab === SAVINGS) return ICON_SAVINGS;
     return CATEGORY_ICONS.find(([re]) => re.test(tab))?.[1] || ICON_OTHER;
   }
   const ARROW = svg('<path d="M7 17 17 7M8.5 7H17v8.5"/>');
@@ -327,6 +335,217 @@
     }
   }
 
+  // ---------- Savings tab (editors only) ----------
+  // Log what you put aside each month; the pot is everything saved minus what you've bought since
+  // the first month logged. The plan walks your wishlist in priority order (cheapest first within a
+  // priority, anything an item needs pulled in just before it) and says what fits now and roughly
+  // when the rest will, at your recent monthly average. Stored privately: never sent to visitors.
+  const SAVINGS = "Savings";
+  const ICON_SAVINGS = svg('<path d="M5 11.5a6.5 6 0 0 1 11.6-3.7l2.4-.8-.5 3a6 6 0 0 1 .5 1.5H20v3h-1.6a6.5 6 0 0 1-2.4 2.6V20h-2.5v-1.8a7.5 7.5 0 0 1-3 0V20H8v-2.8A6 6 0 0 1 5 11.5Z"/><path d="M15.5 10.5h.01M9.5 7.5h3"/>');
+  const planner = $("planner");
+  let savings = null; // { entries: [{ month: "YYYY-MM", amount }] } once loaded
+  let savingsState = "idle"; // idle | loading | ready | error
+  let editingMonth = null;
+
+  const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const monthDate = (key) => new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, 1);
+  const monthName = (key, long = false) => monthDate(key).toLocaleDateString("en-GB", { month: long ? "long" : "short", year: "numeric" });
+  const addMonths = (n) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + n); return monthKey(d); };
+
+  async function loadSavings() {
+    savingsState = "loading";
+    try {
+      const res = await fetch(API + "/items?savings", { cache: "no-store" });
+      if (res.status === 401) { savingsState = "idle"; setEditor(false); return; }
+      if (!res.ok) throw new Error(res.status);
+      savings = (await res.json()).data || { entries: [] };
+      savingsState = "ready";
+    } catch {
+      savingsState = "error";
+    }
+    if (active === SAVINGS) renderPlanner();
+  }
+  async function saveSavings(msg) {
+    try {
+      const res = await fetch(API + "/items?savings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries: savings.entries }),
+      });
+      if (res.status === 401) { setEditor(false); toast("Sign in to edit", true); return; }
+      if (!res.ok) throw new Error((await res.json()).error);
+      if (msg) toast(msg);
+    } catch (err) {
+      toast("Not saved: " + (err.message || "server unavailable"), true);
+    }
+  }
+
+  function savingsPlan() {
+    const entries = savings?.entries || [];
+    const saved = entries.reduce((s, e) => s + e.amount, 0);
+    const since = entries[0]?.month || null;
+    const spentOn = since
+      ? items.filter((i) => i.bought && i.boughtAt && i.boughtAt.slice(0, 7) >= since && Number(i.price) > 0)
+      : [];
+    const spent = spentOn.reduce((s, i) => s + Number(i.price), 0);
+    const pot = saved - spent;
+    const recent = entries.slice(-6);
+    const monthly = recent.length ? recent.reduce((s, e) => s + e.amount, 0) / recent.length : 0;
+
+    // Priority order; prerequisites go in just before the first thing that needs them.
+    const order = items.filter((i) => !i.bought).sort((a, b) =>
+      (a.priority || 2) - (b.priority || 2) || (Number(a.price) || 0) - (Number(b.price) || 0) || newest(a, b));
+    const queue = [], placed = new Set();
+    const place = (i, path = new Set()) => {
+      if (placed.has(i.id) || path.has(i.id)) return;
+      path.add(i.id);
+      for (const n of stillNeeded(i)) place(n, path);
+      placed.add(i.id);
+      queue.push(i);
+    };
+    order.forEach((i) => place(i));
+
+    let cum = 0;
+    const rows = queue.filter((i) => Number(i.price) > 0).map((i) => {
+      const price = Number(i.price);
+      const before = cum;
+      cum += price;
+      const months = cum <= pot ? 0 : monthly > 0 ? Math.ceil((cum - Math.max(pot, 0)) / monthly) : null;
+      const covered = Math.max(0, Math.min(1, (pot - before) / price));
+      const forItems = neededFor(i).filter((x) => !x.bought && placed.has(x.id) && (x.priority || 2) < (i.priority || 2));
+      return { i, price, cum, months, covered, forItems };
+    });
+    return {
+      entries, saved, since, spent, spentOn, pot, monthly, rows,
+      now: rows.filter((r) => r.months === 0),
+      later: rows.filter((r) => r.months !== 0),
+      unpriced: queue.filter((i) => !(Number(i.price) > 0)),
+    };
+  }
+
+  function renderPlanner() {
+    const show = active === SAVINGS && canEdit;
+    planner.hidden = !show;
+    if (!show) return;
+    if (savingsState !== "ready") {
+      if (savingsState === "idle") loadSavings();
+      planner.innerHTML = savingsState === "error"
+        ? `<div class="sv-card sv-wide sv-msg"><p>Couldn’t load your savings.</p><button class="pill-btn" type="button" data-sv="retry">Try again</button></div>`
+        : `<div class="sv-card sv-wide sv-msg"><p>Loading your savings…</p></div>`;
+      return;
+    }
+
+    const p = savingsPlan();
+    const nowTotal = p.now.reduce((s, r) => s + r.price, 0);
+    const next = p.later[0];
+    const editing = editingMonth && p.entries.find((e) => e.month === editingMonth);
+    const formMonth = editing ? editing.month : monthKey();
+    const formAmount = editing ? editing.amount : (p.entries.find((e) => e.month === monthKey())?.amount ?? "");
+
+    const potLine = !p.entries.length
+      ? "Log what you put aside each month and this shows what you can afford."
+      : `${money(p.saved)} saved since ${monthName(p.since)}${p.spent ? ` − ${money(p.spent)} spent on ${p.spentOn.length} thing${p.spentOn.length === 1 ? "" : "s"}` : ""}`;
+
+    const when = (r) => r.months === 0 ? "Now"
+      : r.months === null ? "—"
+      : r.months === 1 ? monthName(addMonths(1)) : monthName(addMonths(r.months));
+    const row = (r) => `
+      <button type="button" class="sv-row${r.months === 0 ? " ready" : ""}" data-open="${esc(r.i.id)}">
+        ${thumbHTML(r.i)}
+        <span class="sv-row-main">
+          <span class="sv-row-name">${esc(r.i.name)}</span>
+          <span class="sv-row-meta">${prioDot(r.i.priority)}${priorityLabel[r.i.priority || 2]}${r.forItems.length ? ` · needed for ${esc(andList(r.forItems.map((x) => x.name)))}` : ""}</span>
+          ${r.months !== 0 ? `<span class="sv-progress" aria-hidden="true"><span style="--w:${Math.round(r.covered * 100)}%"></span></span>` : ""}
+        </span>
+        <span class="sv-row-end">
+          <span class="sv-row-price">${money(r.price)}</span>
+          <span class="sv-row-when">${r.months === 0 ? `${CHECK}Can buy` : r.months === null ? "Log savings to plan" : `${r.covered > 0 ? Math.round(r.covered * 100) + "% · " : ""}${when(r)}`}</span>
+        </span>
+      </button>`;
+
+    planner.innerHTML = `
+      <div class="sv-card sv-hero">
+        <p class="bs-label">Ready to spend</p>
+        <p class="bs-total${p.pot < 0 ? " neg" : ""}">${money(Math.round(p.pot))}</p>
+        <p class="bs-sub">${potLine}</p>
+        ${p.monthly ? `<div class="sv-facts">
+          <span><small>Monthly average</small>${money(Math.round(p.monthly))}</span>
+          <span><small>Buy now</small>${p.now.length} thing${p.now.length === 1 ? "" : "s"}${nowTotal ? ` · ${money(nowTotal)}` : ""}</span>
+          <span><small>Next up</small>${next ? `${esc(next.i.name)}${next.months ? `, ${when(next)}` : ""}` : p.rows.length ? "All covered" : "—"}</span>
+        </div>` : ""}
+      </div>
+      <form class="sv-card sv-log" id="svForm" autocomplete="off">
+        <div class="sv-log-head">
+          <p class="bs-label">${editing ? `Edit ${monthName(editing.month, true)}` : "Log a month"}</p>
+          ${editing ? `<button class="ghost sv-cancel" type="button" data-sv="cancel">Cancel</button>` : ""}
+        </div>
+        <div class="sv-inputs">
+          <label><span>Month</span><input name="month" type="month" value="${formMonth}" max="${monthKey()}" required /></label>
+          <label><span>Saved (€)</span><input name="amount" type="number" inputmode="decimal" step="any" placeholder="0" value="${formAmount}" required /></label>
+          <button class="pill-btn dark" type="submit">${editing || p.entries.some((e) => e.month === formMonth) ? "Update" : "Save"}</button>
+        </div>
+        ${p.entries.length ? `<ul class="sv-months">${[...p.entries].reverse().map((e) => `
+          <li${e.month === editingMonth ? ' class="on"' : ""}>
+            <button type="button" class="sv-month" data-sv="edit" data-month="${e.month}"><span>${monthName(e.month, true)}</span><span>${money(e.amount)}</span></button>
+            <button type="button" class="sv-del" data-sv="del" data-month="${e.month}" aria-label="Remove ${monthName(e.month, true)}">${svg('<path d="M7 7l10 10M17 7 7 17"/>')}</button>
+          </li>`).join("")}</ul>` : `<p class="sv-hint">Add how much you put aside this month. Logging the same month again replaces it.</p>`}
+      </form>
+      <section class="sv-card sv-wide sv-plan">
+        <div class="sv-plan-head">
+          <p class="bs-label">What you can buy</p>
+          <p class="sv-plan-note">By priority, cheapest first</p>
+        </div>
+        ${p.rows.length ? `
+          ${p.now.length ? `<p class="sv-group">Buy now${nowTotal ? ` · ${money(nowTotal)}` : ""}</p>${p.now.map(row).join("")}` : ""}
+          ${p.later.length ? `<p class="sv-group">Keep saving${p.monthly ? ` · at ${money(Math.round(p.monthly))} a month` : ""}</p>${p.later.map(row).join("")}` : ""}
+        ` : `<p class="sv-hint">Nothing on the list has a price yet.</p>`}
+        ${p.unpriced.length ? `<p class="sv-unpriced">No price yet, so not planned: ${p.unpriced.map((i) => `<button type="button" class="sv-link" data-open="${esc(i.id)}">${esc(i.name)}</button>`).join(", ")}</p>` : ""}
+      </section>`;
+  }
+
+  planner.addEventListener("click", (e) => {
+    const open = e.target.closest("[data-open]");
+    if (open) return openDetail(open.dataset.open, null);
+    const b = e.target.closest("[data-sv]");
+    if (!b) return;
+    const act = b.dataset.sv;
+    if (act === "retry") { savingsState = "idle"; return renderPlanner(); }
+    if (act === "cancel") { editingMonth = null; return renderPlanner(); }
+    if (act === "edit") {
+      editingMonth = b.dataset.month;
+      renderPlanner();
+      planner.querySelector('#svForm [name="amount"]')?.select();
+      return;
+    }
+    if (act === "del") {
+      const gone = savings.entries.find((x) => x.month === b.dataset.month);
+      savings.entries = savings.entries.filter((x) => x !== gone);
+      if (editingMonth === gone.month) editingMonth = null;
+      renderPlanner();
+      saveSavings();
+      toast(`Removed ${monthName(gone.month, true)}`, false, {
+        label: "Undo",
+        run: () => {
+          savings.entries = [...savings.entries, gone].sort((a, c) => a.month.localeCompare(c.month));
+          renderPlanner();
+          saveSavings();
+        },
+      });
+    }
+  });
+  planner.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = e.target.elements;
+    const month = f.month.value, amount = Number(f.amount.value);
+    if (!/^\d{4}-\d{2}$/.test(month) || !Number.isFinite(amount)) return;
+    const was = savings.entries.find((x) => x.month === month);
+    savings.entries = [...savings.entries.filter((x) => x.month !== month && x.month !== editingMonth), { month, amount: Math.round(amount * 100) / 100 }]
+      .sort((a, b) => a.month.localeCompare(b.month));
+    editingMonth = null;
+    renderPlanner();
+    saveSavings(`${was ? "Updated" : "Saved"} ${monthName(month, true)}`);
+  });
+
   function render() {
     const wanted = items.filter((i) => !i.bought);
     $("updated").textContent = updatedAt
@@ -334,15 +553,15 @@
       : "Personal wishlist";
 
     // filters (keep the sliding indicator element, replace the buttons)
-    const tabs = [ALL, ...categories(), BOUGHT];
+    const tabs = [ALL, ...categories(), BOUGHT, ...(canEdit ? [SAVINGS] : [])];
     if (!tabs.includes(active)) active = ALL;
     filters.querySelectorAll("button").forEach((b) => b.remove());
     filters.insertAdjacentHTML(
       "beforeend",
       tabs
         .map((t) => {
-          const n = t === ALL ? wanted.length : t === BOUGHT ? items.length - wanted.length : wanted.filter((i) => i.category === t).length;
-          return `<button role="tab" aria-selected="${t === active}" data-tab="${esc(t)}">${iconFor(t)}<span>${esc(t)}</span><span class="count">${n}</span></button>`;
+          const n = t === SAVINGS ? null : t === ALL ? wanted.length : t === BOUGHT ? items.length - wanted.length : wanted.filter((i) => i.category === t).length;
+          return `<button role="tab" aria-selected="${t === active}" data-tab="${esc(t)}"${t === SAVINGS ? ' class="tab-savings"' : ""}>${iconFor(t)}<span>${esc(t)}</span>${n === null ? "" : `<span class="count">${n}</span>`}</button>`;
         })
         .join("")
     );
@@ -350,11 +569,13 @@
     $("cats").innerHTML = categories().map((c) => `<option value="${esc(c)}">`).join("");
     renderSortMenu();
     renderBoughtSummary();
+    renderPlanner();
+    $("sort").hidden = active === SAVINGS;
 
     // cards — persistent elements; filtering hides them, sorting reorders them, Flip animates the move.
     // Cards that are leaving fade out first; then the rest move into place.
     const shown = items
-      .filter((i) => (active === BOUGHT ? i.bought : !i.bought && (active === ALL || i.category === active)))
+      .filter((i) => active !== SAVINGS && (active === BOUGHT ? i.bought : !i.bought && (active === ALL || i.category === active)))
       .sort(SORTS[sortBy].fn);
     const shownIds = new Set(shown.map((i) => i.id));
 
@@ -390,7 +611,7 @@
     syncCards();
     for (const [id, el] of cardEls) el.hidden = !shownIds.has(id);
     for (const i of shown) grid.appendChild(cardEls.get(i.id)); // moves into sorted order
-    empty.hidden = shown.length > 0;
+    empty.hidden = shown.length > 0 || active === SAVINGS;
 
     if (!motion) return;
     if (firstRender) {
