@@ -36,6 +36,7 @@
     if (!changed) return;
     // The Savings tab only exists for editors; drop its data on sign-out.
     if (!canEdit) { savings = null; savingsState = "idle"; if (active === SAVINGS) active = ALL; }
+    if (canEdit && location.hash === "#savings") { beforeSavings = active; active = SAVINGS; }
     if (loaded) render();
   }
   async function checkSession() {
@@ -427,9 +428,9 @@
     if (!show) return;
     if (savingsState !== "ready") {
       if (savingsState === "idle") loadSavings();
-      planner.innerHTML = savingsState === "error"
+      planner.innerHTML = `<div class="sv-back-row sv-wide"><button class="ghost sv-back" type="button" data-sv="back">${svg('<path d="M19 12H5M11 6l-6 6 6 6"/>')}Back to wishlist</button></div>` + (savingsState === "error"
         ? `<div class="sv-card sv-wide sv-msg"><p>Couldn’t load your savings.</p><button class="pill-btn" type="button" data-sv="retry">Try again</button></div>`
-        : `<div class="sv-card sv-wide sv-msg"><p>Loading your savings…</p></div>`;
+        : `<div class="sv-card sv-wide sv-msg"><p>Loading your savings…</p></div>`);
       return;
     }
 
@@ -462,6 +463,9 @@
       </button>`;
 
     planner.innerHTML = `
+      <div class="sv-back-row sv-wide">
+        <button class="ghost sv-back" type="button" data-sv="back">${svg('<path d="M19 12H5M11 6l-6 6 6 6"/>')}Back to wishlist</button>
+      </div>
       <div class="sv-card sv-hero">
         <p class="bs-label">Ready to spend</p>
         <p class="bs-total${p.pot < 0 ? " neg" : ""}">${money(Math.round(p.pot))}</p>
@@ -501,15 +505,32 @@
       </section>`;
   }
 
-  // Top-nav button: opens the savings plan, and again goes back to the list you were on.
+  // Savings opens from the top nav and lives at #savings, so the browser's Back button, the
+  // "Back to wishlist" button, the nav button again, or Escape all return to the list you were on.
   let beforeSavings = ALL;
-  $("savingsBtn").onclick = () => {
-    if (active === SAVINGS) active = beforeSavings;
-    else { beforeSavings = active; active = SAVINGS; }
+  function showSavings(on) {
+    if (on === (active === SAVINGS)) return;
+    if (on) { beforeSavings = active; active = SAVINGS; }
+    else active = beforeSavings;
     editingMonth = null;
     render();
     scrollTo({ top: 0, behavior: motion ? "smooth" : "auto" });
-  };
+    if (!on) $("savingsBtn").focus({ preventScroll: true });
+  }
+  function openSavings() {
+    if (location.hash !== "#savings") history.pushState({ savings: true }, "", "#savings");
+    showSavings(true);
+  }
+  function closeSavings() {
+    if (history.state?.savings) return history.back(); // popstate does the rest
+    history.replaceState(null, "", location.pathname + location.search);
+    showSavings(false);
+  }
+  $("savingsBtn").onclick = () => (active === SAVINGS ? closeSavings() : openSavings());
+  addEventListener("popstate", () => showSavings(location.hash === "#savings" && canEdit));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && active === SAVINGS && !document.querySelector("dialog[open]") && !e.target.closest?.("input")) closeSavings();
+  });
 
   planner.addEventListener("click", (e) => {
     const open = e.target.closest("[data-open]");
@@ -517,6 +538,7 @@
     const b = e.target.closest("[data-sv]");
     if (!b) return;
     const act = b.dataset.sv;
+    if (act === "back") return closeSavings();
     if (act === "retry") { savingsState = "idle"; return renderPlanner(); }
     if (act === "cancel") { editingMonth = null; return renderPlanner(); }
     if (act === "edit") {
@@ -778,7 +800,7 @@
 
   // ---------- site menu (top-left mark): switch between portfolio sections ----------
   const siteMenuBtn = $("siteMenuBtn"), siteMenuList = $("siteMenuList");
-  const siteLinks = () => [...siteMenuList.querySelectorAll("a")];
+  const siteLinks = () => [...siteMenuList.querySelectorAll("a")].filter((a) => a.offsetParent !== null); // skips links hidden from visitors
   function toggleSiteMenu(open = siteMenuList.hidden) {
     siteMenuBtn.setAttribute("aria-expanded", open);
     siteMenuBtn.setAttribute("aria-label", open ? "Close site menu" : "Open site menu");
@@ -788,7 +810,7 @@
       siteLinks()[0]?.focus();
       if (motion) {
         gsap.fromTo(siteMenuList, { opacity: 0, y: -6, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" });
-        gsap.from(siteMenuList.children, { opacity: 0, y: -4, duration: 0.25, stagger: 0.03, ease: "power2.out" });
+        gsap.from([...siteMenuList.children].filter((li) => li.offsetParent !== null), { opacity: 0, y: -4, duration: 0.25, stagger: 0.03, ease: "power2.out" });
       }
     } else if (!siteMenuList.hidden) {
       if (motion) gsap.to(siteMenuList, { opacity: 0, y: -6, scale: 0.97, duration: 0.18, ease: "power2.in", onComplete: () => (siteMenuList.hidden = true) });

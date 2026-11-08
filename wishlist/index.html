@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/wishlist/styles.css?v=50" />
+  <link rel="stylesheet" href="/wishlist/styles.css?v=51" />
 </head>
 <body>
   <header class="top">
@@ -18,7 +18,15 @@
         <span class="mark" aria-hidden="true"></span>
       </button>
       <ul class="sort-menu site-menu-list" id="siteMenuList" role="menu" hidden>
+        <!-- Your other tools: only listed once you've unlocked editing (visitors just see Wishlist and Portfolio) -->
+        <li role="none" class="edit-only"><a role="menuitem" href="/home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a></li>
+        <li class="menu-sep edit-only" role="separator"></li>
         <li role="none"><a role="menuitem" href="/wishlist" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Wishlist</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></a></li>
+        <li role="none" class="edit-only"><a role="menuitem" href="/bookmarks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-4-6 4V5.5a1 1 0 0 1 1-1z"/></svg><span>Bookmarks</span></a></li>
+        <li role="none" class="edit-only"><a role="menuitem" href="/weight"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9.5a4.5 4.5 0 0 1 6 0L13 12"/></svg><span>WeightWise</span></a></li>
+        <li role="none" class="edit-only"><a role="menuitem" href="/budget"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v8l5.7 5.7"/></svg><span>Budget</span></a></li>
+        <li role="none" class="edit-only"><a role="menuitem" href="/spanish"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h9"/></svg><span>Spanish</span></a></li>
+        <li role="none" class="edit-only"><a role="menuitem" href="/wedding"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="m10 5 2-2 2 2"/></svg><span>Wedding</span></a></li>
         <li class="menu-sep" role="separator"></li>
         <li role="none">
           <a role="menuitem" href="/">
@@ -228,6 +236,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
-  <script src="/wishlist/app.js?v=50"></script>
+  <script src="/wishlist/app.js?v=51"></script>
 </body>
 </html>

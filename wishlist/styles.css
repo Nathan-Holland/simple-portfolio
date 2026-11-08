@@ -1058,6 +1058,10 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
 
 /* ---- Savings tab (editors only) ---- */
 .toolbar[hidden] { display: none; }
+.sv-back-row { display: flex; }
+.sv-back { padding: 8px 14px 8px 10px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
+.sv-back:hover { box-shadow: 0 0 0 1px var(--line), 0 6px 16px -8px rgba(0,0,0,.25); }
+.sv-back svg { width: 16px; height: 16px; }
 .savings-btn svg { width: 16px; height: 16px; }
 .savings-btn[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: none; }
 @media (max-width: 520px) {
