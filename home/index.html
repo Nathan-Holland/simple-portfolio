@@ -95,6 +95,25 @@
     .search-box button svg { width: 16px; height: 16px; stroke-width: 2; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+    /* ---------- quick links (icons from Google's favicon service) ---------- */
+    .quick { list-style: none; margin: -14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+    .quick a {
+      display: grid; justify-items: center; gap: 7px; padding: 12px 4px 10px; border-radius: 14px;
+      color: var(--nh-ink); text-decoration: none; font-size: 12px; transition: background .2s;
+    }
+    .quick a:hover { background: var(--nh-card); }
+    .quick a:focus-visible { outline: 2px solid var(--nh-ink); outline-offset: -2px; }
+    .quick .qi {
+      width: 44px; height: 44px; border-radius: 12px; background: var(--nh-card); display: grid; place-items: center;
+      box-shadow: 0 0 0 1px var(--nh-line); transition: box-shadow .2s, translate .3s cubic-bezier(.2,.7,.2,1);
+    }
+    .quick a:hover .qi { box-shadow: 0 0 0 1px var(--nh-line), 0 8px 18px -10px rgba(0,0,0,.35); translate: 0 -2px; }
+    .quick .qi img { width: 22px; height: 22px; border-radius: 4px; }
+    .quick .qn { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--nh-muted); }
+    .quick a:hover .qn { color: var(--nh-ink); }
+    @media (max-width: 520px) { .quick { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: -8px; } }
+    @media (prefers-reduced-motion: reduce) { .quick .qi { transition: none; } }
+
     /* ---------- Spanish: phrase of the day + today's task ---------- */
     .es { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; }
     .es .card { padding: 22px; display: grid; gap: 10px; align-content: start; min-width: 0; }
@@ -241,7 +260,7 @@
       .side { position: static; }
       /* On phones the summary and links come before the news */
       .main { display: contents; }
-      .greet { order: 1; } .search-wrap { order: 2; } .es-wrap { order: 3; } .side { order: 4; } .news-wrap { order: 5; }
+      .greet { order: 1; } .search-wrap, .quick { order: 2; } .es-wrap { order: 3; } .side { order: 4; } .news-wrap { order: 5; }
       .page { display: flex; flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 520px) {
@@ -284,6 +303,18 @@
           </button>
         </label>
       </form>
+
+      <!-- Quick links: add or remove a line to change them -->
+      <ul class="quick" aria-label="Quick links">
+        <li><a href="https://x.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=x.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">X</span></a></li>
+        <li><a href="https://www.youtube.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=youtube.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">YouTube</span></a></li>
+        <li><a href="https://mail.google.com"><span class="qi"><img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Gmail</span></a></li>
+        <li><a href="https://www.instagram.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=instagram.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Instagram</span></a></li>
+        <li><a href="https://www.linkedin.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">LinkedIn</span></a></li>
+        <li><a href="https://www.figma.com/files"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=figma.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Figma</span></a></li>
+        <li><a href="https://github.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">GitHub</span></a></li>
+        <li><a href="https://claude.ai"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=claude.ai&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Claude</span></a></li>
+      </ul>
 
       <section class="es-wrap" aria-labelledby="esLabel">
         <p class="label" id="esLabel">Español</p>
