@@ -1,190 +1,78 @@
-/* The character layer, loaded last on every tool page.
-   Editorial and tactile: large Instrument Serif titles and figures, Geist for text, tiny mono
-   labels, warm paper with a hint of grain, soft layered depth, and motion that is slow-in,
-   settled and never bouncy. Behaviour (reveals, count-ups, tooltips) is in fun.js. */
+/* Playful layer on top of the Cards look (see fun.js): particle bars, a soft aurora behind
+   the page, a cursor spotlight on cards, springy icons and a shimmer on page titles.
+   Everything here is decoration: it switches off for reduced motion. */
 
-/* ---------- atmosphere: paper, light from above, fine grain ---------- */
-html { background: var(--canvas); }
-body {
-  background:
-    radial-gradient(120% 60% at 50% -10%, rgb(255 255 255 / 0.9), transparent 60%),
-    var(--canvas) !important;
-  background-attachment: fixed !important;
-  font-family: var(--font-sans);
-  text-rendering: optimizeLegibility;
-}
-body::after {
-  content: ""; position: fixed; inset: 0; z-index: 800; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-::selection { background: var(--accent-soft); color: var(--fg); }
-input, textarea { caret-color: var(--accent); }
-
-/* ---------- typography ---------- */
-/* Page titles: big serif, tight, with an italic turn on the emphasised word */
-.nh-hero h1, .hero h1, .greet h1, .u-hero h1, body > .hero h1 {
-  font-family: var(--font-display); font-weight: 400; font-size: clamp(52px, 7.4vw, 104px); line-height: .96; letter-spacing: -0.025em;
-  text-wrap: balance;
-}
-h1 em { font-style: italic; letter-spacing: -0.03em; padding-right: .04em; }
-.nh-hero, .hero, .u-hero { margin-top: 64px; margin-bottom: 40px; }
-.nh-hero .nh-sub, .u-hero p.u-hero-sub { margin-top: 20px; font-size: 17px; line-height: 26px; letter-spacing: -0.01em; max-width: 520px; }
-/* Eyebrows and group labels: small mono capitals with air between the letters */
-.nh-eyebrow, .eyebrow, .u-eyebrow, .card .label, .lbl, .ww-top .muted, .sv-group, .bs-label, .bs-stat-label, .tile-label, .stat .l, .snap .l, .macro .l, .fact .l, .notes-label, .detail-title .brand, .u-row-card-title {
-  font-family: var(--font-mono); font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted);
-}
-.nh-eyebrow, .u-eyebrow, body > .hero .eyebrow { margin-bottom: 20px; gap: 10px; }
-.nh-eyebrow svg, .u-eyebrow svg, .hero .eyebrow svg { color: var(--accent); }
-/* Section headings on the canvas and titles inside cards: serif */
-.label { font-family: var(--font-display); font-size: 28px; line-height: 32px; font-weight: 400; letter-spacing: -0.015em; margin-bottom: 16px; }
-.card h2, .sheet-head h2, .empty h2, .drawer-head h2, .signin-form h2, .setup h2, .u-section-label {
-  font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 34px; letter-spacing: -0.02em;
-}
-.card h2 .small, .card h2 small { font-family: var(--font-sans); font-size: 14px; line-height: 20px; letter-spacing: -0.006em; }
-.detail-title h2 { font-family: var(--font-display); font-weight: 400; font-size: 40px; line-height: 42px; letter-spacing: -0.025em; }
-.phrase .es-text { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 30px; line-height: 34px; letter-spacing: -0.02em; }
-.train-now .what, .story.lead .t { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 34px; letter-spacing: -0.02em; }
-/* Figures: serif numerals, large */
-.tile-value, .stat .v, .weather .temp, .ww .kg, .bs-stat-value, .saver-amount, .preview .v, .ov-value, .ms-value, .snap .v, .macro .v {
-  font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em;
-}
-.tile-value, .stat .v { font-size: 44px; line-height: 46px; }
-.weather .temp, .ww .kg, .bs-stat-value, .saver-amount { font-size: 40px; line-height: 42px; }
-.ov-value, .ms-value, .snap .v, .macro .v { font-size: 28px; line-height: 32px; }
-.bs-total, .now .big, .kcal { font-family: var(--font-display); font-weight: 400; font-size: clamp(72px, 9vw, 128px); line-height: .92; letter-spacing: -0.035em; }
-.weather .temp small, .ww .kg small, .stat .v small, .now .big small, .kcal small, .snap .v small, .macro .v small, .preview .v small { font-family: var(--font-sans); letter-spacing: 0; }
-.clock, .filters .count, .side-head .n { font-family: var(--font-mono); letter-spacing: .02em; }
-.name, .info .name, .story .t, .who .name, .item-name { letter-spacing: -0.012em; }
-
-/* ---------- surfaces ---------- */
-.card, .tile, .stat, .sv-card, .bs-hero, .bs-stat, .bs-cats, .bs-empty, .story, .news-msg, .u-project-card { border-radius: var(--radius-2xl); box-shadow: var(--shadow-sm); }
-.tile, .stat { padding: 20px 24px 22px; gap: 10px; }
-/* Segmented controls and tabs are pills */
-.seg, .filters, .tabs, .stepper { border-radius: 999px; }
-.seg button, .filters button, .tabs a, .tabs button, .tab-indicator, .filters .indicator, .chip-btn { border-radius: 999px; }
-.search-box { height: 60px; padding: 0 10px 0 22px; border-radius: 999px; }
-.search-box input { font-size: 17px; }
-.search-box button { width: 40px; height: 40px; border-radius: 50%; }
-
-/* ---------- motion ---------- */
-@media (prefers-reduced-motion: no-preference) {
-  /* Pages cross-fade into each other */
-  @view-transition { navigation: auto; }
-  ::view-transition-old(root) { animation: fx-leave .22s var(--ease-out) both; }
-  ::view-transition-new(root) { animation: fx-enter .5s var(--ease-out) both; }
-  @keyframes fx-leave { to { opacity: 0; transform: translateY(-6px); } }
-  @keyframes fx-enter { from { opacity: 0; transform: translateY(10px); } }
-
-  /* Staggered entrance: fun.js tags blocks with .rv and an order (--i); they settle in one by one */
-  /* Safety net: anything still waiting after 5s shows itself, whatever the script is doing */
-  .rv { opacity: 0; transform: translateY(18px); filter: blur(8px); animation: fx-safety 0s linear 5s forwards; }
-  .rv.rv-in { animation: none; }
-  @keyframes fx-safety { to { opacity: 1; transform: none; filter: none; clip-path: none; } }
-  .rv.rv-in {
-    opacity: 1; transform: none; filter: none;
-    transition: opacity .9s var(--ease-out), transform 1.1s var(--ease-out), filter .9s var(--ease-out);
-    transition-delay: calc(var(--i, 0) * 70ms);
-  }
-  /* Titles rise line by line from behind a mask */
-  .rv-title { opacity: 1; filter: none; transform: none; clip-path: inset(0 0 100% 0); }
-  .rv-title.rv-in { clip-path: inset(-10% -5% -20% -5%); transform: none; transition: clip-path 1.2s var(--ease-out), transform 1.2s var(--ease-out); transition-delay: calc(var(--i, 0) * 70ms); }
-  .rv-title:not(.rv-in) { transform: translateY(40%); }
-
-  /* Budget tabs: each view settles in */
-  .dash { animation: fx-view .7s var(--ease-out) both; }
-  @keyframes fx-view { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } }
-
-  /* Cards: a slow lift with deeper shadow, and a soft light that follows the cursor */
-  .story, .grid > .card, button.stat, .tile, .sv-card, .bs-stat, .u-project-card, .sections > .card, .foods > .card, .meals > .card {
-    transition: transform .6s var(--ease-out), box-shadow .6s var(--ease-out), background-color .2s;
-  }
-  .story:hover, .grid > .card:hover, button.stat:hover, .tile:hover, .bs-stat:hover, .u-project-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0 0 1px rgb(20 19 17 / 0.05), 0 2px 4px rgb(20 19 17 / 0.04), 0 28px 48px -24px rgb(20 19 17 / 0.3);
-  }
-  .card:hover, .tile:hover, .stat:hover, .sv-card:hover, .bs-hero:hover, .bs-stat:hover, .bs-cats:hover, .story:hover, .u-project-card:hover {
-    background-image: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgb(255 255 255 / 1), rgb(250 247 242 / 0) 60%);
-    background-color: #FCFAF6;
-  }
-  .story .img img, .media img.shot { transition: transform 1.2s var(--ease-out); }
-  .story:hover .img img, .card:hover .media img.shot { transform: scale(1.05); }
-  .story:hover .t, .card > a:hover .name, .card:hover .name { text-decoration: none; }
-
-  /* Buttons: lift a hair on hover, settle on press; arrows nudge forward */
-  .btn, .pill-btn, .u-btn, .search-box button, .icon-btn {
-    transition: transform .4s var(--ease-out), background-color .2s, box-shadow .4s var(--ease-out), color .2s;
-  }
-  .btn:hover, .pill-btn:hover, .u-btn:hover { transform: translateY(-1px); }
-  .btn.dark:hover, .pill-btn.dark:hover, .u-btn-primary:hover, .search-box button:hover {
-    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.16), 0 0 0 1px var(--primary), 0 2px 4px rgb(20 19 17 / 0.3), 0 14px 24px -10px rgb(20 19 17 / 0.55);
-  }
-  .btn:active, .pill-btn:active, .u-btn:active, .search-box button:active { transform: translateY(0) scale(.97); transition-duration: .12s; }
-  .pill-btn svg:last-child, .btn svg:last-child, .search-box button svg, .ov-row svg { transition: transform .5s var(--ease-out); }
-  .pill-btn:hover svg:last-child:not(:first-child), .search-box button:hover svg, .ov-row:hover svg { transform: translateX(3px); }
-  .pill-btn .plus, .btn .plus { transition: transform .6s var(--ease-out); }
-  .pill-btn:hover .plus, .btn:hover .plus { transform: rotate(90deg); rotate: none; }
-
-  /* Shortcuts: the icon rises, its label warms to ink */
-  .quick .qi { transition: transform .6s var(--ease-out), box-shadow .6s var(--ease-out); }
-  .quick a:hover .qi { transform: translateY(-4px); box-shadow: var(--shadow-button), 0 14px 22px -12px rgb(20 19 17 / 0.4); }
-  .quick a:hover { background: transparent; }
-
-  /* Search: grows a soft halo when focused */
-  .search-box { transition: box-shadow .5s var(--ease-out), transform .5s var(--ease-out); }
-  .search-box:focus-within { box-shadow: 0 0 0 1px var(--fg), 0 24px 48px -24px rgb(20 19 17 / 0.4); transform: translateY(-1px); }
-
-  /* Bars: fills draw in from the left, then glint when hovered */
-  .meter span, .item-bar span, .sv-progress span, .bs-bar span, .train-meter span, .ww .bar span { position: relative; }
-  .meter span, .item-bar span, .sv-progress span, .bs-bar span, .train-meter span, .goal-track .bar span, .ww .bar span {
-    overflow: hidden; transform-origin: left center; animation: fx-bar 1.4s var(--ease-out) both;
-  }
-  .split-bar .part { transform-origin: left center; animation: fx-bar 1.4s var(--ease-out) both; transition: opacity .3s, filter .3s, transform .5s var(--ease-out); }
-  .split-bar .part:hover { transform: scaleY(1.25); }
-  @keyframes fx-bar { from { transform: scaleX(0); } }
-  .meter span::after, .item-bar span::after, .sv-progress span::after, .bs-bar span::after, .goal-track .bar span::after {
-    content: ""; position: absolute; inset: 0; transform: translateX(-110%);
-    background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.55) 50%, transparent 80%);
-  }
-  .item:hover .item-bar span::after, .split-row:hover .meter span::after, .card:hover > .meter span::after, .bs-cat:hover .bs-bar span::after, .sv-row:hover .sv-progress span::after, .goal-track:hover .bar span::after {
-    transform: translateX(110%); transition: transform 1s var(--ease-out);
-  }
-  .meter, .item-bar, .bs-bar, .sv-progress, .goal-track .bar { transition: height .4s var(--ease-out); }
-
-  /* Rows: a calm tint, and their figures step forward */
-  .item, .split-row, .bs-cat, .row, .kv div { transition: background-color .3s; }
-  .ov-row, .sv-row, .guest, .link-row { transition: background-color .3s, padding .5s var(--ease-out); }
-
-  /* Ticks pop in softly */
-  .day.done .dot, .task .checks .done .box { animation: fx-tick .6s var(--ease-out); }
-  @keyframes fx-tick { 0% { transform: scale(.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-  /* Menus and dialogs: settle from slightly above, un-blurring */
-  .nh-menu-list, .menu, .sort-menu { animation: fx-menu .35s var(--ease-out); }
-  @keyframes fx-menu { from { opacity: 0; transform: translateY(-8px) scale(.98); filter: blur(6px); } }
-  dialog.sheet[open]:not(.detail-sheet) { animation: fx-dialog .5s var(--ease-out); }
-  @keyframes fx-dialog { from { opacity: 0; transform: translateY(16px) scale(.98); filter: blur(8px); } }
-
-  /* Chart lines draw themselves (fun.js sets the length) */
-  .fx-draw { transition: stroke-dashoffset 1.8s var(--ease-out); }
-}
-
-/* Tooltip for bars */
+/* The drawing surface for particles, comets and confetti */
+.fx-canvas { position: fixed; inset: 0; z-index: 900; pointer-events: none; }
+/* A bar that fun.js is drawing as particles: keep its size, hide its flat fill */
+.fx-bar { opacity: 0 !important; }
 .fx-tip {
   position: fixed; z-index: 901; pointer-events: none; transform: translate(-50%, -100%);
-  padding: 5px 9px; border-radius: 999px; background: var(--inverse); color: #fff;
-  font: 500 11px/16px var(--font-mono); letter-spacing: .04em; white-space: nowrap;
-  box-shadow: var(--shadow-md);
-  transition: opacity .2s;
+  padding: 4px 8px; border-radius: var(--radius-md, 6px); background: var(--inverse, #0A0A0A); color: #fff;
+  font: 500 12px/16px var(--font-sans, system-ui); font-variant-numeric: tabular-nums; white-space: nowrap;
+  box-shadow: var(--shadow-md, 0 4px 8px rgb(0 0 0 / .18));
 }
-.fx-tip[hidden] { display: block; opacity: 0; }
 
-@media (max-width: 520px) {
-  .nh-hero, .hero, .u-hero { margin-top: 40px; margin-bottom: 28px; }
-  .nh-hero h1, .hero h1, .greet h1, .u-hero h1, body > .hero h1 { font-size: clamp(44px, 13vw, 60px); }
-  .tile-value, .stat .v { font-size: 36px; line-height: 38px; }
-  .bs-total, .now .big, .kcal { font-size: 72px; }
-  .search-box { height: 56px; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Bars get a little taller so the particles have room, and their tracks go see-through */
+  .ww .bar, .train-meter, .bs-bar, .sv-progress, .goal-track .bar, .meter, .item-bar, .scale .track { height: 10px; overflow: visible; background: rgb(10 10 10 / 0.05); }
+  .meter.big, .macro-bar { height: 14px; overflow: visible; }
+  .split-bar { overflow: visible; }
+
+  /* Aurora: three soft colour clouds drifting slowly behind everything */
+  html { background: var(--canvas, #F5F5F5); }
+  body { background: transparent !important; position: relative; }
+  body::before {
+    content: ""; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(38% 34% at 18% 22%, rgb(142 81 255 / 0.10), transparent 70%),
+      radial-gradient(34% 32% at 82% 18%, rgb(43 127 255 / 0.09), transparent 70%),
+      radial-gradient(40% 36% at 62% 88%, rgb(255 105 0 / 0.07), transparent 70%);
+    filter: blur(20px);
+    animation: fx-aurora 26s ease-in-out infinite alternate;
+  }
+  @keyframes fx-aurora {
+    0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+    50% { transform: translate3d(3%, -2%, 0) rotate(6deg) scale(1.08); }
+    100% { transform: translate3d(-3%, 3%, 0) rotate(-5deg) scale(1.02); }
+  }
+
+  /* Cursor spotlight: a faint colour glow follows the pointer across cards */
+  .card:hover, .tile:hover, .stat:hover, .sv-card:hover, .bs-hero:hover, .bs-stat:hover, .bs-cats:hover, .story:hover, .u-project-card:hover {
+    background-image:
+      radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgb(142 81 255 / 0.08), rgb(43 127 255 / 0.05) 45%, transparent 72%);
+  }
+
+  /* Page titles: a slow colour shimmer sweeps through the ink */
+  .nh-hero h1, .hero h1, .greet h1, .u-hero h1 {
+    background: linear-gradient(100deg, var(--fg, #0A0A0A) 0%, var(--fg, #0A0A0A) 38%, #8E51FF 46%, #2B7FFF 52%, #FF6900 58%, var(--fg, #0A0A0A) 66%, var(--fg, #0A0A0A) 100%);
+    background-size: 280% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+    animation: fx-shimmer 9s ease-in-out infinite;
+  }
+  @keyframes fx-shimmer { 0%, 55% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+
+  /* Shortcut icons: a springy pop and tilt */
+  .quick .qi { transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s; }
+  .quick a:hover .qi { transform: translateY(-3px) rotate(-4deg) scale(1.1); box-shadow: var(--shadow-button), 0 10px 18px -10px rgb(0 0 0 / 0.35); }
+  .quick li:nth-child(even) a:hover .qi { transform: translateY(-3px) rotate(4deg) scale(1.1); }
+
+  /* Cards and stat tiles lift a touch, pictures zoom a touch */
+  .story, .grid > .card, .stat, .tile, .u-project-card { transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s, background-color .15s; }
+  .story:hover, .grid > .card:hover, button.stat:hover, .tile:hover, .u-project-card:hover { transform: translateY(-3px); box-shadow: 0 1px 2px rgb(0 0 0 / .1), 0 14px 28px -18px rgb(0 0 0 / 0.35); }
+  .story .img img, .media img.shot { transition: scale .6s cubic-bezier(.2, .7, .2, 1); }
+  .story:hover .img img, .card:hover .media img.shot { scale: 1.04; }
+
+  /* Workout dots pop when they turn done */
+  .day.done .dot, .task .checks .done .box { animation: fx-pop .45s cubic-bezier(.34, 1.56, .64, 1); }
+  @keyframes fx-pop { 0% { transform: scale(.4); } 100% { transform: scale(1); } }
+
+  /* Primary buttons: a light sweep across on hover */
+  .pill-btn.dark, .btn.dark, .u-btn-primary { position: relative; overflow: hidden; }
+  .pill-btn.dark::after, .btn.dark::after, .u-btn-primary::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.28) 50%, transparent 70%);
+    transform: translateX(-120%);
+  }
+  .pill-btn.dark:hover::after, .btn.dark:hover::after, .u-btn-primary:hover::after { transform: translateX(120%); transition: transform .7s cubic-bezier(.2, .7, .2, 1); }
 }
-.ww .kg span { font-family: var(--font-sans); }
-/* Form labels stay as plain text labels, not mono capitals */
-.field > label, .field > .label { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: -0.006em; text-transform: none; color: var(--fg); margin: 0; }
