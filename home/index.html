@@ -96,28 +96,32 @@
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
     /* ---------- quick links (icons from Google's favicon service) ---------- */
-    .quick { list-style: none; margin: -14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+    .shortcuts { padding: 8px; display: grid; gap: 0; margin-top: -10px; }
+    .quick { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+    .quick + .quick { border-top: 1px solid var(--nh-line); margin-top: 6px; padding-top: 6px; }
     .quick a {
       display: grid; justify-items: center; gap: 7px; padding: 12px 4px 10px; border-radius: 14px;
       color: var(--nh-ink); text-decoration: none; font-size: 12px; transition: background .2s;
     }
-    .quick a:hover { background: var(--nh-card); }
+    .quick a:hover { background: var(--nh-tile); }
     .quick a:focus-visible { outline: 2px solid var(--nh-ink); outline-offset: -2px; }
     .quick .qi {
-      width: 44px; height: 44px; border-radius: 12px; background: var(--nh-card); display: grid; place-items: center;
-      box-shadow: 0 0 0 1px var(--nh-line); transition: box-shadow .2s, translate .3s cubic-bezier(.2,.7,.2,1);
+      width: 44px; height: 44px; border-radius: 12px; background: var(--nh-tile); display: grid; place-items: center;
+      transition: background .2s, box-shadow .2s, translate .3s cubic-bezier(.2,.7,.2,1);
     }
-    .quick a:hover .qi { box-shadow: 0 0 0 1px var(--nh-line), 0 8px 18px -10px rgba(0,0,0,.35); translate: 0 -2px; }
+    .quick a:hover .qi { background: var(--nh-card); box-shadow: 0 0 0 1px var(--nh-line), 0 8px 18px -10px rgba(0,0,0,.35); translate: 0 -2px; }
+    .quick .qi svg { width: 19px; height: 19px; }
+    .quick .qi svg.logo { width: 15px; height: 15px; fill: var(--nh-ink); stroke: none; }
     .quick .qi img { width: 22px; height: 22px; border-radius: 4px; }
     .quick .qn { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--nh-muted); }
     .quick a:hover .qn { color: var(--nh-ink); }
-    @media (max-width: 520px) { .quick { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: -8px; } }
+    @media (max-width: 520px) { .quick { grid-template-columns: repeat(4, minmax(0, 1fr)); } .shortcuts { margin-top: -6px; } }
     @media (prefers-reduced-motion: reduce) { .quick .qi { transition: none; } }
 
     /* ---------- Spanish: phrase of the day + today's task ---------- */
-    .es { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; }
-    .es .card { padding: 22px; display: grid; gap: 10px; align-content: start; min-width: 0; }
-    .phrase .es-text { margin: 4px 0 0; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; letter-spacing: -0.03em; }
+    .es { padding: 20px; display: grid; gap: 18px; }
+    .es .phrase, .es .task { display: grid; gap: 8px; align-content: start; min-width: 0; }
+    .phrase .es-text { margin: 2px 0 0; font-size: 22px; line-height: 1.2; letter-spacing: -0.03em; }
     .phrase .en { margin: 0; font-size: 15px; }
     .phrase .note { margin: 0; color: var(--nh-muted); line-height: 1.5; }
     .phrase .row { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
@@ -232,27 +236,39 @@
     @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(255,90,54,.5); } 80%, 100% { box-shadow: 0 0 0 6px rgba(255,90,54,0); } }
     .muted { color: var(--nh-muted); }
 
-    /* ---------- project list ---------- */
-    .links { list-style: none; margin: 0; padding: 6px; }
-    .links a {
-      position: relative;
-      display: flex; align-items: center; gap: 12px;
-      padding: 8px 10px 8px 8px;
-      border-radius: 12px;
-      color: inherit; text-decoration: none; outline: none;
-      transition: background .2s;
+    /* ---------- training: push / pull / legs / upper / lower ---------- */
+    .train { display: grid; gap: 14px; }
+    .train-now .lbl { margin: 0 0 6px; font-size: 14px; color: var(--nh-muted); }
+    .train-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .train-now { min-width: 0; }
+    .train-now .what { margin: 0; font-size: 22px; letter-spacing: -0.03em; line-height: 1.1; }
+    .train-now .focus { margin: 4px 0 0; font-size: 13px; color: var(--nh-muted); }
+    .train-btn { flex: none; }
+    .train-btn.done { background: var(--nh-good-bg); color: var(--nh-good); }
+    .train-btn.done:hover { background: var(--nh-good-bg); opacity: .85; }
+    .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .day {
+      display: grid; justify-items: center; gap: 5px; padding: 8px 0 7px; border: 0; border-radius: 10px;
+      background: none; font-size: 11px; color: var(--nh-muted); cursor: default; transition: background .2s;
     }
-    .links li + li a::before { content: ""; position: absolute; top: -0.5px; left: 54px; right: 10px; height: 1px; background: var(--nh-line); }
-    .links a:hover, .links a:focus-visible { background: var(--nh-tile); }
-    .links a:hover::before, .links li:has(a:hover) + li a::before { opacity: 0; }
-    .links a:focus-visible { box-shadow: 0 0 0 2px var(--nh-ink); }
-    .links .ico { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--nh-tile); display: grid; place-items: center; transition: background .2s; }
-    .links a:hover .ico { background: var(--nh-card); }
-    .links .ico svg { width: 17px; height: 17px; }
-    .links .ico svg.logo { width: 14px; height: 14px; fill: var(--nh-ink); stroke: none; }
-    .links .name { flex: 1; min-width: 0; font-weight: 500; }
-    .links .arrow { flex: none; width: 17px; height: 17px; color: var(--nh-muted); stroke-width: 1.9; transition: color .2s, translate .3s cubic-bezier(.2,.7,.2,1); }
-    .links a:hover .arrow, .links a:focus-visible .arrow { color: var(--nh-ink); translate: 3px 0; }
+    .day.can { cursor: pointer; }
+    .day.can:hover { background: var(--nh-tile); }
+    .day:focus-visible { outline: 2px solid var(--nh-ink); outline-offset: -2px; }
+    .day .d { font-family: var(--nh-mono); font-size: 10.5px; letter-spacing: .04em; }
+    .day .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--nh-line); color: transparent; }
+    .day .dot svg { width: 13px; height: 13px; stroke-width: 2.6; }
+    .day .s { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .day.rest .dot { box-shadow: none; background: none; }
+    .day.rest .dot::before { content: ""; width: 8px; height: 1.5px; border-radius: 1px; background: var(--nh-line); }
+    .day.today .d, .day.today .s { color: var(--nh-ink); font-weight: 500; }
+    .day.today .dot { box-shadow: inset 0 0 0 1.5px var(--nh-ink); }
+    .day.done .dot { background: var(--nh-good); box-shadow: none; color: #fff; }
+    .day.missed .dot { box-shadow: inset 0 0 0 1.5px #f0c9bf; }
+    .day.missed .s { text-decoration: line-through; text-decoration-color: #d9a597; }
+    .train-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; color: var(--nh-muted); }
+    .train-foot b { color: var(--nh-ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+    .train-meter { flex: 1; max-width: 120px; height: 6px; border-radius: 999px; background: var(--nh-tile); overflow: hidden; }
+    .train-meter span { display: block; height: 100%; border-radius: inherit; background: var(--nh-good); transition: width .6s cubic-bezier(.2,.7,.2,1); }
 
     /* ---------- responsive ---------- */
     @media (max-width: 900px) {
@@ -260,7 +276,7 @@
       .side { position: static; }
       /* On phones the summary and links come before the news */
       .main { display: contents; }
-      .greet { order: 1; } .search-wrap, .quick { order: 2; } .es-wrap { order: 3; } .side { order: 4; } .news-wrap { order: 5; }
+      .greet { order: 1; } .search-wrap, .shortcuts { order: 2; } .side { order: 4; } .news-wrap { order: 5; }
       .page { display: flex; flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 520px) {
@@ -274,7 +290,6 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .skeleton, .due.now::before { animation: none; }
-      .links .arrow, .story, .story .img img { transition: none; }
     }
   </style>
 </head>
@@ -304,25 +319,28 @@
         </label>
       </form>
 
-      <!-- Quick links: add or remove a line to change them -->
-      <ul class="quick" aria-label="Quick links">
-        <li><a href="https://x.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=x.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">X</span></a></li>
-        <li><a href="https://www.youtube.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=youtube.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">YouTube</span></a></li>
-        <li><a href="https://mail.google.com"><span class="qi"><img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Gmail</span></a></li>
-        <li><a href="https://www.instagram.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=instagram.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Instagram</span></a></li>
-        <li><a href="https://www.linkedin.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">LinkedIn</span></a></li>
-        <li><a href="https://www.figma.com/files"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=figma.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Figma</span></a></li>
-        <li><a href="https://github.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">GitHub</span></a></li>
-        <li><a href="https://claude.ai"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=claude.ai&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Claude</span></a></li>
-      </ul>
-
-      <section class="es-wrap" aria-labelledby="esLabel">
-        <p class="label" id="esLabel">Español</p>
-        <div class="es">
-          <div class="card phrase" id="phrase"></div>
-          <div class="card task" id="esTask"><p class="eyebrow-s muted">Loading your Spanish…</p></div>
-        </div>
-      </section>
+      <!-- Your apps, then quick links to other sites: add or remove a line to change them -->
+      <nav class="card shortcuts" aria-label="Shortcuts">
+        <ul class="quick apps" aria-label="Your apps">
+          <li><a href="/wishlist"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></svg></span><span class="qn">Wishlist</span></a></li>
+          <li><a href="/bookmarks"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-4-6 4V5.5a1 1 0 0 1 1-1z" /></svg></span><span class="qn">Bookmarks</span></a></li>
+          <li><a href="/weight"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg></span><span class="qn">WeightWise</span></a></li>
+          <li><a href="/budget"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 3.5V12l6 6" /></svg></span><span class="qn">Budget</span></a></li>
+          <li><a href="/spanish"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" /><path d="M5 17a3 3 0 0 1 3-3h9" /></svg></span><span class="qn">Spanish</span></a></li>
+          <li><a href="/wedding"><span class="qi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5" /><circle cx="15" cy="14" r="5" /><path d="m10 5 2-2 2 2" /></svg></span><span class="qn">Wedding</span></a></li>
+          <li><a href="/"><span class="qi"><svg class="logo" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 0L0 4V8L4 12H0V24L4 28H12V20L20 28H24L28 24V20L24 16H28V4L24 0H16V8L8 0H4Z" /></svg></span><span class="qn">Portfolio</span></a></li>
+        </ul>
+        <ul class="quick" aria-label="Quick links">
+          <li><a href="https://x.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=x.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">X</span></a></li>
+          <li><a href="https://www.youtube.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=youtube.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">YouTube</span></a></li>
+          <li><a href="https://mail.google.com"><span class="qi"><img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Gmail</span></a></li>
+          <li><a href="https://www.instagram.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=instagram.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Instagram</span></a></li>
+          <li><a href="https://www.linkedin.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">LinkedIn</span></a></li>
+          <li><a href="https://www.figma.com/files"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=figma.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Figma</span></a></li>
+          <li><a href="https://github.com"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">GitHub</span></a></li>
+          <li><a href="https://claude.ai"><span class="qi"><img src="https://www.google.com/s2/favicons?domain=claude.ai&amp;sz=64" alt="" loading="lazy" width="22" height="22" /></span><span class="qn">Claude</span></a></li>
+        </ul>
+      </nav>
 
       <section class="news-wrap" aria-labelledby="newsLabel">
         <div class="news-head">
@@ -350,6 +368,8 @@
           </div>
           <div class="facts" id="weatherFacts" hidden></div>
           <div class="divider"></div>
+          <div class="train" id="train" aria-live="polite"></div>
+          <div class="divider"></div>
           <a class="ww" href="/weight" id="ww">
             <div class="ww-top"><span class="muted">WeightWise</span><span class="due" id="wwDue"></span></div>
             <div class="ww-top"><span class="kg" id="wwKg">—</span><span class="togo" id="wwTogo"></span></div>
@@ -358,18 +378,15 @@
         </div>
       </div>
 
-      <div>
-        <p class="label">Projects</p>
-        <div class="card"><ul class="links">
-          <li><a href="/wishlist"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></svg></span><span class="name">Wishlist</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-          <li><a href="/bookmarks"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-4-6 4V5.5a1 1 0 0 1 1-1z" /></svg></span><span class="name">Bookmarks</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-          <li><a href="/weight"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg></span><span class="name">WeightWise</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-          <li><a href="/budget"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 3.5V12l6 6" /></svg></span><span class="name">Budget</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-          <li><a href="/spanish"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" /><path d="M5 17a3 3 0 0 1 3-3h9" /></svg></span><span class="name">Spanish</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-          <li><a href="/wedding"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5" /><circle cx="15" cy="14" r="5" /><path d="m10 5 2-2 2 2" /></svg></span><span class="name">Wedding</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-          <li><a href="/"><span class="ico"><svg class="logo" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 0L0 4V8L4 12H0V24L4 28H12V20L20 28H24L28 24V20L24 16H28V4L24 0H16V8L8 0H4Z" /></svg></span><span class="name">Portfolio</span><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></li>
-        </ul></div>
-      </div>
+      <section aria-labelledby="esLabel">
+        <p class="label" id="esLabel">Español</p>
+        <div class="card es">
+          <div class="phrase" id="phrase"></div>
+          <div class="divider"></div>
+          <div class="task" id="esTask"><p class="eyebrow-s muted">Loading your Spanish…</p></div>
+        </div>
+      </section>
+
     </aside>
   </div>
 
@@ -470,6 +487,101 @@
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) { renderWeight(j.data || localWeight()); })
       .catch(function () { renderWeight(localWeight()); });
+
+    // ---------- Training: 5 days a week, push / pull / legs / upper / lower ----------
+    // Synced through /api/store?doc=workouts, with a copy in this browser (newest wins).
+    (function () {
+      var PLAN = { 1: "Push", 2: "Pull", 3: "Legs", 5: "Upper", 6: "Lower" }; // getDay(): Mon=1 … Sat=6
+      var FOCUS = {
+        Push: "Chest, shoulders and triceps",
+        Pull: "Back, rear delts and biceps",
+        Legs: "Quads, hamstrings, glutes and calves",
+        Upper: "Chest, back, shoulders and arms",
+        Lower: "Legs and core"
+      };
+      var DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      var KEY = "workouts-v1";
+      var CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+      var state = { log: [], updated: null };
+      try { var local = JSON.parse(localStorage.getItem(KEY) || "null"); if (local && Array.isArray(local.log)) state = local; } catch (e) { /* ignore */ }
+
+      function doneOn(date) { return state.log.some(function (w) { return w.date === date; }); }
+      function monday(d) { var m = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m; }
+      function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+      function nextSession(from) {
+        for (var i = 1; i <= 7; i++) { var d = addDays(from, i); if (PLAN[d.getDay()]) return { day: d, name: PLAN[d.getDay()], offset: i }; }
+      }
+
+      function render() {
+        var now = new Date(), today = iso(now), todayName = PLAN[now.getDay()];
+        var start = monday(now), planned = 0, done = 0;
+        var cells = "";
+        for (var i = 0; i < 7; i++) {
+          var d = addDays(start, i), key = iso(d), name = PLAN[d.getDay()], isDone = doneOn(key);
+          var past = key < today, isToday = key === today;
+          if (name) { planned++; if (isDone) done++; }
+          var cls = "day" + (name ? "" : " rest") + (isToday ? " today" : "") + (isDone ? " done" : name && past ? " missed" : "") + (name && !(key > today) ? " can" : "");
+          var label = DAYS[d.getDay()] + ": " + (name || "Rest") + (isDone ? ", done" : name && past ? ", missed" : "");
+          cells += '<button type="button" class="' + cls + '" data-date="' + key + '" aria-label="' + label + '"' + (name && !(key > today) ? ' aria-pressed="' + isDone + '"' : " disabled") + ">" +
+            '<span class="d">' + DAYS[d.getDay()].slice(0, 3) + '</span><span class="dot">' + (isDone ? CHECK : "") + '</span><span class="s">' + (name || "Rest") + "</span></button>";
+        }
+
+        var top;
+        if (todayName) {
+          var did = doneOn(today);
+          top = '<div class="train-now"><p class="lbl">Training</p><p class="what">' + todayName + ' day</p><p class="focus">' + FOCUS[todayName] + "</p></div>" +
+            '<button type="button" class="pill-btn train-btn' + (did ? " done" : " dark") + '" data-date="' + today + '" aria-pressed="' + did + '">' +
+            (did ? CHECK + "Done" : "Mark done") + "</button>";
+        } else {
+          var n = nextSession(now);
+          top = '<div class="train-now"><p class="lbl">Training</p><p class="what">Rest day</p><p class="focus">Next: ' + n.name + " " + (n.offset === 1 ? "tomorrow" : "on " + DAYS[n.day.getDay()]) + "</p></div>";
+        }
+        $("train").innerHTML =
+          '<div class="train-top">' + top + "</div>" +
+          '<div class="week">' + cells + "</div>" +
+          '<div class="train-foot"><span><b>' + done + " of " + planned + "</b> this week</span>" +
+          '<span class="train-meter" aria-hidden="true"><span style="width:' + Math.round((done / planned) * 100) + '%"></span></span></div>';
+      }
+
+      function toggle(date) {
+        var name = PLAN[new Date(date + "T12:00:00").getDay()];
+        if (!name || date > iso(new Date())) return;
+        if (doneOn(date)) state.log = state.log.filter(function (w) { return w.date !== date; });
+        else state.log = state.log.concat([{ date: date, session: name }]).sort(function (a, b) { return a.date.localeCompare(b.date); });
+        state.updated = new Date().toISOString();
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+        render();
+        push();
+      }
+      function push() {
+        fetch("/api/store?doc=workouts", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ log: state.log }) })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (j) { if (j && j.updated) { state.updated = j.updated; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ } } })
+          .catch(function () { /* stays in this browser until the next save works */ });
+      }
+
+      $("train").addEventListener("click", function (e) {
+        var b = e.target.closest("[data-date]");
+        if (b && !b.disabled) toggle(b.dataset.date);
+      });
+
+      render();
+      fetch("/api/store?doc=workouts", { cache: "no-store", credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (j) {
+          var remote = j.data;
+          if (remote && Array.isArray(remote.log) && (!state.updated || (remote.updated && remote.updated >= state.updated))) {
+            state = { log: remote.log, updated: remote.updated };
+            try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+            render();
+          } else if (state.updated) {
+            push(); // this browser has newer changes that never reached the server
+          }
+        })
+        .catch(function () { /* offline or signed out: use this browser's copy */ });
+      // Keep the week right when the page stays open past midnight
+      document.addEventListener("visibilitychange", function () { if (!document.hidden) render(); });
+    })();
 
     // ---------- Spanish: phrase of the day ----------
     (function () {

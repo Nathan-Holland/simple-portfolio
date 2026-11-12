@@ -1,5 +1,5 @@
-// GET /api/store?doc=weight|wedding|bookmarks — load a private document (private login required)
-// PUT /api/store?doc=weight|wedding|bookmarks — replace it
+// GET /api/store?doc=weight|wedding|bookmarks|workouts — load a private document (private login required)
+// PUT /api/store?doc=weight|wedding|bookmarks|workouts — replace it
 // GET /api/store?preview=<url> — a link's title, description, image and icon (for bookmarks)
 //
 // One function for every tool's saved data, so the deployment stays within the

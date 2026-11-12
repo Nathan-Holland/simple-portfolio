@@ -80,6 +80,19 @@ export const DOCS = {
       return { entries: [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month)) };
     },
   },
+  // Workout log for the homepage's Training card: { log: [{ date: 'YYYY-MM-DD', session }] }
+  workouts: {
+    prefix: "private/workouts/data",
+    clean(body) {
+      if (!Array.isArray(body.log) || body.log.length > 5000) return "Expected { log: [{ date: 'YYYY-MM-DD', session }] }";
+      const byDate = new Map();
+      for (const w of body.log) {
+        if (!w || !DATE_RE.test(w.date)) return "Bad workout: " + JSON.stringify(w);
+        byDate.set(w.date, { date: w.date, session: str(w.session, 40) || "Workout" });
+      }
+      return { log: [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)) };
+    },
+  },
   // Bookmarks: { items: [{ id, url, title, description, image, icon, category, note, added }], categories: [name, …] }
   bookmarks: {
     prefix: "private/bookmarks/data",
