@@ -10,8 +10,8 @@
   --p1: #ff5a36;
   --p2: #f5a700;
   --p3: #9a9a9a;
-  --sans: "Geist", system-ui, -apple-system, sans-serif;
-  --mono: "Geist Mono", ui-monospace, monospace;
+  --sans: "InterVariable", "Inter", system-ui, -apple-system, sans-serif;
+  --mono: "DM Mono", ui-monospace, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -1161,4 +1161,149 @@ dialog.signin { width: min(380px, calc(100vw - 32px)); }
   .sv-inputs .pill-btn { grid-column: 1 / -1; }
   .sv-plan-note { display: none; }
   .sv-row { gap: 10px; }
+}
+
+/* ======================================================================
+   Cards design system (cards.uidesigncourse.com). Tokens from /shared/nh.css.
+   Light grey canvas, white cards with one small shadow, Inter, sentence case,
+   hover shifts colour only, press squeezes, focus is a 2px outline.
+   ====================================================================== */
+:root {
+  --bg: var(--canvas); --card: var(--surface); --tile: var(--subtle); --ink: var(--fg);
+  --muted: var(--fg-muted); --line: var(--line); --radius: var(--radius-2xl);
+  --p1: #FB2C36; --p2: #FFB900; --p3: #A1A1A1;
+}
+body { line-height: 20px; letter-spacing: -0.006em; }
+button, input, select, textarea { letter-spacing: inherit; }
+
+/* Hero: page title on the canvas */
+.hero { margin: 48px auto 32px; }
+.eyebrow { margin: 0 0 12px; gap: 8px; font-weight: 500; line-height: 20px; }
+.eyebrow svg { width: 16px; height: 16px; color: var(--fg-subtle); }
+h1 { font-family: var(--font-display); font-weight: 500; font-size: 40px; line-height: 48px; letter-spacing: -0.01em; }
+
+/* Buttons: white control, solid primary, ghost */
+.pill-btn, .ghost { height: 36px; padding: 0 16px; gap: 4px; line-height: 20px; transition: background-color .15s var(--ease-tactile), color .15s, box-shadow .15s, scale .15s var(--ease-tactile); }
+.pill-btn:has(> svg:first-child) { padding-left: 12px; }
+.pill-btn { background: var(--control); box-shadow: var(--shadow-button); }
+.pill-btn:hover { background: var(--control-hover); box-shadow: var(--shadow-button); }
+.pill-btn.dark { background: var(--primary); color: #fff; box-shadow: var(--shadow-primary); }
+.pill-btn.dark:hover { background: var(--primary-hover); opacity: 1; box-shadow: var(--shadow-primary); }
+.pill-btn:active, .ghost:active { scale: .97; }
+.pill-btn:focus-visible, .ghost:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.pill-btn .plus { width: 16px; height: 16px; stroke-width: 2.25; }
+.pill-btn:hover .plus { rotate: none; }
+.ghost { color: var(--fg-muted); }
+.ghost:hover { color: var(--fg); background: var(--hover); }
+.ghost.danger:hover { color: var(--danger-fg); background: var(--danger-subtle); }
+.drawer-foot .pill-btn, .signin-form .pill-btn, .detail-actions .visit { height: 36px; padding: 0 16px; }
+.detail-actions .visit:hover svg { translate: none; }
+
+/* Category tabs: a tray with a raised, sliding selected tab */
+.filters { padding: 4px; gap: 4px; border-radius: var(--radius-lg); background: var(--tray); }
+.filters .indicator { top: 4px; height: calc(100% - 8px); border-radius: 4px; background: var(--raised); box-shadow: var(--shadow-sm); }
+.filters button { height: 28px; padding: 0 12px 0 8px; border-radius: 4px; gap: 8px; font-weight: 500; line-height: 20px; color: var(--fg-muted); }
+.filters button:hover, .filters button[aria-selected="true"] { color: var(--fg); }
+.filters button:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.filters button svg { color: var(--fg-subtle); }
+.filters button[aria-selected="true"] svg { color: var(--fg-muted); }
+.filters .count { font-size: 12px; line-height: 16px; opacity: 1; color: var(--fg-subtle); }
+
+/* Sort: a select trigger is a white control; its menu floats */
+.sort-btn { height: 36px; padding: 0 12px; border-radius: var(--radius-lg); background: var(--control); box-shadow: var(--shadow-button); transition: background-color .15s, scale .15s var(--ease-tactile); }
+.sort-btn:hover, .sort-btn[aria-expanded="true"] { background: var(--control-hover); }
+.sort-btn:active { scale: .97; }
+.sort-btn:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.sort-menu { padding: 8px; border-radius: var(--radius-2xl); background: var(--floating); box-shadow: var(--shadow-menu); }
+.sort-menu li + li { margin-top: 4px; }
+.sort-menu [role="option"], .sort-menu [role="menuitem"], .sort-menu button, .sort-menu a { border-radius: var(--radius-sm); }
+
+/* Cards: one small shadow; hover never lifts */
+.grid { gap: 24px; }
+.card { box-shadow: var(--shadow-sm); transition: background-color .15s; will-change: auto; }
+.card:hover { box-shadow: var(--shadow-sm); translate: none; }
+.card:hover .name { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.card:focus-visible { box-shadow: var(--shadow-sm); outline: 2px solid var(--line-focus); outline-offset: 2px; translate: none; }
+.media { border-radius: var(--radius-sm); }
+.placeholder { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.info { padding: 12px 16px 16px; }
+.meta { font-size: 12px; line-height: 16px; }
+.name { font-size: 16px; line-height: 24px; letter-spacing: -0.011em; }
+.info .price { font-size: 14px; line-height: 20px; color: var(--fg-muted); }
+.ext { border-radius: var(--radius-button-sm); background: var(--control); box-shadow: var(--shadow-button); }
+
+/* Dialogs: floating, the largest radius, the large shadow */
+dialog.sheet, dialog.drawer { box-shadow: var(--shadow-lg); }
+dialog.sheet { border-radius: var(--radius-3xl); }
+dialog::backdrop { background: var(--overlay); backdrop-filter: blur(6px); }
+.close { border-radius: var(--radius-md); background: transparent; color: var(--fg-muted); transition: background-color .15s, color .15s; }
+.close:hover, .close:focus-visible { rotate: none; background: var(--hover); color: var(--fg); }
+.close:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.detail-title .brand { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--fg-muted); }
+.detail-title h2 { font-family: var(--font-display); font-weight: 500; font-size: 24px; line-height: 32px; letter-spacing: 0; }
+.detail-title .price { font-size: 18px; line-height: 24px; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.chip { height: 24px; padding: 0 8px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 500; background: var(--control); color: var(--fg-muted); box-shadow: var(--shadow-button); }
+.chip svg { width: 16px; height: 16px; color: var(--fg-subtle); }
+.chip.bought { background: var(--success-subtle); color: var(--success-fg); box-shadow: 0 0 0 1px var(--success-line); }
+.facts dt { color: var(--fg-muted); }
+.store-link:hover .store-arrow, .store-link:focus-visible .store-arrow { translate: none; }
+.notes { border-radius: var(--radius-lg); padding: 12px 16px; background: var(--subtle); }
+.notes-label { font-weight: 500; line-height: 16px; color: var(--fg-muted); }
+.icon-btn { border-radius: var(--radius-button); background: var(--control); color: var(--fg-muted); box-shadow: var(--shadow-button); transition: background-color .15s, color .15s, scale .15s var(--ease-tactile); }
+.icon-btn svg { width: 16px; height: 16px; stroke-width: 2.25; }
+.icon-btn:hover { background: var(--control-hover); color: var(--fg); }
+.icon-btn:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; background: var(--control); }
+.icon-btn:active { scale: .94; }
+.icon-btn.danger { background: var(--control); color: var(--danger-fg); }
+.icon-btn.danger:hover, .icon-btn.danger:focus-visible { background: var(--danger-subtle); color: var(--danger-fg); }
+.icon-btn[data-tip]::after { border-radius: var(--radius-md); padding: 4px 8px; background: var(--inverse); color: var(--fg-inverse); font-size: 12px; line-height: 16px; box-shadow: var(--shadow-md); }
+
+/* Add / edit drawer and its fields */
+.drawer-head h2, .signin-form h2 { font-family: var(--font-display); font-weight: 500; font-size: 20px; line-height: 28px; letter-spacing: 0; }
+label { gap: 8px; color: var(--fg); font-size: 14px; line-height: 20px; font-weight: 500; }
+label.check { font-weight: 400; }
+input, select, textarea { border: 0; border-radius: var(--radius-lg); background: var(--field); box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line); font-weight: 400; transition: box-shadow .15s; }
+input:not([type="checkbox"]):not([type="radio"]), select { min-height: 36px; }
+input:hover, select:hover, textarea:hover { box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line-strong); }
+input:focus, select:focus, textarea:focus { outline: none; box-shadow: var(--shadow-focus), inset 0 0 0 1px var(--line-focus); }
+input::placeholder, textarea::placeholder { color: var(--fg-subtle); }
+input[type="checkbox"] { box-shadow: none; accent-color: var(--primary); }
+.fetch { padding: 16px; border-radius: var(--radius-xl); background: var(--subtle); gap: 8px; }
+.fetch-input input { background: var(--field); }
+.fetch-status.error, .signin-error { color: var(--danger-fg); }
+.signin-icon { border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--fg-muted); }
+
+/* Toast */
+.toast { border-radius: var(--radius-xl); padding: 8px 16px; background: var(--inverse); color: var(--fg-inverse); box-shadow: var(--shadow-md); }
+.toast.error { background: var(--danger-subtle); color: var(--danger-fg); box-shadow: var(--shadow-md), inset 0 0 0 1px var(--danger-line); }
+
+/* Site menu */
+.mark-btn { border-radius: var(--radius-lg); }
+.mark-btn:hover .mark { scale: 1; }
+.mark-btn:hover, .mark-btn[aria-expanded="true"] { background: var(--hover); }
+.mark-btn:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; background: transparent; }
+.lock-btn { border-radius: var(--radius-button); }
+.lock-btn:hover { background: var(--hover); }
+
+/* Bought summary and the Savings plan: stats are tabular, labels sentence case */
+.bs-hero, .bs-cats, .bs-stat, .bs-empty, .sv-card { box-shadow: var(--shadow-sm); }
+.bought-summary, .planner { gap: 24px; }
+.bs-total { font-family: var(--font-display); font-size: 48px; line-height: 56px; font-weight: 500; letter-spacing: -0.01em; }
+.bs-stat-value { font-size: 24px; line-height: 32px; font-weight: 500; letter-spacing: -0.015em; }
+.bs-label, .bs-stat-label { font-weight: 500; }
+.bs-bar span { background: var(--primary); }
+.bs-bar { background: var(--track); }
+.saver-amount { font-size: 24px; line-height: 32px; font-weight: 500; letter-spacing: -0.015em; }
+.sv-card { padding: 24px; }
+.sv-group { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--fg-muted); }
+.sv-progress span { background: var(--primary); }
+.sv-row.ready .sv-row-when { color: var(--success-fg); }
+.sv-back { height: 36px; background: var(--control); box-shadow: var(--shadow-button); }
+.sv-back:hover { background: var(--control-hover); box-shadow: var(--shadow-button); }
+
+@media (max-width: 520px) {
+  .hero { margin: 32px auto 24px; }
+  h1 { font-size: 32px; line-height: 40px; }
+  .grid { gap: 12px; }
+  .bs-total { font-size: 40px; line-height: 48px; }
 }

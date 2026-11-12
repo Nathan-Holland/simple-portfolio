@@ -1,22 +1,109 @@
-/* Shared look for the tools on nate-holland.com, taken from /wishlist.
-   Pages load this, then call NH.header() from nh.js to get the top bar + site menu. */
+/* Shared look for the tools on nate-holland.com, following the Cards design system
+   (cards.uidesigncourse.com): a light grey canvas, white cards with one small shadow,
+   colour only for intent, Inter for text and DM Mono for numbers.
+   Pages load this, then nh.js draws the top bar + site menu into [data-nh-header].
+
+   Rules every page follows:
+   - Spacing is whole multiples of 4px. Card padding 20–24, gap between cards 24, sections 32–48.
+   - One radius scale: 3 / 5 / 6 / 8 / 10 / 13 / 19px. Controls 8, cards 13, dialogs 19, people and toggles round.
+   - One shadow ladder: xs resting inputs, sm cards, md popovers and toasts, lg dialogs. Shadowed
+     surfaces get no border on top.
+   - Sentence case everywhere (no uppercase eyebrows). Numbers that get compared use tabular figures.
+   - Hover changes colour only; nothing moves or grows. Buttons squeeze slightly when pressed.
+     Focus is a 2px outline 2px out. */
 :root {
-  --nh-bg: #f2f2f2;
-  --nh-card: #ffffff;
-  --nh-tile: #f7f7f7;
-  --nh-ink: #141414;
-  --nh-muted: #737373;
-  --nh-line: #e6e6e6;
-  --nh-radius: 16px;
-  --nh-p1: #ff5a36;
-  --nh-p2: #f5a700;
-  --nh-good: #1e7b3c;
-  --nh-good-bg: #e8f5ec;
-  --nh-bad: #c62828;
-  --nh-bad-bg: #fdecea;
-  --nh-sans: "Geist", system-ui, -apple-system, sans-serif;
-  --nh-mono: "Geist Mono", ui-monospace, monospace;
+  /* ---- Cards semantic tokens (light) ---- */
+  --canvas: #F5F5F5;
+  --subtle: #FAFAFA;
+  --tray: #E5E5E5;
+  --surface: #FFFFFF;
+  --raised: #FFFFFF;
+  --floating: #FFFFFF;
+  --field: #FFFFFF;
+  --control: #FFFFFF;
+  --control-hover: #FAFAFA;
+  --track: #E5E5E5;
+  --track-strong: #D4D4D4;
+  --inverse: #0A0A0A;
+  --inverse-hover: #1B1B1B;
+  --hover: rgb(10 10 10 / 0.04);
+  --selected: rgb(10 10 10 / 0.08);
+  --fg: #0A0A0A;
+  --fg-muted: #525252;
+  --fg-subtle: #A1A1A1;
+  --fg-disabled: #D4D4D4;
+  --fg-inverse: #FFFFFF;
+  --line: #E5E5E5;
+  --line-strong: #D4D4D4;
+  --line-focus: #0A0A0A;
+  --primary: #000000;
+  --primary-hover: #121212;
+  --overlay: rgb(10 10 10 / 0.24);
+  --danger: #FB2C36;
+  --danger-fg: #82181A;
+  --danger-line: #FFC9C9;
+  --danger-subtle: #FEF2F2;
+  --warning: #FF6900;
+  --warning-fg: #7E2A0C;
+  --warning-line: #FFD6A7;
+  --warning-subtle: #FFF7ED;
+  --success: #00C950;
+  --success-fg: #0D542B;
+  --success-line: #B9F8CF;
+  --success-subtle: #F0FDF4;
+  --info: #2B7FFF;
+  --info-fg: #1C398E;
+  --info-line: #BEDBFF;
+  --info-subtle: #EFF6FF;
+  --caution: #FFB900;
+  --caution-fg: #7B3306;
+
+  --shadow-xs: 0 0.5px 1px 0 rgb(0 0 0 / 0.088);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 8px 0 rgb(0 0 0 / 0.175);
+  --shadow-lg: 0 8px 16px 0 rgb(0 0 0 / 0.275), 0 0 0 1px rgb(14 18 27 / 0.04);
+  --shadow-button: 0 0 0 1px rgb(10 10 10 / 0.08), 0 1px 2px 0 rgb(10 10 10 / 0.12);
+  --shadow-primary: inset 0 1px 0 0 rgb(255 255 255 / 0.16), 0 0 0 1px #000000, 0 1px 2px 0 rgb(10 10 10 / 0.24), 0 3px 6px -2px rgb(10 10 10 / 0.2);
+  --shadow-danger: inset 0 1px 0 0 rgb(255 255 255 / 0.16), 0 0 0 1px #FB2C36, 0 1px 2px 0 rgb(10 10 10 / 0.24), 0 3px 6px -2px rgb(10 10 10 / 0.2);
+  --shadow-menu: 0 0 0 1px rgb(10 10 10 / 0.08), 0 1px 2px 0 rgb(10 10 10 / 0.12), 0 4px 8px -4px rgb(10 10 10 / 0.16);
+  --shadow-focus: 0 0 0 2px #FFFFFF, 0 0 0 4px rgb(0 0 0 / 0.16);
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 13px;
+  --radius-3xl: 19px;
+  --radius-button: 8px;
+  --radius-button-sm: 6px;
+
+  --font-sans: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "InterDisplay", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --ease-tactile: cubic-bezier(.2, .7, .2, 1);
+
+  /* ---- older names the pages use, now pointing at Cards tokens ---- */
+  --nh-bg: var(--canvas);
+  --nh-card: var(--surface);
+  --nh-tile: var(--subtle);
+  --nh-ink: var(--fg);
+  --nh-muted: var(--fg-muted);
+  --nh-subtle: var(--fg-subtle);
+  --nh-line: var(--line);
+  --nh-radius: var(--radius-2xl);
+  --nh-p1: #FB2C36;
+  --nh-p2: #FFB900;
+  --nh-good: #15803D;
+  --nh-good-bg: var(--success-subtle);
+  --nh-bad: var(--danger-fg);
+  --nh-bad-bg: var(--danger-subtle);
+  --nh-sans: var(--font-sans);
+  --nh-mono: var(--font-mono);
 }
+
+/* Inter's optical sizes; DM Mono for numbers */
+html { font-feature-settings: "cv11", "ss01"; }
 
 /* Top bar */
 .nh-top {
@@ -27,9 +114,10 @@
   align-items: center;
   gap: 16px;
   padding: 20px 24px;
-  font-family: var(--nh-sans);
+  font-family: var(--font-sans);
   font-size: 14px;
-  color: var(--nh-ink);
+  line-height: 20px;
+  color: var(--fg);
   -webkit-font-smoothing: antialiased;
 }
 .nh-top svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -40,78 +128,86 @@
   display: grid;
   place-items: center;
   width: 36px; height: 36px;
-  margin: -11px;
+  margin: -12px;
   padding: 0;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: transparent;
   cursor: pointer;
-  transition: background .2s;
+  transition: background-color .15s var(--ease-tactile), scale .15s var(--ease-tactile);
 }
-.nh-mark-btn:hover, .nh-mark-btn:focus-visible, .nh-mark-btn[aria-expanded="true"] { background: var(--nh-card); outline: none; }
+.nh-mark-btn:hover, .nh-mark-btn[aria-expanded="true"] { background: var(--hover); }
+.nh-mark-btn:active { scale: .94; }
+.nh-mark-btn:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
 .nh-mark {
   display: block;
   width: 14px; height: 14px;
   border-radius: 4px;
-  background: var(--nh-ink);
-  transition: rotate .45s cubic-bezier(.34,1.56,.64,1), scale .3s cubic-bezier(.2,.7,.2,1), border-radius .3s;
+  background: var(--fg);
+  transition: rotate .3s var(--ease-tactile), border-radius .3s;
 }
-.nh-mark-btn:hover .nh-mark { scale: 1.12; }
-.nh-mark-btn[aria-expanded="true"] .nh-mark { rotate: 45deg; border-radius: 3px; scale: .9; }
+.nh-mark-btn[aria-expanded="true"] .nh-mark { rotate: 45deg; border-radius: 3px; }
 
+/* Menu: floating surface, items with concentric corners (13 − 8 = 5px) */
 .nh-menu-list {
   position: absolute;
-  left: -11px;
-  top: calc(100% + 14px);
+  left: -12px;
+  top: calc(100% + 16px);
   margin: 0;
-  padding: 6px;
+  padding: 8px;
   list-style: none;
-  min-width: 200px;
-  background: var(--nh-card);
-  border-radius: 14px;
-  box-shadow: 0 0 0 1px var(--nh-line), 0 16px 40px -12px rgba(0,0,0,.2);
+  min-width: 208px;
+  background: var(--floating);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-menu);
   transform-origin: top left;
-  animation: nh-pop .25s cubic-bezier(.2,.7,.2,1);
+  animation: nh-pop .15s var(--ease-tactile);
 }
 .nh-menu-list[hidden] { display: none; }
+.nh-menu-list li + li:not(.nh-sep) { margin-top: 4px; }
 .nh-menu-list a {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: 8px;
-  color: var(--nh-ink);
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 20px;
   text-decoration: none;
 }
-.nh-menu-list a:hover, .nh-menu-list a:focus-visible { background: var(--nh-tile); outline: none; }
-.nh-menu-list a svg { width: 16px; height: 16px; color: var(--nh-muted); flex: none; }
-.nh-menu-list a[aria-current="page"] svg { color: var(--nh-ink); }
-.nh-menu-list .nh-tick { margin-left: auto; width: 14px; height: 14px; stroke-width: 2; color: var(--nh-ink); }
-.nh-menu-list .nh-sep { height: 1px; margin: 6px 4px; background: var(--nh-line); }
-@keyframes nh-pop { from { opacity: 0; scale: .96; } to { opacity: 1; scale: 1; } }
+.nh-menu-list a:hover, .nh-menu-list a:focus-visible { background: var(--hover); color: var(--fg); outline: none; }
+.nh-menu-list a[aria-current="page"] { background: var(--selected); color: var(--fg); }
+.nh-menu-list a svg { width: 16px; height: 16px; color: var(--fg-subtle); flex: none; }
+.nh-menu-list a:hover svg, .nh-menu-list a[aria-current="page"] svg { color: var(--fg-muted); }
+.nh-menu-list .nh-tick { display: none; }
+.nh-menu-list .nh-sep { height: 1px; margin: 8px -8px; background: var(--line); }
+@keyframes nh-pop { from { opacity: 0; scale: .97; } to { opacity: 1; scale: 1; } }
 
-/* Page hero, same as the wishlist's */
+/* Page hero: title and section headings sit on the canvas */
 .nh-hero {
   max-width: 1600px;
-  margin: 56px auto 40px;
+  margin: 48px auto 32px;
   padding: 0 16px;
-  font-family: var(--nh-sans);
-  color: var(--nh-ink);
+  font-family: var(--font-sans);
+  color: var(--fg);
 }
-.nh-eyebrow { margin: 0 0 16px; color: var(--nh-muted); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
-.nh-eyebrow svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.nh-eyebrow { margin: 0 0 12px; color: var(--fg-muted); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 500; }
+.nh-eyebrow svg { width: 16px; height: 16px; color: var(--fg-subtle); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .nh-hero h1 {
   margin: 0;
-  font-weight: 400;
-  font-size: clamp(40px, 6.5vw, 76px);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: -0.01em;
 }
-.nh-hero .nh-sub { margin: 16px 0 0; max-width: 560px; color: var(--nh-muted); font-size: 15px; line-height: 1.5; }
+.nh-hero .nh-sub { margin: 8px 0 0; max-width: 560px; color: var(--fg-muted); font-size: 16px; line-height: 24px; letter-spacing: -0.011em; }
 
 @media (max-width: 520px) {
-  .nh-top { padding: 18px 16px 18px 20px; }
-  .nh-hero { margin: 36px auto 28px; }
+  .nh-top { padding: 16px; }
+  .nh-hero { margin: 32px auto 24px; }
+  .nh-hero h1 { font-size: 32px; line-height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .nh-menu-list { animation: none; }

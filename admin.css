@@ -18,8 +18,8 @@
   --u-danger: #c62828;
   --u-danger-bg: #fdecea;
   --u-ease: cubic-bezier(.2, .7, .2, 1);
-  --u-sans: "Geist", system-ui, -apple-system, sans-serif;
-  --u-mono: "Geist Mono", ui-monospace, monospace;
+  --u-sans: "InterVariable", "Inter", system-ui, -apple-system, sans-serif;
+  --u-mono: "DM Mono", ui-monospace, monospace;
 
   font-family: var(--u-sans);
   font-size: 14px;
@@ -492,3 +492,62 @@
   .u-field-row { flex-direction: column; gap: 0; }
   .u-hero { margin-top: 32px; }
 }
+
+/* ======================================================================
+   Cards design system (cards.uidesigncourse.com). Tokens from /shared/nh.css.
+   ====================================================================== */
+.admin-page {
+  --u-bg: var(--canvas); --u-surface: var(--surface); --u-tile: var(--subtle); --u-border: var(--line);
+  --u-text: var(--fg); --u-text-secondary: var(--fg-muted); --u-text-placeholder: var(--fg-subtle);
+  --u-danger: var(--danger-fg); --u-danger-bg: var(--danger-subtle);
+  line-height: 20px; letter-spacing: -0.006em;
+}
+.u-hero { margin: 48px auto 32px; }
+.u-eyebrow { gap: 8px; margin: 0 0 12px; font-weight: 500; }
+.u-hero h1 { font-family: var(--font-display); font-weight: 500; font-size: 40px; line-height: 48px; letter-spacing: -0.01em; }
+.u-hero p.u-hero-sub { margin: 8px 0 0; line-height: 24px; }
+
+.u-btn { gap: 4px; border-radius: var(--radius-button); transition: background-color .15s var(--ease-tactile), color .15s, box-shadow .15s, scale .15s var(--ease-tactile); }
+.u-btn:active { scale: .97; }
+.u-btn:focus-visible, .u-btn-icon:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.u-btn-sm { height: 32px; padding: 0 12px; font-size: 14px; border-radius: var(--radius-button-sm); }
+.u-btn-xs { height: 28px; padding: 0 8px; font-size: 12px; border-radius: var(--radius-button-sm); }
+.u-btn-primary { background: var(--primary); box-shadow: var(--shadow-primary); }
+.u-btn-primary:hover { background: var(--primary-hover); opacity: 1; }
+.u-btn-secondary { background: var(--control); box-shadow: var(--shadow-button); }
+.u-btn-secondary:hover { background: var(--control-hover); box-shadow: var(--shadow-button); }
+.u-btn-ghost:hover { background: var(--hover); }
+.u-btn-icon { border-radius: var(--radius-button); background: var(--control); box-shadow: var(--shadow-button); color: var(--fg-muted); }
+.u-btn-icon:hover { background: var(--control-hover); color: var(--fg); }
+.u-btn-icon.u-btn-danger { background: var(--control); color: var(--danger-fg); }
+.u-btn-icon.u-btn-danger:hover { background: var(--danger-subtle); }
+.u-btn-icon[data-tip]::after { border-radius: var(--radius-md); background: var(--inverse); color: var(--fg-inverse); box-shadow: var(--shadow-md); }
+
+.u-project-grid { gap: 24px; }
+.u-project-card { border-radius: var(--radius-2xl); box-shadow: var(--shadow-sm); }
+.u-project-card:hover { box-shadow: var(--shadow-sm); translate: none; }
+.u-project-card:hover .u-project-thumb-media { scale: 1; }
+.u-project-thumb { border-radius: var(--radius-sm); }
+.u-project-title { font-size: 16px; line-height: 24px; letter-spacing: -0.011em; }
+.u-add-card, .u-dropzone { border-radius: var(--radius-2xl); }
+.u-add-card:hover .u-icon, .u-dropzone:hover .u-dropzone-icon { rotate: none; }
+.u-dropzone:hover .u-dropzone-media { scale: 1; }
+
+.u-label { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--fg); }
+.u-section-label {
+  font-family: var(--font-display); font-size: 20px; line-height: 28px; font-weight: 500;
+  letter-spacing: 0; text-transform: none; color: var(--fg); margin: 32px 0 12px; padding-top: 20px;
+}
+.u-row-card { border-radius: var(--radius-xl); }
+.u-row-card-title { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--fg-muted); }
+.u-input, .u-select, .u-textarea {
+  border: 0; border-radius: var(--radius-lg); background: var(--field);
+  box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line); transition: box-shadow .15s;
+}
+.u-input, .u-select { height: 36px; }
+.u-select { background-color: var(--control); box-shadow: var(--shadow-button); }
+.u-input:hover, .u-textarea:hover { box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line-strong); }
+.u-input:focus, .u-select:focus, .u-textarea:focus { outline: none; background: var(--field); box-shadow: var(--shadow-focus), inset 0 0 0 1px var(--line-focus); }
+.u-toggle[aria-checked="true"] { background: var(--primary); }
+.u-editor-topbar-title { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: -0.011em; }
+.u-preview-label { text-transform: none; letter-spacing: 0; }

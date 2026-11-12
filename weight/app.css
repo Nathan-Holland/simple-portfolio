@@ -351,3 +351,82 @@ input[type="number"] { -moz-appearance: textfield; }
   .view, .toast, .savebar { animation: none; }
   .due.now::before { animation: none; }
 }
+
+/* ---------- Cards design system: WeightWise specifics ---------- */
+.hero { margin: 48px auto 32px; }
+.view { gap: 24px; animation: rise .2s cubic-bezier(.16,1,.3,1) both; }
+@keyframes rise { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
+.grid-2, .grid-main, .stack, .foods, .meals { gap: 24px; }
+.card { padding: 24px; }
+.card.tight { padding: 20px; }
+.head { margin-bottom: 20px; }
+/* Section tabs: a tray with a raised selected tab */
+.tabs { top: 0; padding: 8px 16px; margin-bottom: 24px; gap: 4px; background: color-mix(in srgb, var(--canvas) 90%, transparent); }
+.tabs button { min-height: 28px; padding: 0 12px; border-radius: 4px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--fg-muted); }
+.tabs button:hover, .tabs button[aria-selected="true"] { color: var(--fg); }
+.tabs button:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.tab-indicator { top: 8px; bottom: 8px; border-radius: 4px; background: var(--raised); box-shadow: var(--shadow-sm); transition: translate .2s var(--ease-tactile), width .2s var(--ease-tactile); }
+/* Activity choices are tiles */
+.options { gap: 8px; }
+.option { padding: 12px 16px; border: 0; border-radius: var(--radius-lg); background: transparent; box-shadow: inset 0 0 0 1px var(--line); transition: box-shadow .15s; }
+.option:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
+.option[aria-checked="true"] { background: var(--raised); box-shadow: var(--shadow-sm), inset 0 0 0 1px rgb(0 0 0 / 0.5); }
+.option:focus-visible { outline: 2px solid var(--line-focus); outline-offset: 2px; }
+.option .radio { border: 0; background: var(--surface); box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line-strong); }
+.option[aria-checked="true"] .radio { background: var(--primary); box-shadow: none; }
+.option[aria-checked="true"] .radio::after { width: 8px; height: 8px; background: #fff; }
+.option span.d { color: var(--fg-muted); font-size: 12px; line-height: 16px; }
+.field.error .options .option { box-shadow: inset 0 0 0 1px var(--danger); }
+.more { border-top-color: var(--line); }
+.more summary { font-size: 14px; line-height: 20px; }
+.more summary svg { color: var(--fg-subtle); }
+.more summary .tag { font-family: var(--font-sans); font-size: 12px; color: var(--fg-muted); }
+.steps { font-size: 14px; line-height: 20px; color: var(--fg-muted); margin-bottom: 16px; }
+.steps .n { width: 24px; height: 24px; font-size: 12px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.steps .s.on, .steps .s.done { color: var(--fg); font-weight: 500; }
+.steps .s.on .n, .steps .s.done .n { background: var(--primary); color: #fff; box-shadow: none; }
+.steps .line { width: 24px; background: var(--line-strong); }
+.actions { gap: 8px; margin: 24px -24px -24px; padding: 16px 24px; border-top: 1px solid var(--line); }
+.snapshot { gap: 8px; }
+.snap { padding: 12px 16px; }
+.preview { padding: 20px; border-radius: var(--radius-xl); background: var(--inverse); }
+.preview .v { font-size: 32px; line-height: 40px; font-weight: 500; letter-spacing: -0.005em; }
+.preview .v small { font-size: 16px; }
+/* Big numbers: heading sizes, medium weight, tabular */
+.now { gap: 20px; }
+.now .big, .kcal { font-family: var(--font-display); font-size: 48px; line-height: 56px; font-weight: 500; letter-spacing: -0.01em; }
+.now .big small, .kcal small { font-size: 18px; font-weight: 400; color: var(--fg-muted); }
+.goal-track .bar, .scale .track, .macro-bar { height: 8px; background: var(--track); }
+.goal-track .bar span { background: var(--primary); transition: width .6s var(--ease-tactile); }
+.goal-track .ends { font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.stats { gap: 24px; }
+.legend { font-size: 12px; line-height: 16px; color: var(--fg-muted); gap: 16px; }
+.chart .grid line { stroke: var(--line); }
+.chart .axis text, .chart .goal-label, .scale .labels { font-family: var(--font-mono); font-size: 11px; }
+.chart .line, .chart .dot { stroke: var(--fg); }
+.chart .dot.last { fill: var(--fg); }
+.row { min-height: 52px; border-bottom-color: var(--line); }
+.row .d small, .row .c { color: var(--fg-muted); }
+.row .c.down { color: var(--success-fg); }
+.row .c.up { color: var(--danger-fg); }
+.macros, .minis { gap: 8px; }
+.macro { padding: 12px 16px; }
+.why { font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.scale .marker { background: var(--fg); box-shadow: 0 0 0 2px var(--surface); }
+.kv div { padding: 12px 0; border-top-color: var(--line); }
+.kv dt { color: var(--fg-muted); }
+.food .emoji { width: 40px; height: 40px; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.food li { border-top-color: var(--line); }
+.food li span { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); }
+.shop li input { accent-color: var(--primary); }
+.shop li input:checked + span { color: var(--fg-muted); }
+.savebar { padding: 8px 8px 8px 20px; border-radius: var(--radius-2xl); background: var(--inverse); box-shadow: var(--shadow-md); animation: rise .2s cubic-bezier(.16,1,.3,1); }
+.savebar .btn { background: var(--control); color: var(--fg); box-shadow: var(--shadow-button); }
+.savebar .btn.ghost { background: transparent; color: rgb(255 255 255 / 0.7); box-shadow: none; }
+.savebar .btn.ghost:hover { background: rgb(255 255 255 / 0.1); color: #fff; }
+@media (max-width: 560px) {
+  .hero { margin: 32px auto 24px; }
+  .card { padding: 20px; }
+  .actions { margin: 24px -20px -20px; padding: 16px 20px; }
+  .now .big, .kcal { font-size: 40px; line-height: 48px; }
+}
