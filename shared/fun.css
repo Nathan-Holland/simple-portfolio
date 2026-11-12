@@ -1,0 +1,78 @@
+/* Playful layer on top of the Cards look (see fun.js): particle bars, a soft aurora behind
+   the page, a cursor spotlight on cards, springy icons and a shimmer on page titles.
+   Everything here is decoration: it switches off for reduced motion. */
+
+/* The drawing surface for particles, comets and confetti */
+.fx-canvas { position: fixed; inset: 0; z-index: 900; pointer-events: none; }
+/* A bar that fun.js is drawing as particles: keep its size, hide its flat fill */
+.fx-bar { opacity: 0 !important; }
+.fx-tip {
+  position: fixed; z-index: 901; pointer-events: none; transform: translate(-50%, -100%);
+  padding: 4px 8px; border-radius: var(--radius-md, 6px); background: var(--inverse, #0A0A0A); color: #fff;
+  font: 500 12px/16px var(--font-sans, system-ui); font-variant-numeric: tabular-nums; white-space: nowrap;
+  box-shadow: var(--shadow-md, 0 4px 8px rgb(0 0 0 / .18));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Bars get a little taller so the particles have room, and their tracks go see-through */
+  .ww .bar, .train-meter, .bs-bar, .sv-progress, .goal-track .bar, .meter, .item-bar, .scale .track { height: 10px; overflow: visible; background: rgb(10 10 10 / 0.05); }
+  .meter.big, .macro-bar { height: 14px; overflow: visible; }
+  .split-bar { overflow: visible; }
+
+  /* Aurora: three soft colour clouds drifting slowly behind everything */
+  html { background: var(--canvas, #F5F5F5); }
+  body { background: transparent !important; position: relative; }
+  body::before {
+    content: ""; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(38% 34% at 18% 22%, rgb(142 81 255 / 0.10), transparent 70%),
+      radial-gradient(34% 32% at 82% 18%, rgb(43 127 255 / 0.09), transparent 70%),
+      radial-gradient(40% 36% at 62% 88%, rgb(255 105 0 / 0.07), transparent 70%);
+    filter: blur(20px);
+    animation: fx-aurora 26s ease-in-out infinite alternate;
+  }
+  @keyframes fx-aurora {
+    0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+    50% { transform: translate3d(3%, -2%, 0) rotate(6deg) scale(1.08); }
+    100% { transform: translate3d(-3%, 3%, 0) rotate(-5deg) scale(1.02); }
+  }
+
+  /* Cursor spotlight: a faint colour glow follows the pointer across cards */
+  .card:hover, .tile:hover, .stat:hover, .sv-card:hover, .bs-hero:hover, .bs-stat:hover, .bs-cats:hover, .story:hover, .u-project-card:hover {
+    background-image:
+      radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgb(142 81 255 / 0.08), rgb(43 127 255 / 0.05) 45%, transparent 72%);
+  }
+
+  /* Page titles: a slow colour shimmer sweeps through the ink */
+  .nh-hero h1, .hero h1, .greet h1, .u-hero h1 {
+    background: linear-gradient(100deg, var(--fg, #0A0A0A) 0%, var(--fg, #0A0A0A) 38%, #8E51FF 46%, #2B7FFF 52%, #FF6900 58%, var(--fg, #0A0A0A) 66%, var(--fg, #0A0A0A) 100%);
+    background-size: 280% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+    animation: fx-shimmer 9s ease-in-out infinite;
+  }
+  @keyframes fx-shimmer { 0%, 55% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+
+  /* Shortcut icons: a springy pop and tilt */
+  .quick .qi { transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s; }
+  .quick a:hover .qi { transform: translateY(-3px) rotate(-4deg) scale(1.1); box-shadow: var(--shadow-button), 0 10px 18px -10px rgb(0 0 0 / 0.35); }
+  .quick li:nth-child(even) a:hover .qi { transform: translateY(-3px) rotate(4deg) scale(1.1); }
+
+  /* Cards and stat tiles lift a touch, pictures zoom a touch */
+  .story, .grid > .card, .stat, .tile, .u-project-card { transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s, background-color .15s; }
+  .story:hover, .grid > .card:hover, button.stat:hover, .tile:hover, .u-project-card:hover { transform: translateY(-3px); box-shadow: 0 1px 2px rgb(0 0 0 / .1), 0 14px 28px -18px rgb(0 0 0 / 0.35); }
+  .story .img img, .media img.shot { transition: scale .6s cubic-bezier(.2, .7, .2, 1); }
+  .story:hover .img img, .card:hover .media img.shot { scale: 1.04; }
+
+  /* Workout dots pop when they turn done */
+  .day.done .dot, .task .checks .done .box { animation: fx-pop .45s cubic-bezier(.34, 1.56, .64, 1); }
+  @keyframes fx-pop { 0% { transform: scale(.4); } 100% { transform: scale(1); } }
+
+  /* Primary buttons: a light sweep across on hover */
+  .pill-btn.dark, .btn.dark, .u-btn-primary { position: relative; overflow: hidden; }
+  .pill-btn.dark::after, .btn.dark::after, .u-btn-primary::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.28) 50%, transparent 70%);
+    transform: translateX(-120%);
+  }
+  .pill-btn.dark:hover::after, .btn.dark:hover::after, .u-btn-primary:hover::after { transform: translateX(120%); transition: transform .7s cubic-bezier(.2, .7, .2, 1); }
+}
