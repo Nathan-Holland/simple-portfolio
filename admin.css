@@ -18,8 +18,8 @@
   --u-danger: #c62828;
   --u-danger-bg: #fdecea;
   --u-ease: cubic-bezier(.2, .7, .2, 1);
-  --u-sans: "InterVariable", "Inter", system-ui, -apple-system, sans-serif;
-  --u-mono: "DM Mono", ui-monospace, monospace;
+  --u-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --u-mono: "Geist Mono", ui-monospace, monospace;
 
   font-family: var(--u-sans);
   font-size: 14px;
