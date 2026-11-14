@@ -4,44 +4,152 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nate Holland</title>
-<meta name="description" content="Nate Holland is a British designer based in Barcelona, leading Retail and Trust design at Revolut.">
+<meta name="description" content="Nate Holland is a British designer based in Barcelona, a senior designer at Revolut, working on Retail and Trust.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 <style>
-  :root { color-scheme: light dark; --bg: #fff; --ink: #000; --mute: #8a8a8a; --line: rgb(0 0 0 / .35); }
-  @media (prefers-color-scheme: dark) { :root { --bg: #0b0b0b; --ink: #f2f2f2; --mute: #8a8a8a; --line: rgb(255 255 255 / .4); } }
+  :root { color-scheme: light dark; --bg: #fff; --ink: #16161d; --mute: rgb(22 22 29 / .42); --line: rgb(22 22 29 / .28); --ease: cubic-bezier(.4, 0, .2, 1); }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0c0c0c; --ink: #f1f1f1; --mute: rgb(255 255 255 / .42); --line: rgb(255 255 255 / .32); } }
   * { box-sizing: border-box; }
   html { background: var(--bg); }
   body {
-    margin: 0; padding: 16px;
-    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    margin: 0; padding: 32px 36px 120px;
+    font: 12px/1.45 "InterVariable", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-feature-settings: "cv11", "ss03"; letter-spacing: -0.003em;
     color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased;
   }
-  main { width: 100%; max-width: 400px; }
-  h1 { margin: 0; font: inherit; }
-  .updated { margin: 0 0 32px; color: var(--mute); }
-  p { margin: 0 0 14px; }
-  a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; transition: text-decoration-color .2s; }
+  /* Everything hangs off the left edge: a label column, then the content */
+  main { max-width: 760px; margin: 0; }
+  h1, h2, p { margin: 0; font: inherit; }
+  .grid { display: grid; grid-template-columns: 200px minmax(0, 1fr); column-gap: 24px; }
+  .label, .role, .year, .desc { color: var(--mute); }
+  header { margin-bottom: 120px; }
+  header h1 { color: var(--ink); font-weight: 500; }
+  .intro p { max-width: 440px; margin-bottom: 14px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; transition: text-decoration-color .2s, opacity .15s var(--ease); }
   a:hover { text-decoration-color: currentColor; }
-  a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
-  .lock { color: var(--mute); }
-  @media (prefers-reduced-motion: no-preference) {
-    main > * { animation: in .7s cubic-bezier(.2, .7, .2, 1) both; }
-    main > :nth-child(2) { animation-delay: .05s; } main > :nth-child(3) { animation-delay: .12s; }
-    main > :nth-child(4) { animation-delay: .18s; } main > :nth-child(5) { animation-delay: .24s; }
-    main > :nth-child(6) { animation-delay: .3s; }
-    @keyframes in { from { opacity: 0; transform: translateY(6px); } }
+  a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 2px; }
+
+  section { margin-bottom: 72px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: baseline; padding: 3px 0; overflow: hidden; }
+  .line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 10px; }
+  .dot { width: 14px; height: 14px; display: grid; place-items: center; flex: none; }
+  .dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+  .desc { margin-left: 22px; white-space: nowrap; }
+
+  /* Hover (pointer devices), after maximilianberndt.com: the row sits shifted left with a dot
+     tucked in front of it. On hover it slides across, the dot pops in, and the description
+     slides in from the right. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .line { transform: translateX(-24px); transition: transform .4s var(--ease); }
+    .dot::before { transform: translateY(50%) scale(0); transition: transform .4s var(--ease); }
+    .desc { opacity: 0; transform: translateX(80px); transition: opacity .4s var(--ease), transform .4s var(--ease); }
+    li:hover .line { transform: translateX(0); }
+    li:hover .dot::before { transform: translateY(0) scale(1); }
+    li:hover .desc { opacity: 1; transform: translateX(0); }
+    header, .intro, section { animation: in .8s var(--ease) both; }
+    .intro { animation-delay: .06s; } section:nth-of-type(1) { animation-delay: .14s; } section:nth-of-type(2) { animation-delay: .2s; }
+    @keyframes in { from { opacity: 0; transform: translateY(8px); } }
+  }
+  @media (hover: hover) and (prefers-reduced-motion: reduce) {
+    .line { transform: translateX(-24px); } li:hover .line { transform: none; }
+    .dot::before { transform: scale(0); } li:hover .dot::before { transform: none; }
+    .desc { opacity: 0; } li:hover .desc { opacity: 1; }
+  }
+  /* Touch screens have no hover: show everything */
+  @media (hover: none) { .dot { display: none; } }
+
+
+  /* Image preview: a picture slides in on the right while you hover a row that has one */
+  /* Centred in the space to the right of the content (content ends at 36px + 760px) */
+  .peek { position: fixed; left: calc(796px + (100vw - 796px) / 2); top: 50%; width: min(420px, calc(100vw - 796px - 72px)); aspect-ratio: 4 / 3; transform: translate(-50%, -50%); pointer-events: none; z-index: 5; }
+  .peek img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 6px; opacity: 0; }
+  @media (hover: hover) and (min-width: 1000px) {
+    /* Reveals downwards from the top edge */
+    .peek img { clip-path: inset(0 0 100% 0); transform: translateY(-14px); transition: clip-path .6s var(--ease), opacity .3s var(--ease), transform .6s var(--ease); }
+    .peek img.on { opacity: 1; clip-path: inset(0 0 0 0); transform: none; }
+  }
+  @media (hover: none), (max-width: 999px) { .peek { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .peek img { transition: opacity .2s !important; clip-path: none !important; transform: none !important; } }
+
+  @media (max-width: 720px) {
+    body { padding: 24px 20px 80px; }
+    .grid { grid-template-columns: 1fr; row-gap: 14px; }
+    header { margin-bottom: 56px; }
+    .intro p { max-width: none; }
+    section { margin-bottom: 48px; }
+    li { grid-template-columns: 1fr; padding: 4px 0; }
+    li .year { font-size: 11px; }
+    li .year:empty { display: none; }
+    .desc { margin-left: 0; white-space: normal; }
+    .line { gap: 0 14px; }
   }
 </style>
 </head>
 <body>
   <main>
-    <h1>Nate Holland</h1>
-    <p class="updated">Updated 14 November 2026</p>
+    <header class="grid">
+      <div>
+        <h1>Nate Holland</h1>
+        <p class="role">Senior designer, Revolut</p>
+      </div>
+      <div class="intro">
+      <p>I’m a British designer based in Barcelona, currently a senior designer at Revolut, working on Retail and Trust. I like quiet, confident design: editorial thinking, careful type and interaction that feels considered.</p>
+      <p>You can view my work <a href="/work.html">here</a>. It’s password protected, so if you’d like access, <a href="mailto:nathanholland14@gmail.com">send me an email</a>. I’m also on <a href="https://x.com/nateh0lland" target="_blank" rel="noopener">X</a>, <a href="https://www.instagram.com/nateh0lland/" target="_blank" rel="noopener">Instagram</a> and <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank" rel="noopener">LinkedIn</a>.</p>
+    </div>
+    </header>
 
-    <p>Hi, hola.</p>
-    <p>I’m a British designer based in Barcelona, currently leading Retail and Trust design at Revolut.</p>
-    <p>You can view my work <a href="/work.html">here</a>. It’s password protected, so if you’d like access, send me a message.</p>
-    <p>You can find me on <a href="https://x.com/nateh0lland" target="_blank" rel="noopener">X</a>, <a href="https://www.instagram.com/nateh0lland/" target="_blank" rel="noopener">Instagram</a> or <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank" rel="noopener">LinkedIn</a>.</p>
+    <section class="grid" aria-labelledby="exp">
+      <h2 class="label" id="exp">Experience</h2>
+      <ul>
+          <li><span class="year">2026</span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Revolut</span><span class="desc">Senior design, Retail and Trust</span></div></li>
+          <li data-img="/preview/bigwedge.jpg"><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">BigWedge</span><span class="desc">Client</span></div></li>
+          <li><span class="year">2025</span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Preply</span><span class="desc">Growth, marketing and product</span></div></li>
+          <li data-img="/preview/tottenham.jpg"><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Tottenham Hotspur</span><span class="desc">Client</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Roma F.C</span><span class="desc">Client</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">RandCards</span><span class="desc">Client</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">AceTrading</span><span class="desc">Client</span></div></li>
+          <li data-img="/preview/openfortune.jpg"><span class="year">2024</span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">OpenFortune</span><span class="desc">Client</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">NoTwoWays</span><span class="desc">Client</span></div></li>
+          <li><span class="year">2021</span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Series Eight</span><span class="desc">Websites and brand identities</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">PokerStars</span><span class="desc">Product experiences</span></div></li>
+          <li><span class="year">2018</span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Asda</span><span class="desc">Digital experiences</span></div></li>
+          <li><span class="year">2017</span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Despatch Cloud</span><span class="desc">Products and branding</span></div></li>
+      </ul>
+    </section>
+
+    <section class="grid" aria-labelledby="rc">
+      <h2 class="label" id="rc">Recognition</h2>
+      <ul>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">Awwwards</span><span class="desc">Site of the day</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">SiteInspire</span><span class="desc">Feature</span></div></li>
+          <li><span class="year"></span><div class="line"><span class="dot" aria-hidden="true"></span><span class="name">OffCuts</span><span class="desc">Feature</span></div></li>
+      </ul>
+    </section>
   </main>
+  <div class="peek" id="peek" aria-hidden="true"></div>
+  <script>
+    (function () {
+      var peek = document.getElementById("peek"), imgs = {}, current = null;
+      if (!matchMedia("(hover: hover)").matches) return;
+      function get(src) {
+        if (!imgs[src]) { var i = new Image(); i.alt = ""; i.decoding = "async"; i.src = src; peek.appendChild(i); imgs[src] = i; }
+        return imgs[src];
+      }
+      function show(src) {
+        var i = get(src);
+        if (current && current !== i) current.classList.remove("on");
+        current = i;
+        if (i.complete) i.classList.add("on"); else i.onload = function () { if (current === i) i.classList.add("on"); };
+      }
+      function hide() { if (current) current.classList.remove("on"); current = null; }
+      document.querySelectorAll("li[data-img]").forEach(function (li) {
+        li.addEventListener("pointerenter", function () { show(li.dataset.img); });
+        li.addEventListener("pointerleave", hide);
+      });
+    })();
+  </script>
 </body>
 </html>
