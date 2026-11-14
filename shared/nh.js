@@ -22,7 +22,7 @@
     { href: "/spanish", label: "Spanish", icon: "spanish" },
     { href: "/wedding", label: "Wedding", icon: "wedding" },
     "sep",
-    { href: "/", label: "Portfolio", logo: true }
+    { href: "/work.html", label: "Portfolio", logo: true }
   ];
   var LOGO = '<svg viewBox="0 0 28 28" aria-hidden="true" style="fill:currentColor;stroke:none;width:15px;height:15px;color:var(--nh-ink)"><path d="M4 0L0 4V8L4 12H0V24L4 28H12V20L20 28H24L28 24V20L24 16H28V4L24 0H16V8L8 0H4Z"/></svg>';
 

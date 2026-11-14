@@ -12,7 +12,8 @@ import { allowed, realmForPath } from "./api/_site-auth.js";
 export const config = {
   runtime: "nodejs",
   matcher: [
-    "/", "/index.html", "/profile.html", "/admin.html", "/timeline.html",
+    // "/" is the public landing page; the portfolio itself lives at /work.html
+    "/work", "/work.html", "/profile.html", "/admin.html", "/timeline.html",
     // Private: start page, personal tools, admin
     "/home", "/home/:path*",
     "/weight", "/weight/:path*",

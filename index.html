@@ -2,100 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow, noimageindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nate Holland</title>
-<link rel="stylesheet" href="styles.css?v=78">
-<link rel="icon" href="favicon.svg">
+<meta name="description" content="Nate Holland is a British designer based in Barcelona, leading Retail and Trust design at Revolut.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root { color-scheme: light dark; --bg: #fff; --ink: #000; --mute: #8a8a8a; --line: rgb(0 0 0 / .35); }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b0b0b; --ink: #f2f2f2; --mute: #8a8a8a; --line: rgb(255 255 255 / .4); } }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; padding: 16px;
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased;
+  }
+  main { width: 100%; max-width: 400px; }
+  h1 { margin: 0; font: inherit; }
+  .updated { margin: 0 0 32px; color: var(--mute); }
+  p { margin: 0 0 14px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; transition: text-decoration-color .2s; }
+  a:hover { text-decoration-color: currentColor; }
+  a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
+  .lock { color: var(--mute); }
+  @media (prefers-reduced-motion: no-preference) {
+    main > * { animation: in .7s cubic-bezier(.2, .7, .2, 1) both; }
+    main > :nth-child(2) { animation-delay: .05s; } main > :nth-child(3) { animation-delay: .12s; }
+    main > :nth-child(4) { animation-delay: .18s; } main > :nth-child(5) { animation-delay: .24s; }
+    main > :nth-child(6) { animation-delay: .3s; }
+    @keyframes in { from { opacity: 0; transform: translateY(6px); } }
+  }
+</style>
 </head>
 <body>
+  <main>
+    <h1>Nate Holland</h1>
+    <p class="updated">Updated 14 November 2026</p>
 
-  <script>
-    var dq = window.matchMedia("(prefers-color-scheme: dark)");
-    var storedDark = localStorage.getItem("dark");
-    document.body.classList.toggle("dark", storedDark === null ? dq.matches : storedDark === "1");
-  </script>
-
-  <div class="loader" id="loader">
-    <div class="loader-bar-row">
-      <span class="loader-name" id="loaderName">Nate Holland</span>
-      <div class="loader-bar-track"><div class="loader-bar-fill" id="loaderBarFill"></div></div>
-      <span class="loader-pct" id="loaderPct">0%</span>
-    </div>
-  </div>
-  <script>
-    if (sessionStorage.getItem("skipLoader")) {
-      sessionStorage.removeItem("skipLoader");
-      document.getElementById("loader").remove();
-    }
-  </script>
-
-  <div id="smooth-wrapper">
-    <div id="smooth-content">
-
-      <header class="nav">
-        <a href="index.html" class="nav-name">Nate Holland</a>
-        <a href="profile.html" class="nav-profile"><span class="nav-word-flip"><span class="nav-word nav-word-front">Profile</span><span class="nav-word nav-word-back">Work</span></span></a>
-        <button type="button" class="nav-logo" id="darkToggle" aria-label="Toggle dark mode"><img src="logo.svg" alt=""></button>
-        <a href="mailto:nathanholland14@gmail.com" class="nav-email">Email me</a>
-        <span class="nav-clock clock-el">—</span>
-      </header>
-
-      <div class="page-content">
-
-      <main class="work-grid grid14"></main>
-
-      <footer>
-        <span class="footer-year"><img class="footer-icon" src="logo.svg" alt="">2026</span>
-        <a href="#">Instagram</a>
-        <a href="#">Twitter (X)</a>
-        <span class="clock-el">—</span>
-      </footer>
-
-      </div>
-
-    </div>
-  </div>
-
-  <div class="case-modal" id="caseModal" aria-hidden="true">
-    <div class="case-modal-backdrop" id="caseModalBackdrop"></div>
-    <div class="case-modal-scroll" id="caseModalScroll">
-      <div class="case-modal-hero" id="caseModalHero">
-        <div class="case-modal-hero-media" id="caseModalHeroMedia"></div>
-        <button type="button" class="case-modal-close" id="caseModalClose" aria-label="Close case study">×</button>
-      </div>
-
-      <div class="case-modal-body" id="caseModalBody">
-        <section class="case-meta grid14">
-          <div class="case-meta-info">
-            <p class="case-meta-year">© 2026</p>
-            <div class="case-meta-item" id="caseModalClientItem">
-              <p class="case-meta-label">Client</p>
-              <div class="case-meta-value-row">
-                <img class="case-meta-logo" id="caseModalClientLogo" alt="" hidden>
-                <p class="case-meta-value" id="caseModalClient">Client Name</p>
-              </div>
-            </div>
-            <div class="case-meta-divider" id="caseModalDivider"></div>
-            <div class="case-meta-item" id="caseModalPartnerItem">
-              <p class="case-meta-label">Partner</p>
-              <div class="case-meta-value-row">
-                <img class="case-meta-logo" id="caseModalPartnerLogo" alt="" hidden>
-                <p class="case-meta-value" id="caseModalPartner">Partner Name</p>
-              </div>
-            </div>
-          </div>
-          <p class="case-intro" id="caseModalIntro"></p>
-        </section>
-
-        <section class="case-gallery" id="caseGallery"></section>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@latest/dist/ScrollSmoother.min.js"></script>
-  <script src="script.js?v=66"></script>
+    <p>Hi, hola.</p>
+    <p>I’m a British designer based in Barcelona, currently leading Retail and Trust design at Revolut.</p>
+    <p>You can view my work <a href="/work.html">here</a>. It’s password protected, so if you’d like access, send me a message.</p>
+    <p>You can find me on <a href="https://x.com/nateh0lland" target="_blank" rel="noopener">X</a>, <a href="https://www.instagram.com/nateh0lland/" target="_blank" rel="noopener">Instagram</a> or <a href="https://www.linkedin.com/in/nathan-holland-59980995/" target="_blank" rel="noopener">LinkedIn</a>.</p>
+  </main>
 </body>
 </html>
